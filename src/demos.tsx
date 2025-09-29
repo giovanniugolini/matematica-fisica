@@ -14,4 +14,9 @@ export const demos: DemoInfo[] = [
         title: "Angolo come rotazione",
         Component: React.lazy(() => import("./demos/angolo-rotazione/AngleRotationDemo")),
     },
+    {
+        slug: "intervalli-r",
+        title: "Intervalli su ℝ",
+        Component: React.lazy(() => import("./demos/intervalli-r/IntervalliRDemo")),
+    },
 ];
