@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/matematica-fisica/static/css/main.e6c13ad2.css",
+    "main.js": "/matematica-fisica/static/js/main.8c437c8d.js",
+    "static/js/866.6ca58ff6.chunk.js": "/matematica-fisica/static/js/866.6ca58ff6.chunk.js",
+    "index.html": "/matematica-fisica/index.html",
+    "main.e6c13ad2.css.map": "/matematica-fisica/static/css/main.e6c13ad2.css.map",
+    "main.8c437c8d.js.map": "/matematica-fisica/static/js/main.8c437c8d.js.map",
+    "866.6ca58ff6.chunk.js.map": "/matematica-fisica/static/js/866.6ca58ff6.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.e6c13ad2.css",
+    "static/js/main.8c437c8d.js"
+  ]
+}
