@@ -20,23 +20,37 @@ function clamp(v: number, a: number, b: number) {
     return Math.max(a, Math.min(b, v));
 }
 
+/** ---- helper type-guards (fix TS2345 sugli includes) ---- */
+function isFiniteInterval(k: SetKind) {
+    return (
+        [
+            SetKinds.CLOSED,
+            SetKinds.OPEN,
+            SetKinds.LEFT_OPEN,
+            SetKinds.RIGHT_OPEN,
+        ] as SetKind[]
+    ).includes(k);
+}
+function isRayRight(k: SetKind) {
+    return (
+        [SetKinds.RAY_RIGHT_CLOSED, SetKinds.RAY_RIGHT_OPEN] as SetKind[]
+    ).includes(k);
+}
+function isRayLeft(k: SetKind) {
+    return (
+        [SetKinds.RAY_LEFT_CLOSED, SetKinds.RAY_LEFT_OPEN] as SetKind[]
+    ).includes(k);
+}
+function usesA(k: SetKind) {
+    return isFiniteInterval(k) || isRayRight(k);
+}
+function usesB(k: SetKind) {
+    return isFiniteInterval(k) || isRayLeft(k);
+}
+
 function describeSet(kind: SetKind, a: number, b: number) {
-    const lowerBounded = [
-        SetKinds.CLOSED,
-        SetKinds.OPEN,
-        SetKinds.LEFT_OPEN,
-        SetKinds.RIGHT_OPEN,
-        SetKinds.RAY_RIGHT_CLOSED,
-        SetKinds.RAY_RIGHT_OPEN,
-    ].includes(kind);
-    const upperBounded = [
-        SetKinds.CLOSED,
-        SetKinds.OPEN,
-        SetKinds.LEFT_OPEN,
-        SetKinds.RIGHT_OPEN,
-        SetKinds.RAY_LEFT_CLOSED,
-        SetKinds.RAY_LEFT_OPEN,
-    ].includes(kind);
+    const lowerBounded = isFiniteInterval(kind) || isRayRight(kind);
+    const upperBounded = isFiniteInterval(kind) || isRayLeft(kind);
 
     const inf: number | "-∞" = lowerBounded ? a : "-∞";
     const sup: number | "+∞" = upperBounded ? b : "+∞";
@@ -111,15 +125,15 @@ export default function IntervalliRDemo() {
     // Mappatura ℝ <-> pixel
     const view = useMemo(() => {
         let minX: number, maxX: number;
-        if ([SetKinds.CLOSED, SetKinds.OPEN, SetKinds.LEFT_OPEN, SetKinds.RIGHT_OPEN].includes(kind)) {
+        if (isFiniteInterval(kind)) {
             const pad = Math.max(1, (b - a) * 0.2);
             minX = a - pad;
             maxX = b + pad;
-        } else if ([SetKinds.RAY_RIGHT_CLOSED, SetKinds.RAY_RIGHT_OPEN].includes(kind)) {
+        } else if (isRayRight(kind)) {
             const m = Math.max(1, Math.abs(a) + 2);
             minX = a - 2 * m;
             maxX = a + 8 * m;
-        } else if ([SetKinds.RAY_LEFT_CLOSED, SetKinds.RAY_LEFT_OPEN].includes(kind)) {
+        } else if (isRayLeft(kind)) {
             const m = Math.max(1, Math.abs(b) + 2);
             minX = b - 8 * m;
             maxX = b + 2 * m;
@@ -140,11 +154,16 @@ export default function IntervalliRDemo() {
     const lastT = useRef<number | null>(null);
 
     useEffect(() => {
-        const center = SetKinds.WHOLE === kind
-            ? 0
-            : (Number.isFinite(a) && Number.isFinite(b))
-                ? (a + b) / 2
-                : Number.isFinite(a) ? a + 1 : Number.isFinite(b) ? b - 1 : 0;
+        const center =
+            SetKinds.WHOLE === kind
+                ? 0
+                : Number.isFinite(a) && Number.isFinite(b)
+                    ? (a + b) / 2
+                    : Number.isFinite(a)
+                        ? a + 1
+                        : Number.isFinite(b)
+                            ? b - 1
+                            : 0;
         setX(center);
         setVx(1);
     }, [kind, a, b]);
@@ -181,8 +200,13 @@ export default function IntervalliRDemo() {
     const ax = Number.isFinite(a) ? view.toPx(a) : null;
     const bx = Number.isFinite(b) ? view.toPx(b) : null;
 
-    const includeA = [SetKinds.CLOSED, SetKinds.RIGHT_OPEN, SetKinds.RAY_RIGHT_CLOSED].includes(kind);
-    const includeB = [SetKinds.CLOSED, SetKinds.LEFT_OPEN, SetKinds.RAY_LEFT_CLOSED].includes(kind);
+    // Estremi inclusi
+    const includeA = (
+        [SetKinds.CLOSED, SetKinds.RIGHT_OPEN, SetKinds.RAY_RIGHT_CLOSED] as SetKind[]
+    ).includes(kind);
+    const includeB = (
+        [SetKinds.CLOSED, SetKinds.LEFT_OPEN, SetKinds.RAY_LEFT_CLOSED] as SetKind[]
+    ).includes(kind);
 
     /** ===== UI ===== */
     const card: React.CSSProperties = { background: "#fff", borderRadius: 16, padding: 12, boxShadow: "0 1px 4px rgba(0,0,0,0.1)" };
@@ -250,35 +274,39 @@ export default function IntervalliRDemo() {
             </div>
 
             {/* Number line */}
-            <div ref={lineRef}
-                 style={{ position: "relative", border: "1px solid #e5e7eb", borderRadius: 16, background: "#fff",
-                     boxShadow: "inset 0 1px 3px rgba(0,0,0,0.04)", height: 160, overflow: "hidden", marginTop: 12 }}>
+            <div
+                ref={lineRef}
+                style={{
+                    position: "relative",
+                    border: "1px solid #e5e7eb",
+                    borderRadius: 16,
+                    background: "#fff",
+                    boxShadow: "inset 0 1px 3px rgba(0,0,0,0.04)",
+                    height: 160,
+                    overflow: "hidden",
+                    marginTop: 12
+                }}
+            >
                 {/* base line */}
                 <div style={{ position: "absolute", left: 20, right: 20, top: "50%", height: 2, background: "#111827" }} />
 
                 {/* infinity arrows */}
                 {!desc.lowerBounded && (
                     <div style={{ position: "absolute", left: 8, top: "50%", transform: "translateY(-50%)" }}>
-                        <div style={{
-                            width: 0, height: 0, borderTop: "6px solid transparent", borderBottom: "6px solid transparent",
-                            borderRight: "12px solid #111827"
-                        }} />
+                        <div style={{ width: 0, height: 0, borderTop: "6px solid transparent", borderBottom: "6px solid transparent", borderRight: "12px solid #111827" }} />
                     </div>
                 )}
                 {!desc.upperBounded && (
                     <div style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%) rotate(180deg)" }}>
-                        <div style={{
-                            width: 0, height: 0, borderTop: "6px solid transparent", borderBottom: "6px solid transparent",
-                            borderRight: "12px solid #111827"
-                        }} />
+                        <div style={{ width: 0, height: 0, borderTop: "6px solid transparent", borderBottom: "6px solid transparent", borderRight: "12px solid #111827" }} />
                     </div>
                 )}
 
                 {/* endpoints */}
-                {Number.isFinite(a) && [SetKinds.CLOSED, SetKinds.OPEN, SetKinds.LEFT_OPEN, SetKinds.RIGHT_OPEN, SetKinds.RAY_RIGHT_CLOSED, SetKinds.RAY_RIGHT_OPEN].includes(kind) && ax !== null && (
+                {Number.isFinite(a) && usesA(kind) && ax !== null && (
                     <Marker x={ax} included={includeA} label="a" />
                 )}
-                {Number.isFinite(b) && [SetKinds.CLOSED, SetKinds.OPEN, SetKinds.LEFT_OPEN, SetKinds.RIGHT_OPEN, SetKinds.RAY_LEFT_CLOSED, SetKinds.RAY_LEFT_OPEN].includes(kind) && bx !== null && (
+                {Number.isFinite(b) && usesB(kind) && bx !== null && (
                     <Marker x={bx} included={includeB} label="b" />
                 )}
 
@@ -287,20 +315,36 @@ export default function IntervalliRDemo() {
                     const y = 20; const thickness = 6;
                     let L = Number.isFinite(a) && ax !== null ? ax : 20;
                     let R = Number.isFinite(b) && bx !== null ? bx : (geom.width - 20);
-                    if ([SetKinds.RAY_RIGHT_CLOSED, SetKinds.RAY_RIGHT_OPEN].includes(kind) && ax !== null) { L = ax; R = geom.width - 20; }
-                    if ([SetKinds.RAY_LEFT_CLOSED, SetKinds.RAY_LEFT_OPEN].includes(kind) && bx !== null) { L = 20; R = bx; }
-                    if (kind === SetKinds.WHOLE) { L = 20; R = geom.width - 20; }
+                    if (isRayRight(kind) && ax !== null) { L = ax; R = geom.width - 20; }
+                    if (isRayLeft(kind) && bx !== null)  { L = 20; R = bx; }
+                    if (kind === SetKinds.WHOLE)         { L = 20; R = geom.width - 20; }
                     const barWrap: React.CSSProperties = { position: "absolute", left: 0, right: 0, top: `calc(50% - ${y}px)` };
-                    const bar: React.CSSProperties = { position: "absolute", left: Math.min(L, R), width: Math.abs(R - L),
-                        height: thickness, background: "rgba(59,130,246,0.25)", top: -thickness / 2 };
+                    const bar: React.CSSProperties = {
+                        position: "absolute",
+                        left: Math.min(L, R),
+                        width: Math.abs(R - L),
+                        height: thickness,
+                        background: "rgba(59,130,246,0.25)",
+                        top: -thickness / 2
+                    };
                     return <div style={barWrap}><div style={bar} /></div>;
                 })()}
 
                 {/* ball */}
-                <div title="pallina"
-                     style={{ position: "absolute", width: 20, height: 20, borderRadius: "50%", background: "#e11d48",
-                         boxShadow: "0 2px 6px rgba(0,0,0,0.15)", left: px, top: "50%",
-                         transform: "translate(-50%, -50%)" }} />
+                <div
+                    title="pallina"
+                    style={{
+                        position: "absolute",
+                        width: 20,
+                        height: 20,
+                        borderRadius: "50%",
+                        background: "#e11d48",
+                        boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+                        left: px,
+                        top: "50%",
+                        transform: "translate(-50%, -50%)"
+                    }}
+                />
                 {/* labels min/max */}
                 {desc.hasMin && Number.isFinite(a) && ax !== null && (
                     <div style={{ position: "absolute", fontSize: 12, color: "#047857", left: ax, top: 64, transform: "translateX(-50%)" }}>min = a</div>
