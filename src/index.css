@@ -11,3 +11,20 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+/* Layout base */
+.container { max-width: 10000px; margin: 0 auto; padding: 12px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.card { border-radius: 16px; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.1); }
+
+/* Mobile */
+@media (max-width: 700px) {
+  .grid-2 { grid-template-columns: 1fr; }
+  .card { padding: 10px; }
+  button, input, select { font-size: 16px; } /* evita zoom-forzato su iOS */
+}
+
+/* Touch: niente selezioni involontarie/scroll durante drag */
+svg, .container {
+  -webkit-user-select: none; user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
