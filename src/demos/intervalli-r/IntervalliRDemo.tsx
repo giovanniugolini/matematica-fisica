@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
-/** ===== Types & constants ===== */
+/** ====== Types & constants ===== */
 const SetKinds = {
     CLOSED: "[a,b]",
     OPEN: "(a,b)",
