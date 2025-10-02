@@ -29,4 +29,9 @@
             title: "Legge di Coulomb (2 cariche)",
             Component: React.lazy(() => import("./demos/legge-coulomb/LeggeCoulombDemo")),
         },
+        {
+            slug: "campo-elettrico",
+            title: "Campo elettrico (1 carica)",
+            Component: React.lazy(() => import("./demos/campo-elettrico/CampoElettricoDemo")),
+        },
     ];
