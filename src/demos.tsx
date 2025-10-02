@@ -24,4 +24,9 @@
             title: "Velocità media (secante su s(t))",
             Component: React.lazy(() => import("./demos/media-velocita-secante/MediaVelocitaSecanteDemo")),
         },
+        {
+            slug: "legge-di-coulomb",
+            title: "Legge di Coulomb (2 cariche)",
+            Component: React.lazy(() => import("./demos/legge-coulomb/LeggeCoulombDemo")),
+        },
     ];
