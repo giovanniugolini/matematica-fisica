@@ -5,7 +5,7 @@ import { demos } from "./demos";
 function Home() {
   return (
       <div style={{ maxWidth: 900, margin: "auto", padding: 16 }}>
-        <h1>Matematica & Fisica – Demo interattive per le lezioni Giovanni Ugolini</h1>
+        <h1>Matematica & Fisica – Demo interattive per le lezioni di Giovanni Ugolini</h1>
         <ul>
           {demos.map((d) => (
               <li key={d.slug}>
