@@ -51,7 +51,16 @@ export const demos: DemoInfo[] = [
         Component: React.lazy(
             () => import("./demos/misure/NotazioneScientificaDemo")
         ),
+
     },
+    {
+        slug: "probabilita-urna-albero",
+        title: "Probabilità: estrazioni da un'urna (albero)",
+        Component: React.lazy(
+            () => import("./demos/probabilita/UrnProbabilityTreeDemo")
+        ),
+    },
+
 
 
 ];
