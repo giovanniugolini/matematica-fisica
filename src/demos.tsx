@@ -40,4 +40,18 @@ export const demos: DemoInfo[] = [
         title: "Campo elettrico (1 carica)",
         Component: React.lazy(() => import("./demos/campo-elettrico/CampoElettricoDemo")),
     },
+    {
+        slug: "conversione-unita",
+        title: "Multipli e sottomultipli dell'unità di misura",
+        Component: React.lazy(() => import("./demos/misure/ConversioneUnitaDemo")),
+    },
+    {
+        slug: "misure",
+        title: "Notazione scientifica delle misure",
+        Component: React.lazy(
+            () => import("./demos/misure/NotazioneScientificaDemo")
+        ),
+    },
+
+
 ];

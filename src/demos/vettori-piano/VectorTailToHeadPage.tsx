@@ -168,12 +168,16 @@ const VectorTailToHeadPage: React.FC = () => {
     };
 
     // animazione metodo punta-coda: porta la coda di B sulla punta di A
+    // animazione metodo punta-coda: porta la coda di B sulla punta di A
     const animateTailToHead = () => {
         if (isAnimatingRef.current) return;
 
-        setOriginMode(false); // vista geometrica
+        setOriginMode(false);     // vista geometrica
         setDrawMode("none");
         setPendingStart(null);
+
+        // durante l'animazione: NON mostrare la somma
+        setShowSum(false);
 
         const startX0 = vecB.x0;
         const startY0 = vecB.y0;
@@ -184,7 +188,6 @@ const VectorTailToHeadPage: React.FC = () => {
         let startTime: number | null = null;
 
         isAnimatingRef.current = true;
-        setShowSum(true); // mostro la somma durante/dopo l’animazione
 
         const step = (timestamp: number) => {
             if (startTime === null) startTime = timestamp;
@@ -204,11 +207,14 @@ const VectorTailToHeadPage: React.FC = () => {
                 requestAnimationFrame(step);
             } else {
                 isAnimatingRef.current = false;
+                // a fine animazione: ora DISEGNA il vettore somma
+                setShowSum(true);
             }
         };
 
         requestAnimationFrame(step);
     };
+
 
     // TRASLAZIONE FINALE ANIMATA: tutti i vettori con coda in (0,0)
     const bringAllToOrigin = () => {
