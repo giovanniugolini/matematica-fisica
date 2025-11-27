@@ -168,11 +168,10 @@ const VectorTailToHeadPage: React.FC = () => {
     };
 
     // animazione metodo punta-coda: porta la coda di B sulla punta di A
-    // animazione metodo punta-coda: porta la coda di B sulla punta di A
     const animateTailToHead = () => {
         if (isAnimatingRef.current) return;
 
-        setOriginMode(false);     // vista geometrica
+        setOriginMode(false); // vista geometrica
         setDrawMode("none");
         setPendingStart(null);
 
@@ -214,7 +213,6 @@ const VectorTailToHeadPage: React.FC = () => {
 
         requestAnimationFrame(step);
     };
-
 
     // TRASLAZIONE FINALE ANIMATA: tutti i vettori con coda in (0,0)
     const bringAllToOrigin = () => {
@@ -332,80 +330,65 @@ const VectorTailToHeadPage: React.FC = () => {
                 : "";
 
     return (
-        <div
-            style={{
-                padding: "1.5rem",
-                maxWidth: "1100px",
-                margin: "0 auto",
-                fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
-            }}
-        >
-            <h1 style={{ fontSize: "1.8rem", marginBottom: "0.5rem" }}>
-                Somma di vettori – metodo punta-coda
-            </h1>
-            <p style={{ marginBottom: "1rem", lineHeight: 1.4 }}>
-                1) Puoi generare due vettori casuali nel piano oppure disegnarli con due clic
-                (coda e punta). 2) Usa <em>“Anima metodo punta-coda”</em> per spostare la
-                coda di B sulla punta di A e vedere graficamente la somma. 3) Con{" "}
-                <em>“Trasla tutti all&apos;origine”</em> metti A, B e A+B in posizione
-                standard, con coda nell&apos;origine.
+        <div className="demo-page">
+            <h1 className="page-title">Somma di vettori – metodo punta-coda</h1>
+            <p className="page-subtitle">
+                Genera vettori casuali o disegnarli nel piano, anima il metodo punta-coda e
+                porta tutti i vettori in posizione standard con coda nell&apos;origine.
             </p>
 
             <div
                 style={{
                     display: "grid",
-                    gridTemplateColumns: "1.2fr 1fr",
+                    gridTemplateColumns: "minmax(0, 1.3fr) minmax(0, 1fr)",
                     gap: "1.5rem",
                     alignItems: "flex-start",
+                    marginTop: "1rem",
                 }}
             >
                 {/* Area grafica */}
-                <div
-                    style={{
-                        border: "1px solid #ddd",
-                        borderRadius: "12px",
-                        padding: "0.5rem",
-                        boxShadow: "0 2px 6px rgba(0, 0, 0, 0.06)",
-                    }}
-                >
+                <div className="card">
                     <svg
                         width={WIDTH}
                         height={HEIGHT}
                         onClick={handleSvgClick}
                         style={{ cursor: drawMode === "none" ? "default" : "crosshair" }}
                     >
-                        {/* sfondo */}
+                        {/* sfondo a quadretti tipo quaderno */}
+                        <defs>
+                            <pattern
+                                id="graphPaperVectors"
+                                x="0"
+                                y="0"
+                                width="20"
+                                height="20"
+                                patternUnits="userSpaceOnUse"
+                            >
+                                <rect width="20" height="20" fill="#fafafa" />
+                                <path
+                                    d="M20 0 H0 V20"
+                                    fill="none"
+                                    stroke="#e0e0e0"
+                                    strokeWidth={1}
+                                />
+                                <path
+                                    d="M0 10 H20 M10 0 V20"
+                                    fill="none"
+                                    stroke="#f0f0f0"
+                                    strokeWidth={0.7}
+                                />
+                            </pattern>
+                        </defs>
+
                         <rect
                             x={0}
                             y={0}
                             width={WIDTH}
                             height={HEIGHT}
-                            fill="#fafafa"
+                            fill="url(#graphPaperVectors)"
                             stroke="#ccc"
                         />
-                        {/* griglia */}
-                        {Array.from({ length: 21 }, (_, i) => i - 10).map((k) => (
-                            <React.Fragment key={k}>
-                                {/* verticali */}
-                                <line
-                                    x1={toSvgX(k)}
-                                    y1={0}
-                                    x2={toSvgX(k)}
-                                    y2={HEIGHT}
-                                    stroke="#eee"
-                                    strokeWidth={1}
-                                />
-                                {/* orizzontali */}
-                                <line
-                                    x1={0}
-                                    y1={toSvgY(k)}
-                                    x2={WIDTH}
-                                    y2={toSvgY(k)}
-                                    stroke="#eee"
-                                    strokeWidth={1}
-                                />
-                            </React.Fragment>
-                        ))}
+
                         {/* assi */}
                         <line
                             x1={0}
@@ -498,51 +481,25 @@ const VectorTailToHeadPage: React.FC = () => {
                     >
                         <button
                             onClick={randomizeVectors}
-                            style={{
-                                padding: "0.4rem 0.8rem",
-                                borderRadius: "999px",
-                                border: "none",
-                                cursor: "pointer",
-                                fontWeight: 600,
-                                boxShadow: "0 1px 3px rgba(0, 0, 0, 0.2)",
-                            }}
+                            className="btn btn-primary"
                         >
                             Genera vettori casuali
                         </button>
                         <button
                             onClick={animateTailToHead}
-                            style={{
-                                padding: "0.4rem 0.8rem",
-                                borderRadius: "999px",
-                                border: "none",
-                                cursor: "pointer",
-                                fontWeight: 600,
-                                boxShadow: "0 1px 3px rgba(0, 0, 0, 0.2)",
-                            }}
+                            className="btn btn-primary"
                         >
                             Anima metodo punta-coda
                         </button>
                         <button
                             onClick={bringAllToOrigin}
-                            style={{
-                                padding: "0.4rem 0.8rem",
-                                borderRadius: "999px",
-                                border: "none",
-                                cursor: "pointer",
-                                fontWeight: 600,
-                                boxShadow: "0 1px 3px rgba(0, 0, 0, 0.2)",
-                            }}
+                            className="btn btn-primary"
                         >
                             Trasla tutti all&apos;origine
                         </button>
                         <button
                             onClick={resetVectors}
-                            style={{
-                                padding: "0.4rem 0.8rem",
-                                borderRadius: "999px",
-                                border: "none",
-                                cursor: "pointer",
-                            }}
+                            className="btn btn-secondary"
                         >
                             Reset
                         </button>
@@ -558,56 +515,48 @@ const VectorTailToHeadPage: React.FC = () => {
                     >
                         <button
                             onClick={() => startDrawVector("A")}
-                            style={{
-                                padding: "0.35rem 0.8rem",
-                                borderRadius: "999px",
-                                border:
-                                    drawMode === "A" ? "2px solid #1f77b4" : "1px solid #ccc",
-                                cursor: "pointer",
-                                fontSize: "0.9rem",
-                                background:
-                                    drawMode === "A" ? "rgba(31,119,180,0.1)" : "white",
-                            }}
+                            className="btn btn-secondary"
+                            style={
+                                drawMode === "A"
+                                    ? {
+                                        border: "2px solid #1f77b4",
+                                        background: "rgba(31,119,180,0.08)",
+                                    }
+                                    : {}
+                            }
                         >
                             Disegna vettore A (2 clic)
                         </button>
                         <button
                             onClick={() => startDrawVector("B")}
-                            style={{
-                                padding: "0.35rem 0.8rem",
-                                borderRadius: "999px",
-                                border:
-                                    drawMode === "B" ? "2px solid #2ca02c" : "1px solid #ccc",
-                                cursor: "pointer",
-                                fontSize: "0.9rem",
-                                background:
-                                    drawMode === "B" ? "rgba(44,160,44,0.1)" : "white",
-                            }}
+                            className="btn btn-secondary"
+                            style={
+                                drawMode === "B"
+                                    ? {
+                                        border: "2px solid #2ca02c",
+                                        background: "rgba(44,160,44,0.08)",
+                                    }
+                                    : {}
+                            }
                         >
                             Disegna vettore B (2 clic)
                         </button>
                     </div>
 
                     {/* Vettore A */}
-                    <div
-                        style={{
-                            border: "1px solid #ddd",
-                            borderRadius: "12px",
-                            padding: "0.75rem 1rem",
-                        }}
-                    >
-                        <h2 style={{ fontSize: "1.1rem", marginBottom: "0.5rem" }}>
+                    <div className="card">
+                        <h2 style={{ fontSize: "1.05rem", marginBottom: "0.5rem" }}>
                             Vettore A
                         </h2>
                         <div
                             style={{
                                 display: "grid",
-                                gridTemplateColumns: "repeat(4, 1fr)",
+                                gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
                                 gap: "0.4rem",
                                 alignItems: "center",
                             }}
                         >
-                            <label>
+                            <label style={{ fontSize: "0.9rem" }}>
                                 x₀
                                 <input
                                     type="number"
@@ -617,7 +566,7 @@ const VectorTailToHeadPage: React.FC = () => {
                                     style={{ width: "100%" }}
                                 />
                             </label>
-                            <label>
+                            <label style={{ fontSize: "0.9rem" }}>
                                 y₀
                                 <input
                                     type="number"
@@ -627,7 +576,7 @@ const VectorTailToHeadPage: React.FC = () => {
                                     style={{ width: "100%" }}
                                 />
                             </label>
-                            <label>
+                            <label style={{ fontSize: "0.9rem" }}>
                                 Δx
                                 <input
                                     type="number"
@@ -637,7 +586,7 @@ const VectorTailToHeadPage: React.FC = () => {
                                     style={{ width: "100%" }}
                                 />
                             </label>
-                            <label>
+                            <label style={{ fontSize: "0.9rem" }}>
                                 Δy
                                 <input
                                     type="number"
@@ -651,25 +600,19 @@ const VectorTailToHeadPage: React.FC = () => {
                     </div>
 
                     {/* Vettore B */}
-                    <div
-                        style={{
-                            border: "1px solid #ddd",
-                            borderRadius: "12px",
-                            padding: "0.75rem 1rem",
-                        }}
-                    >
-                        <h2 style={{ fontSize: "1.1rem", marginBottom: "0.5rem" }}>
+                    <div className="card">
+                        <h2 style={{ fontSize: "1.05rem", marginBottom: "0.5rem" }}>
                             Vettore B
                         </h2>
                         <div
                             style={{
                                 display: "grid",
-                                gridTemplateColumns: "repeat(4, 1fr)",
+                                gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
                                 gap: "0.4rem",
                                 alignItems: "center",
                             }}
                         >
-                            <label>
+                            <label style={{ fontSize: "0.9rem" }}>
                                 x₀
                                 <input
                                     type="number"
@@ -679,7 +622,7 @@ const VectorTailToHeadPage: React.FC = () => {
                                     style={{ width: "100%" }}
                                 />
                             </label>
-                            <label>
+                            <label style={{ fontSize: "0.9rem" }}>
                                 y₀
                                 <input
                                     type="number"
@@ -689,7 +632,7 @@ const VectorTailToHeadPage: React.FC = () => {
                                     style={{ width: "100%" }}
                                 />
                             </label>
-                            <label>
+                            <label style={{ fontSize: "0.9rem" }}>
                                 Δx
                                 <input
                                     type="number"
@@ -699,7 +642,7 @@ const VectorTailToHeadPage: React.FC = () => {
                                     style={{ width: "100%" }}
                                 />
                             </label>
-                            <label>
+                            <label style={{ fontSize: "0.9rem" }}>
                                 Δy
                                 <input
                                     type="number"
@@ -713,16 +656,9 @@ const VectorTailToHeadPage: React.FC = () => {
                     </div>
 
                     {/* Componenti Cartesiane */}
-                    <div
-                        style={{
-                            border: "1px solid #ddd",
-                            borderRadius: "12px",
-                            padding: "0.75rem 1rem",
-                            fontSize: "0.9rem",
-                        }}
-                    >
+                    <div className="card" style={{ fontSize: "0.9rem" }}>
                         <h2 style={{ fontSize: "1.05rem", marginBottom: "0.3rem" }}>
-                            Componenti Cartesiane
+                            Componenti cartesiane
                         </h2>
                         <p>
                             A = ({vecA.dx.toFixed(2)}, {vecA.dy.toFixed(2)})

@@ -1,30 +1,183 @@
+/* ===== TEMA GLOBALE ===== */
+
+:root {
+  /* PALETTE PRINCIPALE */
+  --color-bg: #f4f5fb;              /* sfondo generale */
+  --color-bg-accent: #e3ebff;       /* bande / header */
+  --color-card-bg: #ffffff;         /* card */
+  --color-card-border: #d4d7e5;
+
+  --color-primary: #dda62c;         /* simil arancione */
+  --color-primary-soft: #dbeafe;    /* blu chiarissimo */
+  --color-primary-strong: #1d4ed8;
+
+  --color-text-main: #143274;       /* blu scuro */
+  --color-text-muted: #6b7280;      /* grigio testo secondario */
+
+  --shadow-soft: 0 10px 25px rgba(15, 23, 42, 0.08);
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+}
+
+/* ===== BASE ===== */
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+  sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background: radial-gradient(circle at top left, #eef2ff 0, var(--color-bg) 40%);
+  color: var(--color-text-main);
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  monospace;
 }
-/* Layout base */
-.container { max-width: 10000px; margin: 0 auto; padding: 12px; }
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.card { border-radius: 16px; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.1); }
 
-/* Mobile */
+/* ===== LAYOUT APP GLOBALE ===== */
+
+.app-root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  background: linear-gradient(90deg, #1d4ed8, #3b82f6);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  box-shadow: var(--shadow-soft);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.app-header-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+.app-header-sub {
+  font-size: 0.85rem;
+  opacity: 0.9;
+}
+
+.app-main {
+  flex: 1;
+  padding: 1.25rem 1.5rem 2rem;
+}
+
+.app-footer {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: 0.75rem 1rem 1rem;
+}
+
+/* ===== LAYOUT PAGINE DEMO ===== */
+
+.demo-page {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* TITOLI / TESTI PAGINA */
+
+.page-title {
+  font-size: 1.85rem;
+  margin-bottom: 0.2rem;
+}
+
+.page-subtitle {
+  font-size: 0.95rem;
+  color: var(--color-text-muted);
+}
+
+/* ===== LAYOUT GENERICO (TUO VECCHIO + TEMA) ===== */
+
+.container {
+  max-width: 10000px;
+  margin: 0 auto;
+  padding: 12px;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* Card generica: aggiornata al tema */
+.card {
+  border-radius: var(--radius-lg);
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-card-border);
+  box-shadow: var(--shadow-soft);
+  padding: 0.9rem 1.1rem;
+}
+
+/* ===== BOTTONI E CHIP ===== */
+
+.btn {
+  border-radius: var(--radius-pill);
+  border: none;
+  padding: 0.4rem 0.95rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.1s ease;
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: white;
+  box-shadow: 0 6px 14px rgba(37, 99, 235, 0.35);
+}
+
+.btn-primary:hover {
+  background: var(--color-primary-strong);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: white;
+  color: var(--color-text-main);
+  border: 1px solid var(--color-primary-soft);
+}
+
+.btn-secondary:hover {
+  background: var(--color-primary-soft);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  background: var(--color-primary-soft);
+  color: var(--color-primary-strong);
+}
+
+/* ===== MOBILE ===== */
+
 @media (max-width: 700px) {
   .grid-2 { grid-template-columns: 1fr; }
   .card { padding: 10px; }
   button, input, select { font-size: 16px; } /* evita zoom-forzato su iOS */
 }
 
-/* Touch: niente selezioni involontarie/scroll durante drag */
-svg, .container {
-  -webkit-user-select: none; user-select: none;
+/* ===== TOUCH: niente selezioni involontarie/scroll durante drag ===== */
+
+svg,
+.container {
+  -webkit-user-select: none;
+  user-select: none;
   -webkit-tap-highlight-color: transparent;
 }

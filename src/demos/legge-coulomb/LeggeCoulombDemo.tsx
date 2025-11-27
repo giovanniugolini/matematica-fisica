@@ -62,8 +62,8 @@ function Arrow({ x1, y1, x2, y2, color = "#10b981", label }: {
 export default function LeggeCoulombDemo() {
     // Stato cariche: posizione in px e valore in unità selezionata
     const [unit, setUnit] = useState<ChargeUnit>("µC");
-    const [pxPerMeter, setPxPerMeter] = useState<number>(60); // scala: 60 px ≈ 1 m
-    const [gain, setGain] = useState<number>(500); // px per Newton (fattore di visualizzazione vettori)
+    const [pxPerMeter, setPxPerMeter] = useState<number>(130); // scala: 60 px ≈ 1 m
+    const [gain, setGain] = useState<number>(800); // px per Newton (fattore di visualizzazione vettori)
     const [showForces, setShowForces] = useState<boolean>(true);
 
     const [q1, setQ1] = useState<number>(+3); // in unità correnti (es. µC)

@@ -61,6 +61,18 @@ export const demos: DemoInfo[] = [
         ),
     },
 
+    {
+        slug: "disequazioni-soluzioni",
+        title: "Soluzioni di una disequazione: grafico, intervalli, forma algebrica",
+        Component: React.lazy(
+            () =>
+                import(
+                    "./demos/disequazioni/RappresentazioneSoluzioniDisequazioniDemo"
+                    )
+        ),
+    },
+
+
 
 
 ];
