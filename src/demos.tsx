@@ -72,6 +72,17 @@ export const demos: DemoInfo[] = [
         ),
     },
 
+    {
+        slug: "limite-finito-finito",
+        title: "Limite finito per x che tende ad un valore finito",
+        Component: React.lazy(
+            () =>
+                import(
+                    "./demos/limiti/FiniteToFinite"
+                    )
+        ),
+    },
+
 
 
 
