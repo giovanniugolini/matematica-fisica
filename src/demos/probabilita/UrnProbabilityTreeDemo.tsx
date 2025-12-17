@@ -72,6 +72,65 @@ function formatIntWithSpaces(n: number): string {
     return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 }
 
+// --- Badge semitrasparente per le probabilità sui rami ---
+
+type ProbBadgeProps = {
+    x: number;
+    y: number;
+    line1: string;
+    line2?: string;
+};
+
+const ProbBadge: React.FC<ProbBadgeProps> = ({ x, y, line1, line2 }) => {
+    const paddingX = 6;
+    const paddingY = 4;
+    const lineHeight = 11;
+
+    const maxLen = Math.max(line1.length, line2 ? line2.length : 0);
+    const textWidth = Math.max(28, maxLen * 6); // stima ampiezza testo
+    const height = line2 ? lineHeight * 2 + paddingY * 2 : lineHeight + paddingY * 2;
+    const width = textWidth + paddingX * 2;
+
+    const x0 = x - width / 2;
+    const y0 = y - height / 2;
+
+    return (
+        <g>
+            <rect
+                x={x0}
+                y={y0}
+                width={width}
+                height={height}
+                rx={8}
+                ry={8}
+                fill="#ffffffcc"
+                stroke="#bbbbbb"
+                strokeWidth={0.8}
+            />
+            <text
+                x={x}
+                y={y - (line2 ? 2 : 0)}
+                fontSize={11}
+                textAnchor="middle"
+                fill="#333"
+            >
+                {line1}
+            </text>
+            {line2 && (
+                <text
+                    x={x}
+                    y={y + 9}
+                    fontSize={9}
+                    textAnchor="middle"
+                    fill="#666"
+                >
+                    {line2}
+                </text>
+            )}
+        </g>
+    );
+};
+
 // --- Generazione urna casuale ---
 
 function generateRandomUrn(): ColorInfo[] {
@@ -121,6 +180,19 @@ const UrnProbabilityTreeDemo: React.FC = () => {
             }
         });
     }, [colors, totalBalls, withReplacement]);
+
+    // Probabilità congiunte per la tabella riepilogo
+    const jointProbs: BranchProb[][] = useMemo(() => {
+        return colors.map((_, i) =>
+            colors.map((_, j) => {
+                const p1 = firstDrawProbs[i];
+                const p2 = secondDrawProbs[i][j];
+                const num = p1.num * p2.num;
+                const den = p1.den * p2.den;
+                return makeBranchProb(num, den);
+            })
+        );
+    }, [colors, firstDrawProbs, secondDrawProbs]);
 
     // --- Layout albero (2 estrazioni) ---
 
@@ -206,6 +278,23 @@ const UrnProbabilityTreeDemo: React.FC = () => {
         );
     };
 
+    // dati tabella flat
+    const flatRows = useMemo(
+        () =>
+            colors.flatMap((c1, i) =>
+                colors.map((c2, j) => ({
+                    id: `row-${i}-${j}`,
+                    first: c1.short,
+                    firstName: c1.name,
+                    second: c2.short,
+                    secondName: c2.name,
+                    outcome: `${c1.short}${c2.short}`,
+                    prob: jointProbs[i][j],
+                }))
+            ),
+        [colors, jointProbs]
+    );
+
     return (
         <div
             style={{
@@ -235,29 +324,54 @@ const UrnProbabilityTreeDemo: React.FC = () => {
                     alignItems: "flex-start",
                 }}
             >
-                {/* ALBERO */}
+                {/* ALBERO + RIEPILOGO */}
                 <div
                     style={{
                         border: "1px solid #ddd",
-                        borderRadius: "12px",
-                        padding: "0.75rem",
-                        boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
+                        borderRadius: "16px",
+                        padding: "0.75rem 0.75rem 1rem",
+                        boxShadow: "0 3px 10px rgba(0,0,0,0.08)",
+                        background: "white",
                         overflowX: "auto",
                     }}
                 >
                     <svg width={SVG_WIDTH} height={SVG_HEIGHT}>
+                        {/* sfondo quaderno a quadretti */}
+                        <defs>
+                            <pattern
+                                id="gridPatternProb"
+                                width="20"
+                                height="20"
+                                patternUnits="userSpaceOnUse"
+                            >
+                                <rect
+                                    width="20"
+                                    height="20"
+                                    fill="#fdfdfd"
+                                />
+                                <path
+                                    d="M 20 0 L 0 0 0 20"
+                                    fill="none"
+                                    stroke="#e5e5e5"
+                                    strokeWidth={1}
+                                />
+                            </pattern>
+                        </defs>
+
                         <rect
                             x={0}
                             y={0}
                             width={SVG_WIDTH}
                             height={SVG_HEIGHT}
-                            fill="#fafafa"
-                            stroke="#ddd"
+                            fill="url(#gridPatternProb)"
+                            stroke="#d0d0d0"
                         />
 
-                        {/* Rami primo livello */}
+                        {/* Rami primo livello (neutri) */}
                         {colors.map((c, i) => {
                             const y1 = yFirst[i];
+                            const cx = (xRoot + xFirst) / 2;
+                            const cy = (yRoot + y1) / 2;
                             return (
                                 <g key={`level1-${c.id}`}>
                                     <line
@@ -266,38 +380,29 @@ const UrnProbabilityTreeDemo: React.FC = () => {
                                         x2={xFirst}
                                         y2={y1}
                                         stroke="#555"
-                                        strokeWidth={1.5}
+                                        strokeWidth={1.6}
                                     />
-                                    <text
-                                        x={(xRoot + xFirst) / 2}
-                                        y={(yRoot + y1) / 2 - 6}
-                                        fontSize={11}
-                                        textAnchor="middle"
-                                    >
-                                        {firstDrawProbs[i].fracString}
-                                    </text>
-                                    <text
-                                        x={(xRoot + xFirst) / 2}
-                                        y={(yRoot + y1) / 2 + 8}
-                                        fontSize={9}
-                                        textAnchor="middle"
-                                        fill="#555"
-                                    >
-                                        ({firstDrawProbs[i].decimalString})
-                                    </text>
+                                    <ProbBadge
+                                        x={cx}
+                                        y={cy}
+                                        line1={firstDrawProbs[i].fracString}
+                                        line2={`(${firstDrawProbs[i].decimalString})`}
+                                    />
                                 </g>
                             );
                         })}
 
-                        {/* Rami secondo livello */}
+                        {/* Rami secondo livello (neutri, tratteggiati se prob 0) */}
                         {colors.map((c1, i) =>
                             colors.map((c2, j) => {
                                 const y1 = yFirst[i];
                                 const y2 = ySecond[i][j];
                                 const prob = secondDrawProbs[i][j];
-                                const key = `level2-${c1.id}-${c2.id}-${i}-${j}`;
-
                                 const isZero = prob.num === 0;
+                                const cx = (xFirst + xSecond) / 2;
+                                const cy = (y1 + y2) / 2;
+
+                                const key = `level2-${c1.id}-${c2.id}-${i}-${j}`;
 
                                 return (
                                     <g key={key}>
@@ -306,57 +411,48 @@ const UrnProbabilityTreeDemo: React.FC = () => {
                                             y1={y1}
                                             x2={xSecond}
                                             y2={y2}
-                                            stroke={isZero ? "#bbb" : "#555"}
-                                            strokeWidth={isZero ? 1 : 1.5}
-                                            strokeDasharray={isZero ? "4 3" : undefined}
+                                            stroke={isZero ? "#bbbbbb" : "#555"}
+                                            strokeWidth={isZero ? 1.2 : 1.6}
+                                            strokeDasharray={isZero ? "5 4" : undefined}
                                         />
-                                        <text
-                                            x={(xFirst + xSecond) / 2}
-                                            y={(y1 + y2) / 2 - 6}
-                                            fontSize={11}
-                                            textAnchor="middle"
-                                        >
-                                            {prob.fracString}
-                                        </text>
-                                        <text
-                                            x={(xFirst + xSecond) / 2}
-                                            y={(y1 + y2) / 2 + 8}
-                                            fontSize={9}
-                                            textAnchor="middle"
-                                            fill="#555"
-                                        >
-                                            ({prob.decimalString})
-                                        </text>
+                                        <ProbBadge
+                                            x={cx}
+                                            y={cy}
+                                            line1={prob.fracString}
+                                            line2={`(${prob.decimalString})`}
+                                        />
                                     </g>
                                 );
                             })
                         )}
 
                         {/* Nodo radice */}
-                        <circle
-                            cx={xRoot}
-                            cy={yRoot}
-                            r={10}
-                            fill="#ffffff"
-                            stroke="#555"
-                            strokeWidth={1.5}
-                        />
-                        <text
-                            x={xRoot}
-                            y={yRoot + 4}
-                            fontSize={11}
-                            textAnchor="middle"
-                        >
-                            Inizio
-                        </text>
+                        <g>
+                            <circle
+                                cx={xRoot}
+                                cy={yRoot}
+                                r={12}
+                                fill="#fff"
+                                stroke="#555"
+                                strokeWidth={1.8}
+                            />
+                            <text
+                                x={xRoot}
+                                y={yRoot + 4}
+                                fontSize={11}
+                                textAnchor="middle"
+                            >
+                                Inizio
+                            </text>
+                        </g>
 
-                        {/* Nodi primo livello */}
+                        {/* Nodi primo livello: prima estrazione */}
                         {colors.map((c, i) => (
                             <g key={`node1-${c.id}`}>
                                 <circle
                                     cx={xFirst}
                                     cy={yFirst[i]}
-                                    r={11}
+                                    r={12}
                                     fill="#ffffff"
                                     stroke={c.color}
                                     strokeWidth={2}
@@ -374,7 +470,7 @@ const UrnProbabilityTreeDemo: React.FC = () => {
                             </g>
                         ))}
 
-                        {/* Nodi secondo livello */}
+                        {/* Nodi secondo livello: seconda pallina + riepilogo ramo */}
                         {colors.map((c1, i) =>
                             colors.map((c2, j) => {
                                 const y2 = ySecond[i][j];
@@ -382,19 +478,34 @@ const UrnProbabilityTreeDemo: React.FC = () => {
                                 const key = `leaf-${c1.id}-${c2.id}-${i}-${j}`;
                                 return (
                                     <g key={key}>
+                                        {/* pallina della seconda estrazione */}
                                         <circle
                                             cx={xSecond}
                                             cy={y2}
-                                            r={11}
+                                            r={12}
                                             fill="#ffffff"
-                                            stroke="#444"
-                                            strokeWidth={1.5}
+                                            stroke={c2.color}
+                                            strokeWidth={2}
                                         />
                                         <text
                                             x={xSecond}
                                             y={y2 + 4}
-                                            fontSize={11}
+                                            fontSize={12}
                                             textAnchor="middle"
+                                            fill={c2.color}
+                                            fontWeight={600}
+                                        >
+                                            {c2.short}
+                                        </text>
+
+                                        {/* riepilogo del ramo (es. RR, RB, ...) alla fine */}
+                                        <text
+                                            x={xSecond + 40}
+                                            y={y2 + 4}
+                                            fontSize={12}
+                                            textAnchor="start"
+                                            fill="#333"
+                                            fontFamily="monospace"
                                         >
                                             {leafLabel}
                                         </text>
@@ -403,6 +514,152 @@ const UrnProbabilityTreeDemo: React.FC = () => {
                             })
                         )}
                     </svg>
+
+                    {/* Tabella riepilogo esiti */}
+                    <div
+                        style={{
+                            marginTop: "0.9rem",
+                            borderTop: "1px solid #eee",
+                            paddingTop: "0.6rem",
+                        }}
+                    >
+                        <h2
+                            style={{
+                                fontSize: "1.05rem",
+                                marginBottom: "0.4rem",
+                            }}
+                        >
+                            Riepilogo esiti e probabilità
+                        </h2>
+                        <div
+                            style={{
+                                maxHeight: "220px",
+                                overflowY: "auto",
+                                borderRadius: "10px",
+                                border: "1px solid #eee",
+                            }}
+                        >
+                            <table
+                                style={{
+                                    width: "100%",
+                                    borderCollapse: "collapse",
+                                    fontSize: "0.85rem",
+                                }}
+                            >
+                                <thead
+                                    style={{
+                                        position: "sticky",
+                                        top: 0,
+                                        background: "#f7f9ff",
+                                        zIndex: 1,
+                                    }}
+                                >
+                                <tr>
+                                    <th
+                                        style={{
+                                            padding: "0.4rem 0.5rem",
+                                            borderBottom: "1px solid #e0e0e0",
+                                            textAlign: "left",
+                                        }}
+                                    >
+                                        Prima
+                                    </th>
+                                    <th
+                                        style={{
+                                            padding: "0.4rem 0.5rem",
+                                            borderBottom: "1px solid #e0e0e0",
+                                            textAlign: "left",
+                                        }}
+                                    >
+                                        Seconda
+                                    </th>
+                                    <th
+                                        style={{
+                                            padding: "0.4rem 0.5rem",
+                                            borderBottom: "1px solid #e0e0e0",
+                                            textAlign: "left",
+                                        }}
+                                    >
+                                        Esito
+                                    </th>
+                                    <th
+                                        style={{
+                                            padding: "0.4rem 0.5rem",
+                                            borderBottom: "1px solid #e0e0e0",
+                                            textAlign: "left",
+                                        }}
+                                    >
+                                        Probabilità
+                                    </th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {flatRows.map((row, idx) => (
+                                    <tr
+                                        key={row.id}
+                                        style={{
+                                            backgroundColor:
+                                                idx % 2 === 0
+                                                    ? "#ffffff"
+                                                    : "#fafbff",
+                                        }}
+                                    >
+                                        <td
+                                            style={{
+                                                padding: "0.3rem 0.5rem",
+                                                whiteSpace: "nowrap",
+                                            }}
+                                        >
+                                            {row.first} (
+                                            <span style={{ fontSize: "0.8rem" }}>
+                                                    {row.firstName}
+                                                </span>
+                                            )
+                                        </td>
+                                        <td
+                                            style={{
+                                                padding: "0.3rem 0.5rem",
+                                                whiteSpace: "nowrap",
+                                            }}
+                                        >
+                                            {row.second} (
+                                            <span style={{ fontSize: "0.8rem" }}>
+                                                    {row.secondName}
+                                                </span>
+                                            )
+                                        </td>
+                                        <td
+                                            style={{
+                                                padding: "0.3rem 0.5rem",
+                                                fontFamily: "monospace",
+                                            }}
+                                        >
+                                            {row.outcome}
+                                        </td>
+                                        <td
+                                            style={{
+                                                padding: "0.3rem 0.5rem",
+                                                fontFamily: "monospace",
+                                            }}
+                                        >
+                                            {row.prob.fracString}{" "}
+                                            <span
+                                                style={{
+                                                    fontSize: "0.8rem",
+                                                    color: "#555",
+                                                }}
+                                            >
+                                                    (
+                                                {row.prob.decimalString}
+                                                )
+                                                </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
 
                 {/* PANNELLO DI CONTROLLO E SPIEGAZIONI */}
@@ -417,8 +674,10 @@ const UrnProbabilityTreeDemo: React.FC = () => {
                     <div
                         style={{
                             border: "1px solid #ddd",
-                            borderRadius: "12px",
+                            borderRadius: "16px",
                             padding: "0.75rem 1rem",
+                            boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
+                            background: "white",
                         }}
                     >
                         <h2
@@ -445,16 +704,16 @@ const UrnProbabilityTreeDemo: React.FC = () => {
                         >
                             {colors.map((c, index) => (
                                 <li key={`desc-${c.id}`}>
-                  <span
-                      style={{
-                          display: "inline-block",
-                          width: "0.7rem",
-                          height: "0.7rem",
-                          borderRadius: "999px",
-                          background: c.color,
-                          marginRight: "0.3rem",
-                      }}
-                  />
+                                    <span
+                                        style={{
+                                            display: "inline-block",
+                                            width: "0.7rem",
+                                            height: "0.7rem",
+                                            borderRadius: "999px",
+                                            background: c.color,
+                                            marginRight: "0.3rem",
+                                        }}
+                                    />
                                     <strong>{c.name}</strong>:{" "}
                                     <input
                                         type="number"
@@ -502,6 +761,8 @@ const UrnProbabilityTreeDemo: React.FC = () => {
                                     cursor: "pointer",
                                     fontSize: "0.9rem",
                                     boxShadow: "0 1px 3px rgba(0,0,0,0.25)",
+                                    background:
+                                        "linear-gradient(135deg, #fdfbff, #f0f4ff)",
                                 }}
                             >
                                 Nuovo problema casuale
@@ -511,9 +772,10 @@ const UrnProbabilityTreeDemo: React.FC = () => {
                                 style={{
                                     padding: "0.35rem 0.8rem",
                                     borderRadius: "999px",
-                                    border: "none",
+                                    border: "1px solid #ccc",
                                     cursor: "pointer",
                                     fontSize: "0.9rem",
+                                    background: "#ffffff",
                                 }}
                             >
                                 Passa a{" "}
@@ -571,9 +833,10 @@ const UrnProbabilityTreeDemo: React.FC = () => {
                     <div
                         style={{
                             border: "1px solid #ddd",
-                            borderRadius: "12px",
+                            borderRadius: "16px",
                             padding: "0.75rem 1rem",
                             fontSize: "0.9rem",
+                            background: "white",
                         }}
                     >
                         <h2
@@ -600,8 +863,8 @@ const UrnProbabilityTreeDemo: React.FC = () => {
                                 rami:
                                 <br />
                                 <span style={{ fontFamily: "monospace" }}>
-                  P(R poi B) = P(R alla prima) × P(B alla seconda | R)
-                </span>
+                                    P(R poi B) = P(R alla prima) × P(B alla seconda | R)
+                                </span>
                                 .
                             </li>
                             <li>
@@ -616,7 +879,7 @@ const UrnProbabilityTreeDemo: React.FC = () => {
                     <div
                         style={{
                             border: "1px solid #eee",
-                            borderRadius: "12px",
+                            borderRadius: "16px",
                             padding: "0.7rem 1rem",
                             fontSize: "0.85rem",
                             background: "#fafafa",
