@@ -11,7 +11,7 @@ export type DemoInfo = {
 export const demos: DemoInfo[] = [
     {
         slug: "angolo-rotazione",
-        title: "Angolo come rotazione",
+        title: "Angolo e funzioni goniometriche",
         Component: React.lazy(() => import("./demos/angolo-rotazione/AngleRotationDemo")),
     },
 
@@ -70,7 +70,14 @@ export const demos: DemoInfo[] = [
                     "./demos/disequazioni/RappresentazioneSoluzioniDisequazioniDemo"
                     )
         ),
+
     },
+    {
+        slug: "ebbinghaus-curva-oblio",
+        title: "Curva di Ebbinghaus: lettura del grafico + mini-quiz per le lezioni di Pedagogia",
+        Component: React.lazy(() => import("./demos/ebbinghaus/EbbinghausDemo")),
+    },
+
 
 
 
