@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/matematica-fisica/static/css/main.da186e29.css",
-    "main.js": "/matematica-fisica/static/js/main.ab7ac1ac.js",
+    "main.js": "/matematica-fisica/static/js/main.e8ecde0f.js",
     "static/js/866.30e6a13e.chunk.js": "/matematica-fisica/static/js/866.30e6a13e.chunk.js",
     "static/js/812.3305249f.chunk.js": "/matematica-fisica/static/js/812.3305249f.chunk.js",
     "static/js/252.63e5f91f.chunk.js": "/matematica-fisica/static/js/252.63e5f91f.chunk.js",
@@ -12,9 +12,11 @@
     "static/js/893.07e33179.chunk.js": "/matematica-fisica/static/js/893.07e33179.chunk.js",
     "static/js/940.6e323aab.chunk.js": "/matematica-fisica/static/js/940.6e323aab.chunk.js",
     "static/js/779.7b7ce8bf.chunk.js": "/matematica-fisica/static/js/779.7b7ce8bf.chunk.js",
+    "static/css/896.cf8b6985.chunk.css": "/matematica-fisica/static/css/896.cf8b6985.chunk.css",
+    "static/js/896.a77d5c75.chunk.js": "/matematica-fisica/static/js/896.a77d5c75.chunk.js",
     "index.html": "/matematica-fisica/index.html",
     "main.da186e29.css.map": "/matematica-fisica/static/css/main.da186e29.css.map",
-    "main.ab7ac1ac.js.map": "/matematica-fisica/static/js/main.ab7ac1ac.js.map",
+    "main.e8ecde0f.js.map": "/matematica-fisica/static/js/main.e8ecde0f.js.map",
     "866.30e6a13e.chunk.js.map": "/matematica-fisica/static/js/866.30e6a13e.chunk.js.map",
     "812.3305249f.chunk.js.map": "/matematica-fisica/static/js/812.3305249f.chunk.js.map",
     "252.63e5f91f.chunk.js.map": "/matematica-fisica/static/js/252.63e5f91f.chunk.js.map",
@@ -24,10 +26,12 @@
     "94.3578c2d8.chunk.js.map": "/matematica-fisica/static/js/94.3578c2d8.chunk.js.map",
     "893.07e33179.chunk.js.map": "/matematica-fisica/static/js/893.07e33179.chunk.js.map",
     "940.6e323aab.chunk.js.map": "/matematica-fisica/static/js/940.6e323aab.chunk.js.map",
-    "779.7b7ce8bf.chunk.js.map": "/matematica-fisica/static/js/779.7b7ce8bf.chunk.js.map"
+    "779.7b7ce8bf.chunk.js.map": "/matematica-fisica/static/js/779.7b7ce8bf.chunk.js.map",
+    "896.cf8b6985.chunk.css.map": "/matematica-fisica/static/css/896.cf8b6985.chunk.css.map",
+    "896.a77d5c75.chunk.js.map": "/matematica-fisica/static/js/896.a77d5c75.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.da186e29.css",
-    "static/js/main.ab7ac1ac.js"
+    "static/js/main.e8ecde0f.js"
   ]
 }
