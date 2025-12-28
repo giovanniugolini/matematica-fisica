@@ -104,6 +104,13 @@ export const demos: DemoInfo[] = [
             () => import("./demos/disequazioni/SistemiDisequazioniDemo")
         ),
     },
+    {
+        slug: "domini-funzioni",
+        title: "Dominio delle funzioni (step-by-step)",
+        Component: React.lazy(
+            () => import("./demos/funzioni/DominiFunzioniDemo")
+        ),
+    },
 
 
 

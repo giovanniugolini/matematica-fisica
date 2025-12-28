@@ -1,6 +1,7 @@
 import React, { Suspense } from "react";
 import { HashRouter as Router, Routes, Route, Link } from "react-router-dom";
 import { demos } from "./demos";
+import "katex/dist/katex.min.css";
 
 function Home() {
   return (
