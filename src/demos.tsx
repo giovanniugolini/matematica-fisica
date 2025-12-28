@@ -77,6 +77,26 @@ export const demos: DemoInfo[] = [
         title: "Curva di Ebbinghaus: lettura del grafico + mini-quiz per le lezioni di Pedagogia",
         Component: React.lazy(() => import("./demos/ebbinghaus/EbbinghausDemo")),
     },
+    {
+        slug: "limite-finito-finito",
+        title: "Limiti: Limite finito per x → x₀ finito",
+        Component: React.lazy(() => import("./demos/limiti/LimiteFinitoPuntoFinito")),
+    },
+    {
+        slug: "limite-infinito-finito",
+        title: "Limiti: Limite infinito per x → x₀ finito (asintoti verticali)",
+        Component: React.lazy(() => import("./demos/limiti/LimiteInfinitoPuntoFinito")),
+    },
+    {
+        slug: "limite-finito-infinito",
+        title: "Limiti: Limite finito per x → ±∞ (asintoti orizzontali)",
+        Component: React.lazy(() => import("./demos/limiti/LimiteFinitoPiuMenoInfinito")),
+    },
+    {
+        slug: "limite-infinito-infinito",
+        title: "Limiti: Limite infinito per x → ±∞ (funzioni divergenti)",
+        Component: React.lazy(() => import("./demos/limiti/LimiteInfinitoPiuMenoInfinito")),
+    },
 
 
 
