@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/matematica-fisica/static/css/main.da186e29.css",
-    "main.js": "/matematica-fisica/static/js/main.282af53e.js",
+    "main.js": "/matematica-fisica/static/js/main.87b985aa.js",
     "static/js/866.8cbbdbf0.chunk.js": "/matematica-fisica/static/js/866.8cbbdbf0.chunk.js",
     "static/js/812.7e08d1a6.chunk.js": "/matematica-fisica/static/js/812.7e08d1a6.chunk.js",
     "static/js/252.5415006a.chunk.js": "/matematica-fisica/static/js/252.5415006a.chunk.js",
@@ -11,16 +11,17 @@
     "static/js/94.4010861a.chunk.js": "/matematica-fisica/static/js/94.4010861a.chunk.js",
     "static/js/893.57fc2788.chunk.js": "/matematica-fisica/static/js/893.57fc2788.chunk.js",
     "static/js/940.08003236.chunk.js": "/matematica-fisica/static/js/940.08003236.chunk.js",
-    "static/js/779.8a7461b5.chunk.js": "/matematica-fisica/static/js/779.8a7461b5.chunk.js",
+    "static/js/779.814e75bb.chunk.js": "/matematica-fisica/static/js/779.814e75bb.chunk.js",
     "static/css/896.cf8b6985.chunk.css": "/matematica-fisica/static/css/896.cf8b6985.chunk.css",
     "static/js/896.9f4d85ed.chunk.js": "/matematica-fisica/static/js/896.9f4d85ed.chunk.js",
     "static/js/206.f75f867c.chunk.js": "/matematica-fisica/static/js/206.f75f867c.chunk.js",
     "static/js/337.ab930563.chunk.js": "/matematica-fisica/static/js/337.ab930563.chunk.js",
     "static/js/380.2a209918.chunk.js": "/matematica-fisica/static/js/380.2a209918.chunk.js",
     "static/js/647.816ef8a7.chunk.js": "/matematica-fisica/static/js/647.816ef8a7.chunk.js",
+    "static/js/615.c1c3012c.chunk.js": "/matematica-fisica/static/js/615.c1c3012c.chunk.js",
     "index.html": "/matematica-fisica/index.html",
     "main.da186e29.css.map": "/matematica-fisica/static/css/main.da186e29.css.map",
-    "main.282af53e.js.map": "/matematica-fisica/static/js/main.282af53e.js.map",
+    "main.87b985aa.js.map": "/matematica-fisica/static/js/main.87b985aa.js.map",
     "866.8cbbdbf0.chunk.js.map": "/matematica-fisica/static/js/866.8cbbdbf0.chunk.js.map",
     "812.7e08d1a6.chunk.js.map": "/matematica-fisica/static/js/812.7e08d1a6.chunk.js.map",
     "252.5415006a.chunk.js.map": "/matematica-fisica/static/js/252.5415006a.chunk.js.map",
@@ -30,16 +31,17 @@
     "94.4010861a.chunk.js.map": "/matematica-fisica/static/js/94.4010861a.chunk.js.map",
     "893.57fc2788.chunk.js.map": "/matematica-fisica/static/js/893.57fc2788.chunk.js.map",
     "940.08003236.chunk.js.map": "/matematica-fisica/static/js/940.08003236.chunk.js.map",
-    "779.8a7461b5.chunk.js.map": "/matematica-fisica/static/js/779.8a7461b5.chunk.js.map",
+    "779.814e75bb.chunk.js.map": "/matematica-fisica/static/js/779.814e75bb.chunk.js.map",
     "896.cf8b6985.chunk.css.map": "/matematica-fisica/static/css/896.cf8b6985.chunk.css.map",
     "896.9f4d85ed.chunk.js.map": "/matematica-fisica/static/js/896.9f4d85ed.chunk.js.map",
     "206.f75f867c.chunk.js.map": "/matematica-fisica/static/js/206.f75f867c.chunk.js.map",
     "337.ab930563.chunk.js.map": "/matematica-fisica/static/js/337.ab930563.chunk.js.map",
     "380.2a209918.chunk.js.map": "/matematica-fisica/static/js/380.2a209918.chunk.js.map",
-    "647.816ef8a7.chunk.js.map": "/matematica-fisica/static/js/647.816ef8a7.chunk.js.map"
+    "647.816ef8a7.chunk.js.map": "/matematica-fisica/static/js/647.816ef8a7.chunk.js.map",
+    "615.c1c3012c.chunk.js.map": "/matematica-fisica/static/js/615.c1c3012c.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.da186e29.css",
-    "static/js/main.282af53e.js"
+    "static/js/main.87b985aa.js"
   ]
 }
