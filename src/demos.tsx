@@ -97,6 +97,13 @@ export const demos: DemoInfo[] = [
         title: "Limiti: Limite infinito per x → ±∞ (funzioni divergenti)",
         Component: React.lazy(() => import("./demos/limiti/LimiteInfinitoPiuMenoInfinito")),
     },
+    {
+        slug: "sistemi-disequazioni",
+        title: "Sistemi di disequazioni lineari (rappresentazione grafica)",
+        Component: React.lazy(
+            () => import("./demos/disequazioni/SistemiDisequazioniDemo")
+        ),
+    },
 
 
 

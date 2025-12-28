@@ -18,14 +18,14 @@ type TwoRaysForm = {
     type: "twoRays";
     left: number;
     right: number;
-    includeLeft: boolean; // x <= left  oppure x < left
-    includeRight: boolean; // x >= right oppure x > right
+    includeLeft: boolean;
+    includeRight: boolean;
 };
 
 type SolutionForm = RayForm | IntervalForm | TwoRaysForm;
 
-const SVG_WIDTH = 800;   // più largo
-const SVG_HEIGHT = 200;  // più alto
+const SVG_WIDTH = 800;
+const SVG_HEIGHT = 200;
 const X_MIN = -10;
 const X_MAX = 10;
 
@@ -40,10 +40,7 @@ function formatNumber(n: number): string {
     return s;
 }
 
-// --- helper: ogni tanto genera mezzi (x + 0.5) ---
-
 function maybeHalf(x: number): number {
-    // con probabilità 0.4 aggiungo ±0.5 se rimane nel range
     if (Math.random() < 0.4) {
         const delta = Math.random() < 0.5 ? -0.5 : 0.5;
         const y = x + delta;
@@ -52,13 +49,10 @@ function maybeHalf(x: number): number {
     return x;
 }
 
-// --- Generazione casuale di una soluzione già risolta ---
-
 function generateRandomSolution(): SolutionForm {
-    const kind = randomInt(0, 2); // 0: ray, 1: interval, 2: twoRays
+    const kind = randomInt(0, 2);
 
     if (kind === 0) {
-        // raggio: confine (a volte con mezzi)
         let boundary = randomInt(-5, 5);
         boundary = maybeHalf(boundary);
         const ops: RayForm["op"][] = ["<", "<=", ">", ">="];
@@ -67,7 +61,6 @@ function generateRandomSolution(): SolutionForm {
     }
 
     if (kind === 1) {
-        // intervallo: estremi a e b, ogni tanto "mezzi"
         let a = randomInt(-6, 3);
         let b = randomInt(a + 1, a + 8);
         if (b > 6) b = 6;
@@ -84,7 +77,6 @@ function generateRandomSolution(): SolutionForm {
         return { type: "interval", a, b, includeLeft, includeRight };
     }
 
-    // twoRays
     let left = randomInt(-6, 0);
     let right = randomInt(left + 2, left + 8);
     if (right > 6) right = 6;
@@ -100,8 +92,6 @@ function generateRandomSolution(): SolutionForm {
     const includeRight = Math.random() < 0.7;
     return { type: "twoRays", left, right, includeLeft, includeRight };
 }
-
-// --- Forma algebrica ---
 
 function algebraicForm(sol: SolutionForm): string {
     switch (sol.type) {
@@ -126,8 +116,6 @@ function algebraicForm(sol: SolutionForm): string {
     }
 }
 
-// --- Notazione per intervalli ---
-
 function intervalNotation(sol: SolutionForm): string {
     switch (sol.type) {
         case "ray": {
@@ -135,7 +123,7 @@ function intervalNotation(sol: SolutionForm): string {
             if (sol.op === "<") return `(-∞, ${a})`;
             if (sol.op === "<=") return `(-∞, ${a}]`;
             if (sol.op === ">") return `(${a}, +∞)`;
-            return `[${a}, +∞)`; // >=
+            return `[${a}, +∞)`;
         }
         case "interval": {
             const left = formatNumber(sol.a);
@@ -158,8 +146,6 @@ function intervalNotation(sol: SolutionForm): string {
     }
 }
 
-// --- Supporto grafico ---
-
 function scaleX(x: number): number {
     const t = (x - X_MIN) / (X_MAX - X_MIN);
     return 40 + t * (SVG_WIDTH - 80);
@@ -170,8 +156,8 @@ type Segment = {
     to: number;
     includeFrom: boolean;
     includeTo: boolean;
-    arrowLeft?: boolean;   // per semirette verso -∞
-    arrowRight?: boolean;  // per semirette verso +∞
+    isInfiniteLeft?: boolean;
+    isInfiniteRight?: boolean;
 };
 
 function solutionToSegments(sol: SolutionForm): Segment[] {
@@ -185,8 +171,8 @@ function solutionToSegments(sol: SolutionForm): Segment[] {
                         to: a,
                         includeFrom: false,
                         includeTo: sol.op === "<=",
-                        arrowLeft: true,
-                        arrowRight: false,
+                        isInfiniteLeft: true,
+                        isInfiniteRight: false,
                     },
                 ];
             } else {
@@ -196,8 +182,8 @@ function solutionToSegments(sol: SolutionForm): Segment[] {
                         to: X_MAX,
                         includeFrom: sol.op === ">=",
                         includeTo: false,
-                        arrowLeft: false,
-                        arrowRight: true,
+                        isInfiniteLeft: false,
+                        isInfiniteRight: true,
                     },
                 ];
             }
@@ -209,8 +195,8 @@ function solutionToSegments(sol: SolutionForm): Segment[] {
                     to: sol.b,
                     includeFrom: sol.includeLeft,
                     includeTo: sol.includeRight,
-                    arrowLeft: false,
-                    arrowRight: false,
+                    isInfiniteLeft: false,
+                    isInfiniteRight: false,
                 },
             ];
         }
@@ -221,23 +207,22 @@ function solutionToSegments(sol: SolutionForm): Segment[] {
                     to: sol.left,
                     includeFrom: false,
                     includeTo: sol.includeLeft,
-                    arrowLeft: true,
-                    arrowRight: false,
+                    isInfiniteLeft: true,
+                    isInfiniteRight: false,
                 },
                 {
                     from: sol.right,
                     to: X_MAX,
                     includeFrom: sol.includeRight,
                     includeTo: false,
-                    arrowLeft: false,
-                    arrowRight: true,
+                    isInfiniteLeft: false,
+                    isInfiniteRight: true,
                 },
             ];
         }
     }
 }
 
-// complementi della soluzione sulla retta (per animare la "cancellazione")
 function computeComplementSegments(segments: Segment[]): Segment[] {
     if (!segments.length) {
         return [
@@ -313,8 +298,7 @@ const RappresentazioneSoluzioniDisequazioniDemo: React.FC = () => {
     const [showAlgebraic, setShowAlgebraic] = useState(true);
     const [showInterval, setShowInterval] = useState(true);
 
-    // stato per "pulisci soluzione"
-    const [cleanProgress, setCleanProgress] = useState(0); // 0 = niente, 1 = pulito
+    const [cleanProgress, setCleanProgress] = useState(0);
     const isCleaningRef = useRef(false);
 
     const segments = useMemo(
@@ -335,7 +319,6 @@ const RappresentazioneSoluzioniDisequazioniDemo: React.FC = () => {
         [solution]
     );
 
-    // punti estremi finiti (per etichettare dopo la pulizia)
     const endpointValues = useMemo(() => {
         const vals: number[] = [];
         const addVal = (v: number) => {
@@ -346,10 +329,10 @@ const RappresentazioneSoluzioniDisequazioniDemo: React.FC = () => {
         };
 
         segments.forEach((seg) => {
-            if (!(seg.arrowLeft && Math.abs(seg.from - X_MIN) < 1e-6)) {
+            if (!seg.isInfiniteLeft) {
                 addVal(seg.from);
             }
-            if (!(seg.arrowRight && Math.abs(seg.to - X_MAX) < 1e-6)) {
+            if (!seg.isInfiniteRight) {
                 addVal(seg.to);
             }
         });
@@ -395,7 +378,7 @@ const RappresentazioneSoluzioniDisequazioniDemo: React.FC = () => {
         <div
             style={{
                 padding: "1.5rem",
-                maxWidth: "1200px",
+                maxWidth: "1000px",
                 margin: "0 auto",
                 fontFamily:
                     "system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
@@ -414,12 +397,12 @@ const RappresentazioneSoluzioniDisequazioniDemo: React.FC = () => {
                 vengono evidenziati gli <strong>estremi</strong>.
             </p>
 
+            {/* Layout verticale */}
             <div
                 style={{
-                    display: "grid",
-                    gridTemplateColumns: "minmax(0, 2fr) minmax(0, 1fr)", // più spazio al grafico
+                    display: "flex",
+                    flexDirection: "column",
                     gap: "1.5rem",
-                    alignItems: "flex-start",
                 }}
             >
                 {/* Grafico sulla retta reale */}
@@ -442,9 +425,9 @@ const RappresentazioneSoluzioniDisequazioniDemo: React.FC = () => {
                     <svg
                         width={SVG_WIDTH}
                         height={SVG_HEIGHT}
-                        style={{ maxWidth: "100%" }}
+                        style={{ maxWidth: "100%", display: "block", margin: "0 auto" }}
                     >
-                        {/* sfondo a quadretti tipo quaderno */}
+                        {/* Definizioni */}
                         <defs>
                             <pattern
                                 id="graphPaper"
@@ -455,14 +438,12 @@ const RappresentazioneSoluzioniDisequazioniDemo: React.FC = () => {
                                 patternUnits="userSpaceOnUse"
                             >
                                 <rect width="20" height="20" fill="#fafafa" />
-                                {/* quadretti più marcati ogni 20 px */}
                                 <path
                                     d="M20 0 H0 V20"
                                     fill="none"
                                     stroke="#e0e0e0"
                                     strokeWidth={1}
                                 />
-                                {/* linea centrale per quadretti da 10px */}
                                 <path
                                     d="M0 10 H20 M10 0 V20"
                                     fill="none"
@@ -481,40 +462,68 @@ const RappresentazioneSoluzioniDisequazioniDemo: React.FC = () => {
                             stroke="#ddd"
                         />
 
-                        {/* retta reale sottostante (molto leggera) */}
+                        {/* Retta reale di base - scompare con la pulizia */}
                         <line
                             x1={scaleX(X_MIN)}
                             y1={axisY}
                             x2={scaleX(X_MAX)}
                             y2={axisY}
-                            stroke="#ccc"
-                            strokeWidth={1}
+                            stroke="#999"
+                            strokeWidth={2}
+                            strokeOpacity={Math.max(0.1, 1 - cleanProgress * 0.9)}
                         />
 
-                        {/* Puntini agli estremi della retta (−∞ e +∞) */}
+                        {/* Puntini agli estremi (−∞ e +∞) - scompaiono con la pulizia */}
                         <circle
                             cx={scaleX(X_MIN)}
                             cy={axisY}
-                            r={4.5}
-                            fill="#777"
-                            stroke="#555"
-                            strokeWidth={1}
+                            r={5}
+                            fill="#666"
+                            stroke="#444"
+                            strokeWidth={1.5}
+                            opacity={Math.max(0.1, 1 - cleanProgress * 0.9)}
                         />
                         <circle
                             cx={scaleX(X_MAX)}
                             cy={axisY}
-                            r={4.5}
-                            fill="#777"
-                            stroke="#555"
-                            strokeWidth={1}
+                            r={5}
+                            fill="#666"
+                            stroke="#444"
+                            strokeWidth={1.5}
+                            opacity={Math.max(0.1, 1 - cleanProgress * 0.9)}
                         />
 
-                        {/* Tacche e numeri interi */}
+                        {/* Etichette −∞ e +∞ - scompaiono con la pulizia */}
+                        <text
+                            x={scaleX(X_MIN)}
+                            y={axisY + 25}
+                            fontSize={12}
+                            textAnchor="middle"
+                            fill="#555"
+                            fontStyle="italic"
+                            opacity={Math.max(0.1, 1 - cleanProgress * 0.9)}
+                        >
+                            −∞
+                        </text>
+                        <text
+                            x={scaleX(X_MAX)}
+                            y={axisY + 25}
+                            fontSize={12}
+                            textAnchor="middle"
+                            fill="#555"
+                            fontStyle="italic"
+                            opacity={Math.max(0.1, 1 - cleanProgress * 0.9)}
+                        >
+                            +∞
+                        </text>
+
+                        {/* Tacche e numeri interi - scompaiono con la pulizia */}
                         {Array.from({ length: X_MAX - X_MIN + 1 }, (_, i) => {
                             const xReal = X_MIN + i;
                             const xSvg = scaleX(xReal);
+                            const tickOpacity = Math.max(0.1, 1 - cleanProgress * 0.9);
                             return (
-                                <g key={`tick-${xReal}`}>
+                                <g key={`tick-${xReal}`} opacity={tickOpacity}>
                                     <line
                                         x1={xSvg}
                                         y1={axisY - 5}
@@ -542,7 +551,7 @@ const RappresentazioneSoluzioniDisequazioniDemo: React.FC = () => {
                         {complementSegments.map((seg, idx) => {
                             const xFrom = scaleX(seg.from);
                             const xTo = scaleX(seg.to);
-                            const opacity = 1 - cleanProgress; // da 1 a 0
+                            const opacity = 1 - cleanProgress;
                             if (opacity <= 0) return null;
                             return (
                                 <line
@@ -563,75 +572,101 @@ const RappresentazioneSoluzioniDisequazioniDemo: React.FC = () => {
                             const xFrom = scaleX(seg.from);
                             const xTo = scaleX(seg.to);
 
-                            const isInfiniteLeftEnd =
-                                seg.arrowLeft && Math.abs(seg.from - X_MIN) < 1e-6;
-                            const isInfiniteRightEnd =
-                                seg.arrowRight && Math.abs(seg.to - X_MAX) < 1e-6;
+                            // Lunghezza della parte tratteggiata (3 trattini = circa 54px)
+                            const dashLength = 54;
 
                             return (
                                 <g key={`seg-${idx}`}>
-                                    <line
-                                        x1={xFrom}
-                                        y1={axisY}
-                                        x2={xTo}
-                                        y2={axisY}
-                                        stroke="#1f77b4"
-                                        strokeWidth={4}
-                                    />
+                                    {/* Caso: intervallo finito (entrambi gli estremi finiti) */}
+                                    {!seg.isInfiniteLeft && !seg.isInfiniteRight && (
+                                        <line
+                                            x1={xFrom}
+                                            y1={axisY}
+                                            x2={xTo}
+                                            y2={axisY}
+                                            stroke="#1f77b4"
+                                            strokeWidth={4}
+                                        />
+                                    )}
 
-                                    {!isInfiniteLeftEnd && (
+                                    {/* Caso: semiretta verso sinistra (-∞) */}
+                                    {seg.isInfiniteLeft && (
+                                        <>
+                                            {/* Parte tratteggiata (ultimi 3 trattini verso -∞) */}
+                                            <line
+                                                x1={xFrom}
+                                                y1={axisY}
+                                                x2={xFrom + dashLength}
+                                                y2={axisY}
+                                                stroke="#1f77b4"
+                                                strokeWidth={4}
+                                                strokeDasharray="12,6"
+                                            />
+                                            {/* Parte continua (dal tratteggio fino al pallino) */}
+                                            <line
+                                                x1={xFrom + dashLength}
+                                                y1={axisY}
+                                                x2={xTo}
+                                                y2={axisY}
+                                                stroke="#1f77b4"
+                                                strokeWidth={4}
+                                            />
+                                        </>
+                                    )}
+
+                                    {/* Caso: semiretta verso destra (+∞) */}
+                                    {seg.isInfiniteRight && (
+                                        <>
+                                            {/* Parte continua (dal pallino fino al tratteggio) */}
+                                            <line
+                                                x1={xFrom}
+                                                y1={axisY}
+                                                x2={xTo - dashLength}
+                                                y2={axisY}
+                                                stroke="#1f77b4"
+                                                strokeWidth={4}
+                                            />
+                                            {/* Parte tratteggiata (ultimi 3 trattini verso +∞) */}
+                                            <line
+                                                x1={xTo - dashLength}
+                                                y1={axisY}
+                                                x2={xTo}
+                                                y2={axisY}
+                                                stroke="#1f77b4"
+                                                strokeWidth={4}
+                                                strokeDasharray="12,6"
+                                            />
+                                        </>
+                                    )}
+
+                                    {/* Pallino all'estremo sinistro (solo se finito) */}
+                                    {!seg.isInfiniteLeft && (
                                         <circle
                                             cx={xFrom}
                                             cy={axisY}
                                             r={6}
-                                            fill={
-                                                seg.includeFrom ? "#1f77b4" : "#ffffff"
-                                            }
+                                            fill={seg.includeFrom ? "#1f77b4" : "#ffffff"}
                                             stroke="#1f77b4"
-                                            strokeWidth={2}
+                                            strokeWidth={2.5}
                                         />
                                     )}
-                                    {!isInfiniteRightEnd && (
+
+                                    {/* Pallino all'estremo destro (solo se finito) */}
+                                    {!seg.isInfiniteRight && (
                                         <circle
                                             cx={xTo}
                                             cy={axisY}
                                             r={6}
-                                            fill={
-                                                seg.includeTo ? "#1f77b4" : "#ffffff"
-                                            }
+                                            fill={seg.includeTo ? "#1f77b4" : "#ffffff"}
                                             stroke="#1f77b4"
-                                            strokeWidth={2}
-                                        />
-                                    )}
-
-                                    {/* linea tratteggiata per le semirette (sopra la retta) */}
-                                    {seg.arrowLeft && (
-                                        <line
-                                            x1={scaleX(X_MIN) + 10}
-                                            y1={axisY - 18}
-                                            x2={scaleX(X_MIN) + 50}
-                                            y2={axisY - 18}
-                                            stroke="#1f77b4"
-                                            strokeWidth={3}
-                                            strokeDasharray="6 6"
-                                        />
-                                    )}
-                                    {seg.arrowRight && (
-                                        <line
-                                            x1={scaleX(X_MAX) - 50}
-                                            y1={axisY - 18}
-                                            x2={scaleX(X_MAX) - 10}
-                                            y2={axisY - 18}
-                                            stroke="#1f77b4"
-                                            strokeWidth={3}
-                                            strokeDasharray="6 6"
+                                            strokeWidth={2.5}
                                         />
                                     )}
                                 </g>
                             );
                         })}
 
-                        {/* Numeri sugli estremi (dopo pulizia completa) */}
+                        {/* Numeri sugli estremi finiti (dopo pulizia completa) */}
                         {showEndpointLabels &&
                             endpointValues.map((v, i) => {
                                 const x = scaleX(v);
@@ -639,7 +674,7 @@ const RappresentazioneSoluzioniDisequazioniDemo: React.FC = () => {
                                     <text
                                         key={`label-end-${i}`}
                                         x={x}
-                                        y={axisY - 22}
+                                        y={axisY - 15}
                                         fontSize={12}
                                         textAnchor="middle"
                                         fill="#1f77b4"
@@ -656,39 +691,37 @@ const RappresentazioneSoluzioniDisequazioniDemo: React.FC = () => {
                             marginTop: "0.5rem",
                             fontSize: "0.85rem",
                             color: "#555",
+                            textAlign: "center",
                         }}
                     >
-                        • I <strong>puntini agli estremi</strong> della retta rappresentano idealmente −∞ e +∞.
-                        <br />
-                        • I <strong>punti pieni</strong> indicano valori inclusi (
-                        <strong>≤</strong> o <strong>≥</strong>).
-                        <br />
-                        • I <strong>punti vuoti</strong> indicano valori esclusi (
-                        <strong>&lt;</strong> o <strong>&gt;</strong>).
-                        <br />
-                        • Le <strong>linee tratteggiate blu sopra la retta</strong> indicano che la soluzione prosegue come semiretta verso l&apos;infinito (senza pallino sul lato infinito).
+                        • <strong>Linea tratteggiata</strong>: la soluzione prosegue verso ±∞.
+                        &nbsp;&nbsp;
+                        • <strong>Pallino pieno</strong>: valore incluso (≤ o ≥).
+                        &nbsp;&nbsp;
+                        • <strong>Pallino vuoto</strong>: valore escluso (&lt; o &gt;).
                     </p>
                 </div>
 
-                {/* Forme algebrica e intervalli + pulsanti */}
+                {/* Pannello sotto: rappresentazioni testuali e pulsanti */}
                 <div
                     style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "0.9rem",
+                        display: "grid",
+                        gridTemplateColumns: "1fr 1fr",
+                        gap: "1rem",
                     }}
                 >
+                    {/* Rappresentazioni testuali */}
                     <div
                         style={{
                             border: "1px solid #ddd",
                             borderRadius: "12px",
-                            padding: "0.75rem 1rem",
+                            padding: "1rem",
                         }}
                     >
                         <h2
                             style={{
                                 fontSize: "1.1rem",
-                                marginBottom: "0.4rem",
+                                marginBottom: "0.6rem",
                             }}
                         >
                             Rappresentazioni testuali
@@ -697,54 +730,46 @@ const RappresentazioneSoluzioniDisequazioniDemo: React.FC = () => {
                         <div
                             style={{
                                 display: "flex",
-                                gap: "0.5rem",
+                                gap: "1rem",
                                 flexWrap: "wrap",
-                                marginBottom: "0.6rem",
+                                marginBottom: "0.8rem",
                             }}
                         >
-                            <label style={{ fontSize: "0.9rem" }}>
+                            <label style={{ fontSize: "0.9rem", cursor: "pointer" }}>
                                 <input
                                     type="checkbox"
                                     checked={showAlgebraic}
                                     onChange={(e) =>
                                         setShowAlgebraic(e.target.checked)
                                     }
-                                    style={{ marginRight: "0.25rem" }}
+                                    style={{ marginRight: "0.3rem" }}
                                 />
-                                Mostra forma algebrica
+                                Forma algebrica
                             </label>
-                            <label style={{ fontSize: "0.9rem" }}>
+                            <label style={{ fontSize: "0.9rem", cursor: "pointer" }}>
                                 <input
                                     type="checkbox"
                                     checked={showInterval}
                                     onChange={(e) =>
                                         setShowInterval(e.target.checked)
                                     }
-                                    style={{ marginRight: "0.25rem" }}
+                                    style={{ marginRight: "0.3rem" }}
                                 />
-                                Mostra notazione per intervalli
+                                Notazione per intervalli
                             </label>
                         </div>
 
                         {showAlgebraic && (
-                            <div
-                                style={{
-                                    marginBottom: "0.5rem",
-                                }}
-                            >
-                                <h3
-                                    style={{
-                                        fontSize: "1rem",
-                                        marginBottom: "0.2rem",
-                                    }}
-                                >
+                            <div style={{ marginBottom: "0.6rem" }}>
+                                <h3 style={{ fontSize: "0.95rem", marginBottom: "0.2rem", color: "#555" }}>
                                     Forma algebrica
                                 </h3>
                                 <p
                                     style={{
-                                        fontFamily:
-                                            "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
-                                        fontSize: "1.05rem",
+                                        fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                                        fontSize: "1.1rem",
+                                        color: "#1f77b4",
+                                        fontWeight: 500,
                                     }}
                                 >
                                     {algebraic}
@@ -754,19 +779,15 @@ const RappresentazioneSoluzioniDisequazioniDemo: React.FC = () => {
 
                         {showInterval && (
                             <div>
-                                <h3
-                                    style={{
-                                        fontSize: "1rem",
-                                        marginBottom: "0.2rem",
-                                    }}
-                                >
+                                <h3 style={{ fontSize: "0.95rem", marginBottom: "0.2rem", color: "#555" }}>
                                     Notazione per intervalli
                                 </h3>
                                 <p
                                     style={{
-                                        fontFamily:
-                                            "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
-                                        fontSize: "1.05rem",
+                                        fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                                        fontSize: "1.1rem",
+                                        color: "#1f77b4",
+                                        fontWeight: 500,
                                     }}
                                 >
                                     {interval}
@@ -775,52 +796,58 @@ const RappresentazioneSoluzioniDisequazioniDemo: React.FC = () => {
                         )}
                     </div>
 
+                    {/* Pulsanti */}
                     <div
                         style={{
                             border: "1px solid #eee",
                             borderRadius: "12px",
-                            padding: "0.75rem 1rem",
-                            fontSize: "0.9rem",
+                            padding: "1rem",
                             background: "#fafafa",
+                            display: "flex",
+                            flexDirection: "column",
+                            justifyContent: "center",
+                            gap: "0.8rem",
                         }}
                     >
-                        <div
+                        <h2
                             style={{
-                                display: "flex",
-                                gap: "0.5rem",
-                                flexWrap: "wrap",
+                                fontSize: "1.1rem",
+                                marginBottom: "0.3rem",
                             }}
                         >
-                            <button
-                                onClick={newSolution}
-                                style={{
-                                    padding: "0.35rem 0.8rem",
-                                    borderRadius: "999px",
-                                    border: "none",
-                                    cursor: "pointer",
-                                    fontSize: "0.9rem",
-                                    boxShadow: "0 1px 3px rgba(0,0,0,0.25)",
-                                }}
-                            >
-                                Nuova soluzione casuale
-                            </button>
-                            <button
-                                onClick={startCleaning}
-                                style={{
-                                    padding: "0.35rem 0.8rem",
-                                    borderRadius: "999px",
-                                    border: "none",
-                                    cursor: "pointer",
-                                    fontSize: "0.9rem",
-                                    background:
-                                        cleanProgress > 0
-                                            ? "rgba(31,119,180,0.12)"
-                                            : "white",
-                                }}
-                            >
-                                Pulisci soluzione
-                            </button>
-                        </div>
+                            Azioni
+                        </h2>
+                        <button
+                            onClick={newSolution}
+                            style={{
+                                padding: "0.6rem 1rem",
+                                borderRadius: "8px",
+                                border: "none",
+                                cursor: "pointer",
+                                fontSize: "0.95rem",
+                                background: "linear-gradient(135deg, #3b82f6, #8b5cf6)",
+                                color: "#fff",
+                                fontWeight: 500,
+                                boxShadow: "0 2px 4px rgba(0,0,0,0.15)",
+                            }}
+                        >
+                            🎲 Nuova soluzione casuale
+                        </button>
+                        <button
+                            onClick={startCleaning}
+                            style={{
+                                padding: "0.6rem 1rem",
+                                borderRadius: "8px",
+                                border: cleanProgress > 0 ? "2px solid #1f77b4" : "1px solid #ccc",
+                                cursor: "pointer",
+                                fontSize: "0.95rem",
+                                background: cleanProgress > 0 ? "rgba(31,119,180,0.1)" : "#fff",
+                                color: cleanProgress > 0 ? "#1f77b4" : "#333",
+                                fontWeight: 500,
+                            }}
+                        >
+                            ✨ Pulisci soluzione
+                        </button>
                     </div>
                 </div>
             </div>
