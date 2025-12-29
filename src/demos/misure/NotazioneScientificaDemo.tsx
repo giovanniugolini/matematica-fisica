@@ -216,7 +216,7 @@ export default function NotazioneScientificaDemo() {
                 <div style={{ ...cardStyle, border: currentStep === 1 ? "2px solid #3b82f6" : "1px solid #e5e7eb" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
                         <div style={stepBadge(1, currentStep === 1, currentStep > 1)}>1</div>
-                        <span style={{ fontWeight: 600 }}>Trova la mantissa</span>
+                        <span style={{ fontWeight: 600 }}>Prima cifra (diversa da 0)  e poi la virgola</span>
                     </div>
                     <p style={{ fontSize: 13, color: "#6b7280", marginBottom: 12 }}>
                         Sposta la virgola finché resta <strong>una sola cifra</strong> (diversa da 0) prima della virgola.
@@ -242,7 +242,7 @@ export default function NotazioneScientificaDemo() {
                 <div style={{ ...cardStyle, border: currentStep === 2 ? "2px solid #22c55e" : "1px solid #e5e7eb" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
                         <div style={stepBadge(2, currentStep === 2, currentStep > 2)}>2</div>
-                        <span style={{ fontWeight: 600 }}>Trova l'esponente</span>
+                        <span style={{ fontWeight: 600 }}>Trova l'esponente della potenza di 10</span>
                     </div>
                     <p style={{ fontSize: 13, color: "#6b7280", marginBottom: 12 }}>
                         Conta di quanti posti hai spostato la virgola. A <strong>sinistra</strong> = positivo, a <strong>destra</strong> = negativo.
