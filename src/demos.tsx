@@ -111,6 +111,14 @@ export const demos: DemoInfo[] = [
             () => import("./demos/funzioni/DominiFunzioniDemo")
         ),
     },
+    {
+        slug: "disequazioni-secondo-grado",
+        title: "Disequazioni di secondo grado (step-by-step)",
+        Component: React.lazy(
+            () => import("./demos/disequazioni/DisequazioniSecondoGradoDemo")
+        ),
+    },
+
 
 
 
