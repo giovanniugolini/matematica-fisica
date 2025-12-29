@@ -1,26 +1,28 @@
-import React, { useState, useMemo, useCallback } from "react";
-import katex from "katex";
-import "katex/dist/katex.min.css";
-
-// ============ COMPONENTE LATEX ============
-
-function Latex({ children, display = false }: { children: string; display?: boolean }) {
-    const html = useMemo(() => {
-        try {
-            return katex.renderToString(children, {
-                throwOnError: false,
-                displayMode: display,
-            });
-        } catch (e) {
-            return children;
-        }
-    }, [children, display]);
-
-    return <span dangerouslySetInnerHTML={{ __html: html }} />;
-}
+import React, { useState, useCallback } from "react";
+import {
+    Latex,
+    DemoContainer,
+    ProblemCard,
+    NavigationButtons,
+    StepCard,
+    InfoBox,
+    GenerateButton,
+    useStepNavigation,
+    GraphContainer,
+} from "../../components/ui";
+import {
+    randomInt,
+    randomNonZero,
+    formatFractionLatex,
+    formatNumberLatex,
+    formatLinearLatex,
+    intervalLatex,
+    setLatex,
+    emptySetLatex,
+    realSetLatex,
+} from "../../utils/math";
 
 // ============ TIPI ============
-
 type FunctionType =
     | "razionale"
     | "radice"
@@ -65,217 +67,7 @@ type FunctionDef = {
     domainInterval: string;
 };
 
-// ============ UTILITÀ ============
-
-function randomInt(min: number, max: number): number {
-    return min + Math.floor(Math.random() * (max - min + 1));
-}
-
-function randomNonZero(min: number, max: number): number {
-    let n = 0;
-    while (n === 0) {
-        n = randomInt(min, max);
-    }
-    return n;
-}
-
-function formatNumber(n: number): string {
-    if (Number.isInteger(n)) return n.toString();
-    // Gestione frazioni semplici
-    const fractions: { [key: number]: string } = {
-        0.5: "1/2",
-        [-0.5]: "-1/2",
-        0.25: "1/4",
-        [-0.25]: "-1/4",
-        0.75: "3/4",
-        [-0.75]: "-3/4",
-        [1 / 3]: "1/3",
-        [-1 / 3]: "-1/3",
-        [2 / 3]: "2/3",
-        [-2 / 3]: "-2/3",
-    };
-    if (fractions[n]) return fractions[n];
-    return n.toFixed(2).replace(/\.?0+$/, "");
-}
-
-/**
- * ✅ FIX FRAZIONI:
- * - niente più scaling fisso a /1000
- * - trasformiamo num/den (anche decimali) in interi equivalenti
- * - semplifichiamo con MCD su interi
- */
-
-function gcdInt(a: number, b: number): number {
-    a = Math.abs(a);
-    b = Math.abs(b);
-    while (b !== 0) {
-        const t = a % b;
-        a = b;
-        b = t;
-    }
-    return a;
-}
-
-// quante cifre decimali “reali” ha un numero (gestisce anche notazione scientifica)
-function decimalPlaces(n: number): number {
-    if (!Number.isFinite(n)) return 0;
-    const s = n.toString();
-    if (s.includes("e-")) {
-        const [base, exp] = s.split("e-");
-        const e = parseInt(exp, 10);
-        const dp = (base.split(".")[1] || "").length;
-        return e + dp;
-    }
-    const parts = s.split(".");
-    return parts.length === 2 ? parts[1].length : 0;
-}
-
-// Trasforma (num/den) in una frazione ridotta con num,den interi
-function toFraction(num: number, den: number): { num: number; den: number } {
-    if (!Number.isFinite(num) || !Number.isFinite(den) || den === 0) return { num: 0, den: 1 };
-
-    // porta il segno sul numeratore
-    const sign = (num < 0) !== (den < 0) ? -1 : 1;
-    num = Math.abs(num);
-    den = Math.abs(den);
-
-    // scala per eliminare i decimali (se presenti)
-    const k = Math.max(decimalPlaces(num), decimalPlaces(den));
-    const scale = Math.pow(10, k);
-
-    const nInt = Math.round(num * scale);
-    const dInt = Math.round(den * scale);
-
-    const g = gcdInt(nInt, dInt) || 1;
-    return { num: sign * (nInt / g), den: dInt / g };
-}
-
-function formatFractionLatex(num: number, den: number): string {
-    if (den === 0) return "\\text{indefinito}";
-    if (num === 0) return "0";
-
-    const frac = toFraction(num, den);
-
-    // se viene un intero
-    if (frac.den === 1) return `${frac.num}`;
-
-    const sign = frac.num < 0 ? "-" : "";
-    return `${sign}\\frac{${Math.abs(frac.num)}}{${Math.abs(frac.den)}}`;
-}
-
-function formatNumberLatex(n: number): string {
-    if (Number.isInteger(n)) return n.toString();
-
-    // Prova a trovare una frazione semplice
-    for (let den = 2; den <= 10; den++) {
-        const num = n * den;
-        if (Math.abs(num - Math.round(num)) < 0.0001) {
-            return formatFractionLatex(Math.round(num), den);
-        }
-    }
-
-    return n.toFixed(2).replace(/\.?0+$/, "");
-}
-
-function formatCoeff(n: number, showPlus: boolean = false): string {
-    if (n === 1) return showPlus ? "+ " : "";
-    if (n === -1) return "− ";
-    if (n > 0) return showPlus ? `+ ${n}` : `${n}`;
-    return `− ${Math.abs(n)}`;
-}
-
-function formatLinear(a: number, b: number): string {
-    let result = "";
-    if (a === 1) result = "x";
-    else if (a === -1) result = "-x";
-    else result = `${a}x`;
-
-    if (b > 0) result += ` + ${b}`;
-    else if (b < 0) result += ` - ${Math.abs(b)}`;
-
-    return result;
-}
-
-function formatLinearLatex(a: number, b: number): string {
-    let result = "";
-    if (a === 1) result = "x";
-    else if (a === -1) result = "-x";
-    else result = `${a}x`;
-
-    if (b > 0) result += ` + ${b}`;
-    else if (b < 0) result += ` - ${Math.abs(b)}`;
-
-    return result;
-}
-
-function solutionToText(sol: Solution): string {
-    if (sol.type === "all") return "ℝ";
-    if (sol.type === "none") return "∅";
-
-    if (sol.type === "point-excluded" && sol.excludedPoints) {
-        const points = sol.excludedPoints.map((p) => formatNumber(p)).join(", ");
-        return `ℝ \\ {${points}}`;
-    }
-
-    if (sol.type === "interval") {
-        const { left, right, leftOpen, rightOpen } = sol;
-
-        if (left === -Infinity && right === Infinity) {
-            return "ℝ";
-        }
-
-        if (left === -Infinity) {
-            const bracket = rightOpen ? ")" : "]";
-            return `(−∞, ${formatNumber(right!)}${bracket}`;
-        }
-
-        if (right === Infinity) {
-            const bracket = leftOpen ? "(" : "[";
-            return `${bracket}${formatNumber(left!)}, +∞)`;
-        }
-
-        const leftBracket = leftOpen ? "(" : "[";
-        const rightBracket = rightOpen ? ")" : "]";
-        return `${leftBracket}${formatNumber(left!)}, ${formatNumber(right!)}${rightBracket}`;
-    }
-
-    return "";
-}
-
-function solutionToAlgebraic(sol: Solution): string {
-    if (sol.type === "all") return "∀x ∈ ℝ";
-    if (sol.type === "none") return "nessuna soluzione";
-
-    if (sol.type === "point-excluded" && sol.excludedPoints) {
-        const points = sol.excludedPoints.map((p) => `x ≠ ${formatNumber(p)}`).join(" e ");
-        return points;
-    }
-
-    if (sol.type === "interval") {
-        const { left, right, leftOpen, rightOpen } = sol;
-
-        if (left === -Infinity && right === Infinity) {
-            return "∀x ∈ ℝ";
-        }
-
-        if (left === -Infinity) {
-            return `x ${rightOpen ? "<" : "≤"} ${formatNumber(right!)}`;
-        }
-
-        if (right === Infinity) {
-            return `x ${leftOpen ? ">" : "≥"} ${formatNumber(left!)}`;
-        }
-
-        const leftSign = leftOpen ? "<" : "≤";
-        const rightSign = rightOpen ? "<" : "≤";
-        return `${formatNumber(left!)} ${leftSign} x ${rightSign} ${formatNumber(right!)}`;
-    }
-
-    return "";
-}
-
 // ============ GENERATORI DI FUNZIONI ============
-
 function generateRazionale(difficulty: Difficulty): FunctionDef {
     const a = randomNonZero(-5, 5);
     const b = randomInt(-10, 10);
@@ -287,11 +79,11 @@ function generateRazionale(difficulty: Difficulty): FunctionDef {
     if (difficulty !== "base") {
         const c = randomNonZero(-3, 3);
         const d = randomInt(-5, 5);
-        numerator = formatLinear(c, d);
+        numerator = formatLinearLatex(c, d);
         numeratorLatex = formatLinearLatex(c, d);
     }
 
-    const denominator = formatLinear(a, b);
+    const denominator = formatLinearLatex(a, b);
     const denominatorLatex = formatLinearLatex(a, b);
 
     return {
@@ -303,7 +95,11 @@ function generateRazionale(difficulty: Difficulty): FunctionDef {
                 description: "Funzione razionale fratta: il denominatore deve essere diverso da zero",
                 condition: `${denominator} ≠ 0`,
                 conditionLatex: `${denominatorLatex} \\neq 0`,
-                resolution: [`${formatLinearLatex(a, b)} \\neq 0`, `${a}x \\neq ${-b}`, `x \\neq ${rootLatex}`],
+                resolution: [
+                    `${denominatorLatex} \\neq 0`,
+                    `${a}x \\neq ${-b}`,
+                    `x \\neq ${rootLatex}`,
+                ],
                 solution: {
                     type: "point-excluded",
                     excludedPoints: [root],
@@ -325,10 +121,9 @@ function generateRadice(difficulty: Difficulty): FunctionDef {
     const root = -b / a;
     const rootLatex = formatFractionLatex(-b, a);
 
-    const radicando = formatLinear(a, b);
+    const radicando = formatLinearLatex(a, b);
     const radicandoLatex = formatLinearLatex(a, b);
 
-    // Per radice pari: radicando ≥ 0
     const solution: Solution =
         a > 0
             ? { type: "interval", left: root, right: Infinity, leftOpen: false, rightOpen: true }
@@ -368,10 +163,9 @@ function generateLogaritmo(difficulty: Difficulty): FunctionDef {
     const root = -b / a;
     const rootLatex = formatFractionLatex(-b, a);
 
-    const argomento = formatLinear(a, b);
+    const argomento = formatLinearLatex(a, b);
     const argomentoLatex = formatLinearLatex(a, b);
 
-    // Per logaritmo: argomento > 0
     const solution: Solution =
         a > 0
             ? { type: "interval", left: root, right: Infinity, leftOpen: true, rightOpen: true }
@@ -413,7 +207,7 @@ function generateEsponenziale(difficulty: Difficulty): FunctionDef {
     const b = randomInt(-5, 5);
     const base = randomInt(2, 5);
 
-    const esponente = formatLinear(a, b);
+    const esponente = formatLinearLatex(a, b);
     const esponenteLatex = formatLinearLatex(a, b);
 
     return {
@@ -440,16 +234,14 @@ function generateEsponenziale(difficulty: Difficulty): FunctionDef {
 }
 
 function generateRazionaleRadice(difficulty: Difficulty): FunctionDef {
-    // Radice al denominatore
-    const a = randomNonZero(1, 5); // positivo per semplicità
+    const a = randomNonZero(1, 5);
     const b = randomInt(-10, 10);
     const root = -b / a;
     const rootLatex = formatFractionLatex(-b, a);
 
-    const radicando = formatLinear(a, b);
+    const radicando = formatLinearLatex(a, b);
     const radicandoLatex = formatLinearLatex(a, b);
 
-    // Condizione: radicando > 0 (non ≥ perché è al denominatore)
     const solution: Solution = { type: "interval", left: root, right: Infinity, leftOpen: true, rightOpen: true };
 
     return {
@@ -484,10 +276,9 @@ function generateLogaritmoRadice(difficulty: Difficulty): FunctionDef {
     const root = -b / a;
     const rootLatex = formatFractionLatex(-b, a);
 
-    const argomento = formatLinear(a, b);
+    const argomento = formatLinearLatex(a, b);
     const argomentoLatex = formatLinearLatex(a, b);
 
-    // log(√(...)) = (1/2)log(...), quindi argomento > 0
     const solution: Solution = { type: "interval", left: root, right: Infinity, leftOpen: true, rightOpen: true };
 
     return {
@@ -522,11 +313,10 @@ function generateRazionaleLogaritmo(difficulty: Difficulty): FunctionDef {
     const root = -b / a;
     const rootLatex = formatFractionLatex(-b, a);
 
-    const argomento = formatLinear(a, b);
+    const argomento = formatLinearLatex(a, b);
     const argomentoLatex = formatLinearLatex(a, b);
 
-    // 1 / log(...): argomento > 0 e log ≠ 0 (cioè argomento ≠ 1)
-    const excludePoint = (1 - b) / a; // quando argomento = 1
+    const excludePoint = (1 - b) / a;
     const excludePointLatex = formatFractionLatex(1 - b, a);
 
     return {
@@ -599,8 +389,7 @@ function generateFunction(difficulty: Difficulty): FunctionDef {
     }
 }
 
-// ============ COMPONENTI GRAFICI ============
-
+// ============ COMPONENTE GRAFICO ============
 const SVG_WIDTH = 500;
 const SVG_HEIGHT = 400;
 const X_MIN = -8;
@@ -623,7 +412,6 @@ function DomainGraph({ solution, showGraph }: { solution: Solution; showGraph: b
     const originX = scaleX(0);
     const originY = scaleY(0);
 
-    // Calcola le regioni escluse
     const excludedRegions: { x1: number; x2: number }[] = [];
     const excludedPoints: number[] = [];
 
@@ -647,7 +435,6 @@ function DomainGraph({ solution, showGraph }: { solution: Solution; showGraph: b
         return (
             <svg width={SVG_WIDTH} height={SVG_HEIGHT} style={{ maxWidth: "100%", display: "block", margin: "0 auto" }}>
                 <rect x={0} y={0} width={SVG_WIDTH} height={SVG_HEIGHT} fill="#fafafa" stroke="#ddd" rx={8} />
-                {/* Assi grigi */}
                 <line x1={PADDING} y1={originY} x2={SVG_WIDTH - PADDING} y2={originY} stroke="#ccc" strokeWidth={1} />
                 <line x1={originX} y1={PADDING} x2={originX} y2={SVG_HEIGHT - PADDING} stroke="#ccc" strokeWidth={1} />
                 <text x={SVG_WIDTH / 2} y={SVG_HEIGHT / 2} textAnchor="middle" fill="#94a3b8" fontSize={14} fontStyle="italic">
@@ -659,10 +446,8 @@ function DomainGraph({ solution, showGraph }: { solution: Solution; showGraph: b
 
     return (
         <svg width={SVG_WIDTH} height={SVG_HEIGHT} style={{ maxWidth: "100%", display: "block", margin: "0 auto" }}>
-            {/* Sfondo */}
+            {/* Sfondo e griglia */}
             <rect x={0} y={0} width={SVG_WIDTH} height={SVG_HEIGHT} fill="#fafafa" stroke="#ddd" rx={8} />
-
-            {/* Griglia leggera */}
             {Array.from({ length: X_MAX - X_MIN + 1 }, (_, i) => {
                 const x = X_MIN + i;
                 if (x === 0) return null;
@@ -694,7 +479,7 @@ function DomainGraph({ solution, showGraph }: { solution: Solution; showGraph: b
                 );
             })}
 
-            {/* Zone escluse (rettangoli rossi semitrasparenti) */}
+            {/* Zone escluse */}
             {excludedRegions.map((region, idx) => (
                 <rect
                     key={`excluded-${idx}`}
@@ -727,22 +512,18 @@ function DomainGraph({ solution, showGraph }: { solution: Solution; showGraph: b
                 );
             })}
 
-            {/* Asse X */}
+            {/* Assi */}
             <line x1={PADDING} y1={originY} x2={SVG_WIDTH - PADDING} y2={originY} stroke="#374151" strokeWidth={2} />
-            {/* Freccia asse X */}
+            <line x1={originX} y1={SVG_HEIGHT - PADDING} x2={originX} y2={PADDING} stroke="#374151" strokeWidth={2} />
+
+            {/* Frecce e etichette assi */}
             <polygon
-                points={`${SVG_WIDTH - PADDING},${originY} ${SVG_WIDTH - PADDING - 8},${originY - 4} ${
-                    SVG_WIDTH - PADDING - 8
-                },${originY + 4}`}
+                points={`${SVG_WIDTH - PADDING},${originY} ${SVG_WIDTH - PADDING - 8},${originY - 4} ${SVG_WIDTH - PADDING - 8},${originY + 4}`}
                 fill="#374151"
             />
             <text x={SVG_WIDTH - PADDING + 5} y={originY + 5} fontSize={14} fill="#374151" fontStyle="italic">
                 x
             </text>
-
-            {/* Asse Y */}
-            <line x1={originX} y1={SVG_HEIGHT - PADDING} x2={originX} y2={PADDING} stroke="#374151" strokeWidth={2} />
-            {/* Freccia asse Y */}
             <polygon
                 points={`${originX},${PADDING} ${originX - 4},${PADDING + 8} ${originX + 4},${PADDING + 8}`}
                 fill="#374151"
@@ -751,7 +532,7 @@ function DomainGraph({ solution, showGraph }: { solution: Solution; showGraph: b
                 y
             </text>
 
-            {/* Tacche e numeri asse X */}
+            {/* Tacche assi */}
             {Array.from({ length: X_MAX - X_MIN + 1 }, (_, i) => {
                 const x = X_MIN + i;
                 if (x === 0) return null;
@@ -767,8 +548,6 @@ function DomainGraph({ solution, showGraph }: { solution: Solution; showGraph: b
                     </g>
                 );
             })}
-
-            {/* Tacche e numeri asse Y */}
             {Array.from({ length: Y_MAX - Y_MIN + 1 }, (_, i) => {
                 const y = Y_MIN + i;
                 if (y === 0) return null;
@@ -879,40 +658,22 @@ function DomainGraph({ solution, showGraph }: { solution: Solution; showGraph: b
 }
 
 // ============ COMPONENTE PRINCIPALE ============
-
 export default function DominiFunzioniDemo() {
     const [difficulty, setDifficulty] = useState<Difficulty>("base");
     const [func, setFunc] = useState<FunctionDef>(() => generateFunction("base"));
-    const [currentStep, setCurrentStep] = useState(0);
 
-    // Steps: 0 = funzione, 1 = tipologia, 2+ = condizioni, ultimo = grafico
     const totalSteps = 2 + func.conditions.length + 1;
+    const { currentStep, nextStep, prevStep, showAll, reset } = useStepNavigation(totalSteps);
 
     const handleGenerate = useCallback(() => {
         setFunc(generateFunction(difficulty));
-        setCurrentStep(0);
-    }, [difficulty]);
+        reset(); // Resetta lo step corrente a 0
+    }, [difficulty, reset]);
 
     const handleDifficultyChange = (newDiff: Difficulty) => {
         setDifficulty(newDiff);
         setFunc(generateFunction(newDiff));
-        setCurrentStep(0);
-    };
-
-    const nextStep = () => {
-        if (currentStep < totalSteps - 1) {
-            setCurrentStep(currentStep + 1);
-        }
-    };
-
-    const prevStep = () => {
-        if (currentStep > 0) {
-            setCurrentStep(currentStep - 1);
-        }
-    };
-
-    const showAll = () => {
-        setCurrentStep(totalSteps - 1);
+        reset(); // Resetta anche quando cambia la difficoltà
     };
 
     const getTypeName = (type: FunctionType): string => {
@@ -929,49 +690,13 @@ export default function DominiFunzioniDemo() {
     };
 
     return (
-        <div
-            style={{
-                maxWidth: 900,
-                margin: "auto",
-                padding: 16,
-                fontFamily: "system-ui, sans-serif",
-            }}
+        <DemoContainer
+            title="Dominio delle Funzioni"
+            description="Impara a determinare il dominio di una funzione passo dopo passo."
         >
-            {/* Header */}
-            <div style={{ marginBottom: 16 }}>
-                <a href="#/" style={{ color: "#3b82f6", textDecoration: "none", fontSize: 14 }}>
-                    ← Torna alla home
-                </a>
-                <h1 style={{ margin: "8px 0", fontSize: 24 }}>
-                    Dominio delle Funzioni
-                </h1>
-                <p style={{ color: "#64748b", margin: 0, fontSize: 14 }}>
-                    Impara a determinare il dominio di una funzione passo dopo passo.
-                </p>
-            </div>
-
             {/* Controlli */}
-            <div
-                style={{
-                    display: "flex",
-                    gap: 16,
-                    marginBottom: 20,
-                    flexWrap: "wrap",
-                    alignItems: "center",
-                }}
-            >
-                {/* Difficoltà */}
-                <div
-                    style={{
-                        background: "#fff",
-                        borderRadius: 12,
-                        padding: "12px 16px",
-                        boxShadow: "0 1px 4px rgba(0,0,0,0.1)",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 10,
-                    }}
-                >
+            <div style={{ display: "flex", gap: 16, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
+                <div style={{ background: "#fff", borderRadius: 12, padding: "12px 16px", boxShadow: "0 1px 4px rgba(0,0,0,0.1)" }}>
                     <span style={{ fontWeight: 500, fontSize: 14 }}>Difficoltà:</span>
                     {(["base", "intermedio", "avanzato"] as Difficulty[]).map((d) => (
                         <button
@@ -993,291 +718,107 @@ export default function DominiFunzioniDemo() {
                         </button>
                     ))}
                 </div>
-
-                {/* Pulsante genera */}
-                <button
-                    onClick={handleGenerate}
-                    style={{
-                        padding: "10px 20px",
-                        borderRadius: 8,
-                        border: "none",
-                        background: "linear-gradient(135deg, #3b82f6, #8b5cf6)",
-                        color: "#fff",
-                        fontWeight: 600,
-                        fontSize: 14,
-                        cursor: "pointer",
-                        boxShadow: "0 2px 4px rgba(0,0,0,0.15)",
-                    }}
-                >
-                    🎲 Nuova funzione
-                </button>
+                <GenerateButton onClick={handleGenerate} text="Nuova funzione" emoji="🎲" />
             </div>
 
             {/* Funzione */}
-            <div
-                style={{
-                    background: "#fff",
-                    borderRadius: 12,
-                    padding: 20,
-                    marginBottom: 16,
-                    boxShadow: "0 1px 4px rgba(0,0,0,0.1)",
-                    textAlign: "center",
-                }}
-            >
-                <div style={{ fontSize: 13, color: "#64748b", marginBottom: 8 }}>
-                    Determina il dominio della funzione:
-                </div>
-                <div style={{ fontSize: 28, color: "#1e293b" }}>
-                    <Latex display>{`f(x) = ${func.latex}`}</Latex>
-                </div>
-            </div>
+            <ProblemCard label="Determina il dominio della funzione">
+                <Latex display>{`f(x) = ${func.latex}`}</Latex>
+            </ProblemCard>
 
             {/* Passaggi */}
-            <div
-                style={{
-                    background: "#fff",
-                    borderRadius: 12,
-                    padding: 20,
-                    marginBottom: 16,
-                    boxShadow: "0 1px 4px rgba(0,0,0,0.1)",
-                }}
-            >
-                {/* Barra progressione */}
-                <div
-                    style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        marginBottom: 16,
-                    }}
-                >
-                    <div style={{ fontWeight: 600, fontSize: 16 }}>Procedimento</div>
-                    <div style={{ display: "flex", gap: 8 }}>
-                        <button
-                            onClick={prevStep}
-                            disabled={currentStep === 0}
-                            style={{
-                                padding: "6px 12px",
-                                borderRadius: 6,
-                                border: "1px solid #cbd5e1",
-                                background: currentStep === 0 ? "#f1f5f9" : "#fff",
-                                color: currentStep === 0 ? "#94a3b8" : "#334155",
-                                cursor: currentStep === 0 ? "not-allowed" : "pointer",
-                                fontSize: 13,
-                            }}
-                        >
-                            ← Indietro
-                        </button>
-                        <button
-                            onClick={nextStep}
-                            disabled={currentStep === totalSteps - 1}
-                            style={{
-                                padding: "6px 12px",
-                                borderRadius: 6,
-                                border: "none",
-                                background: currentStep === totalSteps - 1 ? "#94a3b8" : "#3b82f6",
-                                color: "#fff",
-                                cursor: currentStep === totalSteps - 1 ? "not-allowed" : "pointer",
-                                fontSize: 13,
-                                fontWeight: 500,
-                            }}
-                        >
-                            Avanti →
-                        </button>
-                        <button
-                            onClick={showAll}
-                            style={{
-                                padding: "6px 12px",
-                                borderRadius: 6,
-                                border: "1px solid #22c55e",
-                                background: "#dcfce7",
-                                color: "#166534",
-                                cursor: "pointer",
-                                fontSize: 13,
-                                fontWeight: 500,
-                            }}
-                        >
-                            Mostra tutto
-                        </button>
-                    </div>
-                </div>
+            <div style={{ background: "#fff", borderRadius: 12, padding: 20, marginBottom: 16, boxShadow: "0 1px 4px rgba(0,0,0,0.1)" }}>
+                <NavigationButtons
+                    currentStep={currentStep}
+                    totalSteps={totalSteps}
+                    onNext={nextStep}
+                    onPrev={prevStep}
+                    onShowAll={showAll}
+                />
 
                 {/* Step 1: Tipologia */}
-                <div
-                    style={{
-                        padding: 16,
-                        background: currentStep >= 1 ? "#f0fdf4" : "#f8fafc",
-                        borderRadius: 8,
-                        marginBottom: 12,
-                        borderLeft: `4px solid ${currentStep >= 1 ? "#22c55e" : "#cbd5e1"}`,
-                        opacity: currentStep >= 1 ? 1 : 0.5,
-                    }}
+                <StepCard
+                    title="Riconosci la tipologia"
+                    stepNumber={1}
+                    color="green"
+                    isActive={currentStep >= 1}
                 >
-                    <div style={{ fontWeight: 600, color: "#166534", marginBottom: 6 }}>
-                        Step 1: Riconosci la tipologia
-                    </div>
-                    {currentStep >= 1 && (
-                        <div style={{ fontSize: 15, color: "#334155" }}>{getTypeName(func.type)}</div>
-                    )}
-                </div>
+                    {getTypeName(func.type)}
+                </StepCard>
 
                 {/* Step 2+: Condizioni */}
                 {func.conditions.map((cond, idx) => (
-                    <div
+                    <StepCard
                         key={idx}
-                        style={{
-                            padding: 16,
-                            background: currentStep >= 2 + idx ? "#eff6ff" : "#f8fafc",
-                            borderRadius: 8,
-                            marginBottom: 12,
-                            borderLeft: `4px solid ${currentStep >= 2 + idx ? "#3b82f6" : "#cbd5e1"}`,
-                            opacity: currentStep >= 2 + idx ? 1 : 0.5,
-                        }}
+                        title={cond.description}
+                        stepNumber={2 + idx}
+                        color="blue"
+                        isActive={currentStep >= 2 + idx}
                     >
-                        <div style={{ fontWeight: 600, color: "#1d4ed8", marginBottom: 6 }}>
-                            Step {2 + idx}: {cond.description}
+                        <div style={{ fontSize: 18, color: "#334155", marginBottom: 8, padding: "8px 12px", background: "#fff", borderRadius: 6, display: "inline-block" }}>
+                            <Latex>{cond.conditionLatex || cond.condition}</Latex>
                         </div>
-                        {currentStep >= 2 + idx && (
-                            <>
-                                <div
-                                    style={{
-                                        fontSize: 18,
-                                        color: "#334155",
-                                        marginBottom: 8,
-                                        padding: "8px 12px",
-                                        background: "#fff",
-                                        borderRadius: 6,
-                                        display: "inline-block",
-                                    }}
-                                >
-                                    <Latex>{cond.conditionLatex || cond.condition}</Latex>
+                        <div style={{ marginTop: 8 }}>
+                            <div style={{ fontSize: 13, color: "#64748b", marginBottom: 4 }}>Risoluzione:</div>
+                            {cond.resolution.map((step, i) => (
+                                <div key={i} style={{ fontSize: 15, color: "#475569", padding: "6px 0", paddingLeft: 12, borderLeft: "2px solid #cbd5e1" }}>
+                                    <Latex>{step}</Latex>
                                 </div>
-                                <div style={{ marginTop: 8 }}>
-                                    <div style={{ fontSize: 13, color: "#64748b", marginBottom: 4 }}>
-                                        Risoluzione:
-                                    </div>
-                                    {cond.resolution.map((step, i) => (
-                                        <div
-                                            key={i}
-                                            style={{
-                                                fontSize: 15,
-                                                color: "#475569",
-                                                padding: "6px 0",
-                                                paddingLeft: 12,
-                                                borderLeft: "2px solid #cbd5e1",
-                                            }}
-                                        >
-                                            <Latex>{step}</Latex>
-                                        </div>
-                                    ))}
-                                </div>
-                            </>
-                        )}
-                    </div>
+                            ))}
+                        </div>
+                    </StepCard>
                 ))}
 
                 {/* Step finale: Dominio */}
-                <div
-                    style={{
-                        padding: 16,
-                        background: currentStep >= totalSteps - 1 ? "#fef3c7" : "#f8fafc",
-                        borderRadius: 8,
-                        marginBottom: 12,
-                        borderLeft: `4px solid ${currentStep >= totalSteps - 1 ? "#f59e0b" : "#cbd5e1"}`,
-                        opacity: currentStep >= totalSteps - 1 ? 1 : 0.5,
-                    }}
+                <StepCard
+                    title="Scrivi il dominio"
+                    stepNumber={totalSteps}
+                    color="amber"
+                    isActive={currentStep >= totalSteps - 1}
                 >
-                    <div style={{ fontWeight: 600, color: "#b45309", marginBottom: 6 }}>
-                        Step {totalSteps}: Scrivi il dominio
-                    </div>
-                    {currentStep >= totalSteps - 1 && (
-                        <div style={{ display: "flex", gap: 20, flexWrap: "wrap", alignItems: "center" }}>
-                            <div>
-                                <div style={{ fontSize: 12, color: "#64748b", marginBottom: 4 }}>
-                                    Forma algebrica:
-                                </div>
-                                <div style={{ fontSize: 20, color: "#92400e", fontWeight: 500 }}>
-                                    <Latex>{`D = ${func.domainText}`}</Latex>
-                                </div>
-
-                            </div>
-                            <div>
-                                <div style={{ fontSize: 12, color: "#64748b", marginBottom: 4 }}>
-                                    Notazione intervalli:
-                                </div>
-                                <div style={{ fontSize: 20, color: "#92400e", fontWeight: 500 }}>
-                                    <Latex>{`D = ${func.domainInterval}`}</Latex>
-                                </div>
+                    <div style={{ display: "flex", gap: 20, flexWrap: "wrap", alignItems: "center" }}>
+                        <div>
+                            <div style={{ fontSize: 12, color: "#64748b", marginBottom: 4 }}>Forma algebrica:</div>
+                            <div style={{ fontSize: 20, color: "#92400e", fontWeight: 500 }}>
+                                <Latex>{`D = ${func.domainText}`}</Latex>
                             </div>
                         </div>
-                    )}
-                </div>
+                        <div>
+                            <div style={{ fontSize: 12, color: "#64748b", marginBottom: 4 }}>Notazione intervalli:</div>
+                            <div style={{ fontSize: 20, color: "#92400e", fontWeight: 500 }}>
+                                <Latex>{`D = ${func.domainInterval}`}</Latex>
+                            </div>
+                        </div>
+                    </div>
+                </StepCard>
             </div>
 
             {/* Grafico */}
-            <div
-                style={{
-                    background: "#fff",
-                    borderRadius: 12,
-                    padding: 16,
-                    boxShadow: "0 1px 4px rgba(0,0,0,0.1)",
-                }}
-            >
-                <div style={{ fontWeight: 600, marginBottom: 12 }}>
-                    Rappresentazione grafica del dominio
-                </div>
-                <DomainGraph solution={func.domain} showGraph={currentStep >= totalSteps - 1} />
-                <div
-                    style={{
-                        marginTop: 10,
-                        fontSize: 13,
-                        color: "#64748b",
-                        textAlign: "center",
-                    }}
-                >
-                    {currentStep >= totalSteps - 1 ? (
+            <GraphContainer
+                title="Rappresentazione grafica del dominio"
+                footer={
+                    currentStep >= totalSteps - 1 ? (
                         <>
-                            Le <strong>zone rosse</strong> indicano i valori di x dove la funzione{" "}
-                            <strong>non è definita</strong>.
+                            Le <strong>zone rosse</strong> indicano i valori di x dove la funzione <strong>non è definita</strong>.
                         </>
                     ) : (
-                        <span style={{ fontStyle: "italic" }}>
-              Completa tutti i passaggi per vedere il grafico
-            </span>
-                    )}
-                </div>
-            </div>
+                        <span style={{ fontStyle: "italic" }}>Completa tutti i passaggi per vedere il grafico</span>
+                    )
+                }
+            >
+                <DomainGraph solution={func.domain} showGraph={currentStep >= totalSteps - 1} />
+            </GraphContainer>
 
             {/* Spiegazione */}
-            <div
-                style={{
-                    marginTop: 16,
-                    background: "#eff6ff",
-                    borderRadius: 12,
-                    padding: 16,
-                    fontSize: 13,
-                    color: "#1e3a8a",
-                }}
-            >
-                <strong>Come determinare il dominio:</strong>
+            <InfoBox title="Come determinare il dominio:" variant="blue">
                 <ol style={{ margin: "8px 0 0 0", paddingLeft: 20 }}>
-                    <li>
-                        <strong>Riconosci la tipologia</strong> della funzione (razionale, irrazionale, logaritmica, ecc.)
-                    </li>
-                    <li>
-                        <strong>Scrivi le condizioni</strong> di esistenza (denominatore ≠ 0, radicando ≥ 0, argomento log {">"} 0, ecc.)
-                    </li>
-                    <li>
-                        <strong>Risolvi</strong> le disequazioni o equazioni associate
-                    </li>
-                    <li>
-                        <strong>Interseca</strong> le soluzioni se ci sono più condizioni
-                    </li>
-                    <li>
-                        <strong>Scrivi</strong> il dominio in forma algebrica e come intervallo
-                    </li>
+                    <li><strong>Riconosci la tipologia</strong> della funzione (razionale, irrazionale, logaritmica, ecc.)</li>
+                    <li><strong>Scrivi le condizioni</strong> di esistenza (denominatore ≠ 0, radicando ≥ 0, argomento log {">"} 0, ecc.)</li>
+                    <li><strong>Risolvi</strong> le disequazioni o equazioni associate</li>
+                    <li><strong>Interseca</strong> le soluzioni se ci sono più condizioni</li>
+                    <li><strong>Scrivi</strong> il dominio in forma algebrica e come intervallo</li>
                 </ol>
-            </div>
-        </div>
+            </InfoBox>
+        </DemoContainer>
     );
 }

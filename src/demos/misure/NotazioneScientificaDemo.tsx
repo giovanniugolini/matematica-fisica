@@ -1,389 +1,381 @@
-import React, { useMemo, useState } from "react";
+/**
+ * NotazioneScientificaDemo - Versione refactorizzata
+ * Impara la notazione scientifica con procedura step-by-step
+ */
 
-type BaseUnit = {
-    symbol: string;
-    label: string;
-};
+import React, { useMemo, useState } from "react";
+import { DemoContainer } from "../../components/ui";
+
+// ============ TIPI E COSTANTI ============
+
+type BaseUnit = { symbol: string; label: string };
 
 const BASE_UNITS: BaseUnit[] = [
-    { symbol: "m", label: "metri (m)" },
-    { symbol: "g", label: "grammi (g)" },
-    { symbol: "s", label: "secondi (s)" },
+    { symbol: "m", label: "metri" },
+    { symbol: "g", label: "grammi" },
+    { symbol: "s", label: "secondi" },
+    { symbol: "N", label: "newton" },
+    { symbol: "J", label: "joule" },
 ];
 
-function formatNormal(value: number): string {
-    return formatNumberWithSpaces(value, 6);
+// ============ UTILITY ============
+
+function superscript(n: number): string {
+    const sup: Record<string, string> = { "-": "⁻", "0": "⁰", "1": "¹", "2": "²", "3": "³", "4": "⁴", "5": "⁵", "6": "⁶", "7": "⁷", "8": "⁸", "9": "⁹" };
+    return String(n).split("").map(c => sup[c] || c).join("");
 }
 
-// formato: spazio per migliaia, virgola come separatore decimale,
-// decimali variabili fino a maxDecimals (tagliando gli zeri finali)
-function formatNumberWithSpaces(value: number, maxDecimals = 6): string {
+function formatNormal(value: number): string {
     if (!Number.isFinite(value)) return "—";
-
-    const isNegative = value < 0;
     const abs = Math.abs(value);
 
-    // scrivo con punto come separatore decimale, poi converto
-    let str = abs.toFixed(maxDecimals); // es: "1234.500000"
-    // tolgo gli zeri finali dopo il punto
-    str = str.replace(/\.?0+$/, ""); // "1234.5" oppure "1234"
-
-    let [intPart, fracPart] = str.split(".");
-
-    // inserisco spazi per migliaia
-    intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-
-    let result = intPart;
-    if (fracPart && fracPart.length > 0) {
-        result += "," + fracPart; // virgola come separatore decimale
+    // Per numeri molto grandi o piccoli, usa formato esteso
+    if (abs >= 1e9 || (abs < 1e-4 && abs > 0)) {
+        return value.toExponential(2).replace("e", " × 10^").replace(".", ",");
     }
 
-    if (isNegative) result = "-" + result;
-    return result;
+    let str = abs.toFixed(6).replace(/\.?0+$/, "");
+    let [intPart, fracPart] = str.split(".");
+    intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    let result = fracPart ? `${intPart},${fracPart}` : intPart;
+    return value < 0 ? `-${result}` : result;
 }
 
+type SciForm = { mantissa: number; exponent: number; mantissaStr: string };
 
-type SciForm = {
-    mantissa: number;
-    exponent: number;
-    mantissaString: string;
-};
-
-function toScientific(value: number, significantDigits = 3): SciForm {
-    if (value === 0) {
-        return {
-            mantissa: 0,
-            exponent: 0,
-            mantissaString: "0",
-        };
-    }
+function toScientific(value: number, digits = 3): SciForm {
+    if (value === 0) return { mantissa: 0, exponent: 0, mantissaStr: "0" };
 
     const sign = Math.sign(value);
-    const absValue = Math.abs(value);
+    const abs = Math.abs(value);
+    let exponent = Math.floor(Math.log10(abs));
+    let mantissa = abs / Math.pow(10, exponent);
 
-    let exponent = Math.floor(Math.log10(absValue));
-    let mantissa = absValue / Math.pow(10, exponent);
-
-    const factor = Math.pow(10, significantDigits - 1);
+    const factor = Math.pow(10, digits - 1);
     mantissa = Math.round(mantissa * factor) / factor;
 
-    if (mantissa >= 10) {
-        mantissa = mantissa / 10;
-        exponent += 1;
-    }
+    if (mantissa >= 10) { mantissa /= 10; exponent++; }
+    mantissa *= sign;
 
-    mantissa = sign * mantissa;
-
-    const mantissaString = mantissa.toLocaleString("it-IT", {
-        maximumFractionDigits: significantDigits - 1,
-    });
-
-    return { mantissa, exponent, mantissaString };
+    const mantissaStr = mantissa.toLocaleString("it-IT", { maximumFractionDigits: digits - 1 });
+    return { mantissa, exponent, mantissaStr };
 }
 
-// genera un valore casuale in un range di ordini di grandezza
-function generateRandomValue(): number {
-    // esponente tra -6 e +6
-    const exp = Math.floor(Math.random() * 13) - 6; // -6..+6
-    const mantissa = 1 + Math.random() * 9; // [1,10)
-    const sign = 1; // per ora teniamo solo positivi, più chiaro didatticamente
-    return sign * mantissa * Math.pow(10, exp);
+function generateRandom(): number {
+    const exp = Math.floor(Math.random() * 13) - 6; // -6 to +6
+    const mantissa = 1 + Math.random() * 9;
+    return mantissa * Math.pow(10, exp);
 }
 
-const NotazioneScientificaDemo: React.FC = () => {
+// Esempi predefiniti con contesto
+const EXAMPLES = [
+    { value: 299792458, context: "Velocità della luce", unit: "m/s" },
+    { value: 0.000001, context: "Un micrometro", unit: "m" },
+    { value: 6.022e23, context: "Numero di Avogadro", unit: "mol⁻¹" },
+    { value: 9.81, context: "Accelerazione di gravità", unit: "m/s²" },
+    { value: 0.00000000167, context: "Massa del protone", unit: "kg" },
+    { value: 384400000, context: "Distanza Terra-Luna", unit: "m" },
+    { value: 0.001, context: "Un millimetro", unit: "m" },
+    { value: 1000000, context: "Un chilometro in millimetri", unit: "mm" },
+];
+
+// ============ COMPONENTE PRINCIPALE ============
+
+export default function NotazioneScientificaDemo() {
     const [baseUnit, setBaseUnit] = useState<BaseUnit>(BASE_UNITS[0]);
-    const [value, setValue] = useState<number>(() => generateRandomValue());
-    const [showSolution, setShowSolution] = useState<boolean>(false);
+    const [value, setValue] = useState<number>(() => generateRandom());
+    const [customUnit, setCustomUnit] = useState<string | null>(null);
+    const [currentStep, setCurrentStep] = useState<number>(1);
+    const [showHint, setShowHint] = useState<boolean>(false);
+    const [userMantissa, setUserMantissa] = useState<string>("");
+    const [userExponent, setUserExponent] = useState<string>("");
+    const [checked, setChecked] = useState<boolean>(false);
 
     const scientific = useMemo(() => toScientific(value, 3), [value]);
+    const displayUnit = customUnit || baseUnit.symbol;
 
-    const explanation = useMemo(() => {
-        const { exponent } = scientific;
-        if (value === 0) {
-            return "Lo zero in notazione scientifica si scrive semplicemente 0 (non è necessario usare potenze di 10).";
-        }
-        const absExp = Math.abs(exponent);
-        if (exponent > 0) {
-            const passi = absExp === 1 ? "1 posto" : `${absExp} posti`;
-            return `Per ottenere la mantissa abbiamo spostato la virgola di ${passi} verso sinistra (il numero è grande, l'esponente è positivo).`;
-        } else if (exponent < 0) {
-            const passi = absExp === 1 ? "1 posto" : `${absExp} posti`;
-            return `Per ottenere la mantissa abbiamo spostato la virgola di ${passi} verso destra (il numero è piccolo, l'esponente è negativo).`;
-        }
-        return "In questo caso non abbiamo bisogno di spostare la virgola: l'esponente è 0.";
-    }, [scientific, value]);
+    // Verifica risposta
+    const isCorrect = useMemo(() => {
+        if (!checked) return null;
+        const mInput = parseFloat(userMantissa.replace(",", "."));
+        const eInput = parseInt(userExponent);
+        if (isNaN(mInput) || isNaN(eInput)) return false;
 
-    const factorText = useMemo(() => {
-        const { exponent } = scientific;
-        const sign = exponent >= 0 ? "+" : "";
-        return `Il numero si scrive come mantissa × 10${sign}${exponent}.`;
-    }, [scientific]);
+        // Tolleranza sulla mantissa
+        const mCorrect = Math.abs(mInput - scientific.mantissa) < 0.1;
+        const eCorrect = eInput === scientific.exponent;
+        return mCorrect && eCorrect;
+    }, [checked, userMantissa, userExponent, scientific]);
 
-    const newMeasurement = () => {
-        setValue(generateRandomValue());
-        setShowSolution(false);
+    const newMeasurement = (val?: number, unit?: string) => {
+        setValue(val ?? generateRandom());
+        setCustomUnit(unit ?? null);
+        setCurrentStep(1);
+        setShowHint(false);
+        setUserMantissa("");
+        setUserExponent("");
+        setChecked(false);
     };
 
-    const normalString = formatNormal(value);
-    const sci = scientific;
-    const sciUnit = baseUnit.symbol;
+    const checkAnswer = () => {
+        setChecked(true);
+        if (isCorrect) setCurrentStep(4);
+    };
 
-    const sciFull = `${sci.mantissaString} · 10${
-        sci.exponent === 0 ? "⁰" : ""
-    }${sci.exponent !== 0 ? superscriptExponent(sci.exponent) : ""}`;
+    // ============ STILI ============
+
+    const cardStyle: React.CSSProperties = {
+        background: "#fff",
+        borderRadius: 16,
+        padding: 16,
+        boxShadow: "0 2px 8px rgba(0,0,0,0.08)"
+    };
+
+    const stepBadge = (n: number, active: boolean, done: boolean): React.CSSProperties => ({
+        width: 32,
+        height: 32,
+        borderRadius: "50%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontWeight: 700,
+        fontSize: 14,
+        background: done ? "#22c55e" : active ? "#3b82f6" : "#e5e7eb",
+        color: done || active ? "#fff" : "#6b7280"
+    });
 
     return (
-        <div
-            style={{
-                padding: "1.5rem",
-                maxWidth: "900px",
-                margin: "0 auto",
-                fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
-            }}
+        <DemoContainer
+            title="Notazione scientifica"
+            description="Impara a convertire numeri in notazione scientifica (a × 10ⁿ) con esercizi interattivi."
         >
-            <h1 style={{ fontSize: "1.8rem", marginBottom: "0.5rem" }}>
-                Notazione scientifica delle misure
-            </h1>
-            <p style={{ marginBottom: "1rem", lineHeight: 1.4 }}>
-                Questa pagina genera una misura casuale e ti chiede di riscriverla in{" "}
-                <strong>notazione scientifica</strong>, cioè nella forma{" "}
-                <em>a · 10ⁿ</em> con 1 ≤ a &lt; 10. Puoi pensare alla posizione della
-                virgola e agli ordini di grandezza.
-            </p>
-
-            {/* Scelta unità + generazione */}
-            <div
-                style={{
-                    border: "1px solid #ddd",
-                    borderRadius: "12px",
-                    padding: "0.8rem 1rem",
-                    marginBottom: "1rem",
-                    boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
-                }}
-            >
-                <h2
-                    style={{
-                        fontSize: "1.1rem",
-                        marginBottom: "0.5rem",
-                    }}
-                >
-                    1. Scegli l&apos;unità e genera una misura casuale
-                </h2>
-                <div
-                    style={{
-                        display: "flex",
-                        gap: "0.5rem",
-                        flexWrap: "wrap",
-                        marginBottom: "0.7rem",
-                    }}
-                >
-                    {BASE_UNITS.map((u) => (
-                        <button
-                            key={u.symbol}
-                            onClick={() => setBaseUnit(u)}
-                            style={{
-                                padding: "0.3rem 0.7rem",
-                                borderRadius: "999px",
-                                border:
-                                    baseUnit.symbol === u.symbol
-                                        ? "2px solid #1f77b4"
-                                        : "1px solid #ccc",
-                                background:
-                                    baseUnit.symbol === u.symbol
-                                        ? "rgba(31,119,180,0.1)"
-                                        : "white",
-                                cursor: "pointer",
-                                fontSize: "0.9rem",
-                            }}
-                        >
-                            {u.label}
-                        </button>
-                    ))}
-                </div>
-                <button
-                    onClick={newMeasurement}
-                    style={{
-                        padding: "0.4rem 0.9rem",
-                        borderRadius: "999px",
-                        border: "none",
-                        cursor: "pointer",
-                        fontWeight: 600,
-                        boxShadow: "0 1px 3px rgba(0,0,0,0.25)",
-                    }}
-                >
-                    Nuova misura casuale
-                </button>
-            </div>
-
-            {/* Misura generata */}
-            <div
-                style={{
-                    border: "1px solid #ddd",
-                    borderRadius: "12px",
-                    padding: "0.8rem 1rem",
-                    marginBottom: "1rem",
-                }}
-            >
-                <h2
-                    style={{
-                        fontSize: "1.1rem",
-                        marginBottom: "0.4rem",
-                    }}
-                >
-                    2. Misura da riscrivere in notazione scientifica
-                </h2>
-                <p
-                    style={{
-                        fontSize: "1.4rem",
-                        fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
-                    }}
-                >
-                    <strong>
-                        {normalString} {sciUnit}
-                    </strong>
-                </p>
-                <p
-                    style={{
-                        fontSize: "0.9rem",
-                        fontStyle: "italic",
-                        color: "#555",
-                    }}
-                >
-                    Prova mentalmente a trasformarla in a · 10ⁿ prima di guardare la
-                    soluzione.
-                </p>
-                <button
-                    onClick={() => setShowSolution((prev) => !prev)}
-                    style={{
-                        marginTop: "0.4rem",
-                        padding: "0.35rem 0.8rem",
-                        borderRadius: "999px",
-                        border: "none",
-                        cursor: "pointer",
-                        fontSize: "0.9rem",
-                    }}
-                >
-                    {showSolution ? "Nascondi soluzione" : "Mostra soluzione"}
-                </button>
-            </div>
-
-            {/* Soluzione e spiegazione */}
-            {showSolution && (
-                <div
-                    style={{
-                        border: "1px solid #ddd",
-                        borderRadius: "12px",
-                        padding: "0.9rem 1rem",
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "0.7rem",
-                    }}
-                >
-                    <h2
-                        style={{
-                            fontSize: "1.1rem",
-                            marginBottom: "0.2rem",
-                        }}
-                    >
-                        3. Notazione scientifica e spiegazione
-                    </h2>
-
-                    {/* Forma a · 10^n */}
+            {/* Header con generazione */}
+            <div style={cardStyle}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
                     <div>
-                        <p
-                            style={{
-                                marginBottom: "0.3rem",
-                            }}
-                        >
-                            In notazione scientifica:
-                        </p>
-                        <p
-                            style={{
-                                fontSize: "1.3rem",
-                                fontFamily:
-                                    "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
-                            }}
-                        >
-                            <strong>
-                                {normalString} {sciUnit} = {sci.mantissaString} · 10
-                                {sci.exponent === 0 ? "⁰" : superscriptExponent(sci.exponent)}{" "}
-                                {sciUnit}
-                            </strong>
-                        </p>
+                        <div style={{ fontWeight: 600, marginBottom: 8 }}>Unità di misura</div>
+                        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                            {BASE_UNITS.map(u => (
+                                <button
+                                    key={u.symbol}
+                                    onClick={() => { setBaseUnit(u); setCustomUnit(null); }}
+                                    style={{
+                                        padding: "6px 14px",
+                                        borderRadius: 8,
+                                        border: baseUnit.symbol === u.symbol && !customUnit ? "2px solid #3b82f6" : "1px solid #d1d5db",
+                                        background: baseUnit.symbol === u.symbol && !customUnit ? "#dbeafe" : "#fff",
+                                        cursor: "pointer",
+                                        fontSize: 13
+                                    }}
+                                >
+                                    {u.label}
+                                </button>
+                            ))}
+                        </div>
                     </div>
-
-                    {/* Testo sul fattore 10^n */}
-                    <div
-                        style={{
-                            fontSize: "0.95rem",
-                        }}
-                    >
-                        <p style={{ marginBottom: "0.25rem" }}>{factorText}</p>
-                        <p style={{ marginBottom: "0.25rem" }}>{explanation}</p>
+                    <div style={{ display: "flex", gap: 8 }}>
+                        <button onClick={() => newMeasurement()} style={{ padding: "10px 20px", borderRadius: 8, border: "none", background: "#3b82f6", color: "#fff", cursor: "pointer", fontWeight: 600 }}>
+                            🎲 Numero casuale
+                        </button>
                     </div>
+                </div>
 
-                    {/* Box "virgola" */}
-                    <div
-                        style={{
-                            border: "1px solid #eee",
-                            borderRadius: "10px",
-                            padding: "0.6rem 0.8rem",
-                            fontSize: "0.9rem",
-                            background: "#fafafa",
-                        }}
-                    >
-                        <p style={{ marginBottom: "0.3rem" }}>
-                            Per passare dalla misura originale alla mantissa:
-                        </p>
-                        <ul
-                            style={{
-                                paddingLeft: "1.2rem",
-                                margin: 0,
-                            }}
-                        >
-                            <li>
-                                scrivi il numero con la virgola in modo che resti{" "}
-                                <strong>una sola cifra diversa da zero</strong> prima della
-                                virgola;
-                            </li>
-                            <li>
-                                conta di quanti posti hai spostato la virgola: questo numero
-                                sarà l&apos;esponente di 10 (positivo se hai spostato verso
-                                sinistra, negativo se verso destra);
-                            </li>
-                            <li>
-                                la misura non cambia, cambia solo il modo di scriverla: la
-                                notazione scientifica è comoda per numeri molto grandi o molto
-                                piccoli.
-                            </li>
-                        </ul>
+                {/* Esempi famosi */}
+                <div style={{ marginTop: 16 }}>
+                    <div style={{ fontSize: 13, color: "#6b7280", marginBottom: 8 }}>Oppure prova con un esempio famoso:</div>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                        {EXAMPLES.slice(0, 4).map((ex, i) => (
+                            <button
+                                key={i}
+                                onClick={() => newMeasurement(ex.value, ex.unit)}
+                                style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #d1d5db", background: "#f8fafc", cursor: "pointer", fontSize: 12, textAlign: "left" }}
+                                title={ex.context}
+                            >
+                                {ex.context}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            {/* Numero da convertire */}
+            <div style={{ ...cardStyle, marginTop: 16, background: "linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)" }}>
+                <div style={{ fontWeight: 600, marginBottom: 8, color: "#92400e" }}>📐 Converti in notazione scientifica:</div>
+                <div style={{ fontSize: 32, fontFamily: "monospace", fontWeight: 700, color: "#78350f", letterSpacing: 1 }}>
+                    {formatNormal(value)} {displayUnit}
+                </div>
+                <div style={{ fontSize: 13, color: "#92400e", marginTop: 8 }}>
+                    Scrivi questo numero nella forma <strong>a × 10ⁿ</strong> dove 1 ≤ |a| &lt; 10
+                </div>
+            </div>
+
+            {/* Steps interattivi */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 16 }}>
+
+                {/* STEP 1: Trova la mantissa */}
+                <div style={{ ...cardStyle, border: currentStep === 1 ? "2px solid #3b82f6" : "1px solid #e5e7eb" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                        <div style={stepBadge(1, currentStep === 1, currentStep > 1)}>1</div>
+                        <span style={{ fontWeight: 600 }}>Trova la mantissa</span>
+                    </div>
+                    <p style={{ fontSize: 13, color: "#6b7280", marginBottom: 12 }}>
+                        Sposta la virgola finché resta <strong>una sola cifra</strong> (diversa da 0) prima della virgola.
+                    </p>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <input
+                            type="text"
+                            value={userMantissa}
+                            onChange={(e) => { setUserMantissa(e.target.value); setChecked(false); }}
+                            placeholder="es. 2,99"
+                            style={{ padding: "10px 14px", borderRadius: 8, border: "2px solid #3b82f6", fontSize: 18, width: 100, textAlign: "center" }}
+                        />
+                        <span style={{ fontSize: 13, color: "#6b7280" }}>× 10</span>
+                    </div>
+                    {showHint && (
+                        <div style={{ marginTop: 12, padding: 10, background: "#eff6ff", borderRadius: 8, fontSize: 12 }}>
+                            💡 La mantissa deve essere tra 1 e 10. Es: 123 → 1,23
+                        </div>
+                    )}
+                </div>
+
+                {/* STEP 2: Trova l'esponente */}
+                <div style={{ ...cardStyle, border: currentStep === 2 ? "2px solid #22c55e" : "1px solid #e5e7eb" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                        <div style={stepBadge(2, currentStep === 2, currentStep > 2)}>2</div>
+                        <span style={{ fontWeight: 600 }}>Trova l'esponente</span>
+                    </div>
+                    <p style={{ fontSize: 13, color: "#6b7280", marginBottom: 12 }}>
+                        Conta di quanti posti hai spostato la virgola. A <strong>sinistra</strong> = positivo, a <strong>destra</strong> = negativo.
+                    </p>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <span style={{ fontSize: 18 }}>10</span>
+                        <input
+                            type="text"
+                            value={userExponent}
+                            onChange={(e) => { setUserExponent(e.target.value); setChecked(false); }}
+                            placeholder="es. 8"
+                            style={{ padding: "10px 14px", borderRadius: 8, border: "2px solid #22c55e", fontSize: 18, width: 70, textAlign: "center" }}
+                        />
+                    </div>
+                    {showHint && (
+                        <div style={{ marginTop: 12, padding: 10, background: "#f0fdf4", borderRadius: 8, fontSize: 12 }}>
+                            💡 Numeri grandi → esponente positivo. Numeri piccoli (0,00...) → esponente negativo.
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Controlli verifica */}
+            <div style={{ display: "flex", gap: 12, marginTop: 16, alignItems: "center", flexWrap: "wrap" }}>
+                <button onClick={checkAnswer} style={{ padding: "12px 24px", borderRadius: 8, border: "none", background: "#22c55e", color: "#fff", cursor: "pointer", fontWeight: 600, fontSize: 15 }}>
+                    ✓ Verifica risposta
+                </button>
+                <button onClick={() => setShowHint(!showHint)} style={{ padding: "10px 16px", borderRadius: 8, border: "1px solid #d1d5db", background: "#fff", cursor: "pointer", fontSize: 13 }}>
+                    {showHint ? "Nascondi suggerimenti" : "💡 Mostra suggerimenti"}
+                </button>
+                <button onClick={() => setCurrentStep(4)} style={{ padding: "10px 16px", borderRadius: 8, border: "1px solid #d1d5db", background: "#fff", cursor: "pointer", fontSize: 13 }}>
+                    Mostra soluzione
+                </button>
+            </div>
+
+            {/* Feedback */}
+            {checked && (
+                <div style={{
+                    ...cardStyle,
+                    marginTop: 16,
+                    background: isCorrect ? "#dcfce7" : "#fef2f2",
+                    border: `2px solid ${isCorrect ? "#22c55e" : "#ef4444"}`
+                }}>
+                    {isCorrect ? (
+                        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                            <span style={{ fontSize: 32 }}>🎉</span>
+                            <div>
+                                <div style={{ fontWeight: 700, color: "#166534", fontSize: 18 }}>Corretto!</div>
+                                <div style={{ color: "#166534" }}>
+                                    {formatNormal(value)} {displayUnit} = {scientific.mantissaStr} × 10{superscript(scientific.exponent)} {displayUnit}
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                            <span style={{ fontSize: 32 }}>🤔</span>
+                            <div>
+                                <div style={{ fontWeight: 700, color: "#991b1b", fontSize: 18 }}>Non esattamente...</div>
+                                <div style={{ color: "#991b1b" }}>Controlla la tua risposta e riprova!</div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Soluzione completa */}
+            {currentStep >= 4 && (
+                <div style={{ ...cardStyle, marginTop: 16, background: "#f8fafc" }}>
+                    <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 16, color: "#1e3a8a" }}>📊 Soluzione passo-passo</div>
+
+                    <div style={{ display: "grid", gap: 16 }}>
+                        {/* Risultato */}
+                        <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 24, fontFamily: "monospace", flexWrap: "wrap" }}>
+                            <span style={{ color: "#6b7280" }}>{formatNormal(value)} {displayUnit}</span>
+                            <span>=</span>
+                            <span style={{ background: "#22c55e", color: "#fff", padding: "8px 16px", borderRadius: 8, fontWeight: 700 }}>
+                                {scientific.mantissaStr} × 10{superscript(scientific.exponent)} {displayUnit}
+                            </span>
+                        </div>
+
+                        {/* Spiegazione */}
+                        <div style={{ background: "#fff", borderRadius: 12, padding: 16 }}>
+                            <div style={{ fontWeight: 600, marginBottom: 12 }}>Come si fa?</div>
+                            <div style={{ display: "grid", gap: 12 }}>
+                                <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                                    <span style={{ background: "#3b82f6", color: "#fff", borderRadius: "50%", width: 24, height: 24, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, flexShrink: 0 }}>1</span>
+                                    <div>
+                                        <strong>Trova la mantissa:</strong> sposta la virgola finché il numero è tra 1 e 10.
+                                        <div style={{ fontFamily: "monospace", background: "#f3f4f6", padding: "6px 10px", borderRadius: 6, marginTop: 4, display: "inline-block" }}>
+                                            {formatNormal(value)} → <strong>{scientific.mantissaStr}</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                                    <span style={{ background: "#22c55e", color: "#fff", borderRadius: "50%", width: 24, height: 24, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, flexShrink: 0 }}>2</span>
+                                    <div>
+                                        <strong>Conta gli spostamenti:</strong> {Math.abs(scientific.exponent)} {Math.abs(scientific.exponent) === 1 ? "posto" : "posti"} verso {scientific.exponent > 0 ? "sinistra (numero grande)" : scientific.exponent < 0 ? "destra (numero piccolo)" : "nessuna direzione"}.
+                                        <div style={{ fontFamily: "monospace", background: "#f3f4f6", padding: "6px 10px", borderRadius: 6, marginTop: 4, display: "inline-block" }}>
+                                            Esponente = <strong>{scientific.exponent}</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                                    <span style={{ background: "#f59e0b", color: "#fff", borderRadius: "50%", width: 24, height: 24, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, flexShrink: 0 }}>3</span>
+                                    <div>
+                                        <strong>Scrivi il risultato:</strong> mantissa × 10 elevato all'esponente.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Regola */}
+                        <div style={{ background: "#fef3c7", borderRadius: 12, padding: 16 }}>
+                            <div style={{ fontWeight: 600, marginBottom: 8, color: "#92400e" }}>📌 Regola pratica</div>
+                            <ul style={{ margin: 0, paddingLeft: 20, fontSize: 14, color: "#78350f" }}>
+                                <li>Numeri <strong>grandi</strong> (≥10): esponente <strong>positivo</strong></li>
+                                <li>Numeri <strong>piccoli</strong> (&lt;1): esponente <strong>negativo</strong></li>
+                                <li>La mantissa è sempre tra 1 e 10</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             )}
-        </div>
+
+            {/* Tips */}
+            <div style={{ marginTop: 16, background: "#eff6ff", borderRadius: 12, padding: 16, fontSize: 13, color: "#1e40af" }}>
+                <strong>💡 Perché usare la notazione scientifica?</strong>
+                <ul style={{ margin: "8px 0 0 0", paddingLeft: 20 }}>
+                    <li>È più compatta per numeri molto grandi (es. distanze astronomiche) o piccoli (es. dimensioni atomiche)</li>
+                    <li>Mostra immediatamente l'ordine di grandezza</li>
+                    <li>Facilita i calcoli con le proprietà delle potenze</li>
+                </ul>
+            </div>
+        </DemoContainer>
     );
-};
-
-// piccola utility per scrivere esponenti in apice (solo cifre e segno)
-function superscriptExponent(n: number): string {
-    const map: Record<string, string> = {
-        "-": "⁻",
-        "0": "⁰",
-        "1": "¹",
-        "2": "²",
-        "3": "³",
-        "4": "⁴",
-        "5": "⁵",
-        "6": "⁶",
-        "7": "⁷",
-        "8": "⁸",
-        "9": "⁹",
-    };
-    const s = n.toString();
-    return s
-        .split("")
-        .map((ch) => map[ch] ?? ch)
-        .join("");
 }
-
-export default NotazioneScientificaDemo;

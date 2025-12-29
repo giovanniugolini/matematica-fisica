@@ -1,1025 +1,824 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useCallback } from "react";
+import {
+    Latex,
+    DemoContainer,
+    ProblemCard,
+    NavigationButtons,
+    StepCard,
+    InfoBox,
+    GenerateButton,
+    useStepNavigation,
+    GraphContainer,
+} from "../../components/ui";
+import {
+    randomInt,
+    randomNonZero,
+    formatFractionLatex,
+    formatNumberLatex,
+    formatLinearLatex,
+    intervalLatex,
+    setLatex,
+    emptySetLatex,
+    realSetLatex,
+} from "../../utils/math";
 
-type InequalitySign = "<" | ">" | "<=" | ">=";
+// ============ TIPI ============
+type FunctionType =
+    | "razionale"
+    | "radice"
+    | "logaritmo"
+    | "esponenziale"
+    | "razionale-radice"
+    | "logaritmo-radice"
+    | "razionale-logaritmo";
 
-type Inequality = {
-    a: number;
-    b: number;
-    sign: InequalitySign;
+type Difficulty = "base" | "intermedio" | "avanzato";
+
+type Condition = {
+    type: "diverso" | "maggiore" | "maggioreuguale" | "minore" | "minoreuguale";
+    expression: string;
+    solutions: Solution[];
+};
+
+type ConditionDef = {
+    description: string;
+    condition: string;
+    conditionLatex?: string;
+    resolution: string[];
+    solution: Solution;
 };
 
 type Solution = {
-    type: "all" | "none" | "interval";
+    type: "interval" | "point-excluded" | "all" | "none";
     left?: number;
     right?: number;
     leftOpen?: boolean;
     rightOpen?: boolean;
+    excludedPoints?: number[];
 };
 
-const COLORS = [
-    "#ef4444",
-    "#3b82f6",
-    "#22c55e",
-    "#a855f7",
-    "#f97316",
-    "#14b8a6",
-];
+type FunctionDef = {
+    expression: string;
+    latex: string;
+    type: FunctionType;
+    conditions: ConditionDef[];
+    domain: Solution;
+    domainText: string;
+    domainInterval: string;
+};
 
-const SIGNS: InequalitySign[] = ["<", ">", "<=", ">="];
+// ============ GENERATORI DI FUNZIONI ============
+function generateRazionale(difficulty: Difficulty): FunctionDef {
+    const a = randomNonZero(-5, 5);
+    const b = randomInt(-10, 10);
+    const root = -b / a;
+    const rootLatex = formatFractionLatex(-b, a);
 
-function gcd(a: number, b: number): number {
-    a = Math.abs(Math.round(a));
-    b = Math.abs(Math.round(b));
-    while (b) {
-        const t = b;
-        b = a % b;
-        a = t;
-    }
-    return a;
-}
-
-function formatFraction(num: number, den: number): string {
-    if (den === 0) return "indefinito";
-    if (num === 0) return "0";
-
-    const sign = (num < 0) !== (den < 0) ? "−" : "";
-    num = Math.abs(num);
-    den = Math.abs(den);
-
-    const divisor = gcd(num, den);
-    num = num / divisor;
-    den = den / divisor;
-
-    if (den === 1) {
-        return `${sign}${num}`;
-    }
-    return `${sign}${num}/${den}`;
-}
-
-function formatSign(sign: InequalitySign): string {
-    switch (sign) {
-        case "<": return "<";
-        case ">": return ">";
-        case "<=": return "≤";
-        case ">=": return "≥";
-    }
-}
-
-function formatInequality(ineq: Inequality): string {
-    const { a, b, sign } = ineq;
-
-    let lhs = "";
-    if (a === 1) lhs = "x";
-    else if (a === -1) lhs = "−x";
-    else if (a > 0) lhs = `${a}x`;
-    else lhs = `−${Math.abs(a)}x`;
-
-    let rhs = "";
-    if (b > 0) rhs = ` + ${b}`;
-    else if (b < 0) rhs = ` − ${Math.abs(b)}`;
-
-    return `${lhs}${rhs} ${formatSign(sign)} 0`;
-}
-
-function solveInequality(ineq: Inequality): Solution {
-    const { a, b, sign } = ineq;
-
-    if (a === 0) {
-        const satisfied =
-            (sign === "<" && b < 0) ||
-            (sign === "<=" && b <= 0) ||
-            (sign === ">" && b > 0) ||
-            (sign === ">=" && b >= 0);
-
-        return { type: satisfied ? "all" : "none" };
+    let numerator = "1";
+    let numeratorLatex = "1";
+    if (difficulty !== "base") {
+        const c = randomNonZero(-3, 3);
+        const d = randomInt(-5, 5);
+        numerator = formatLinearLatex(c, d);
+        numeratorLatex = formatLinearLatex(c, d);
     }
 
-    const boundary = -b / a;
-    const isStrict = sign === "<" || sign === ">";
-    const isGreater = sign === ">" || sign === ">=";
-    const solutionIsGreater = a > 0 ? isGreater : !isGreater;
+    const denominator = formatLinearLatex(a, b);
+    const denominatorLatex = formatLinearLatex(a, b);
 
-    if (solutionIsGreater) {
-        return {
+    return {
+        expression: `(${numerator}) / (${denominator})`,
+        latex: `\\frac{${numeratorLatex}}{${denominatorLatex}}`,
+        type: "razionale",
+        conditions: [
+            {
+                description: "Funzione razionale fratta: il denominatore deve essere diverso da zero",
+                condition: `${denominator} ≠ 0`,
+                conditionLatex: `${denominatorLatex} \\neq 0`,
+                resolution: [
+                    `${denominatorLatex} \\neq 0`,
+                    `${a}x \\neq ${-b}`,
+                    `x \\neq ${rootLatex}`,
+                ],
+                solution: {
+                    type: "point-excluded",
+                    excludedPoints: [root],
+                },
+            },
+        ],
+        domain: {
+            type: "point-excluded",
+            excludedPoints: [root],
+        },
+        domainText: `\\left\\{ x \\in \\mathbb{R} : x \\neq ${rootLatex} \\right\\}`,
+        domainInterval: `\\mathbb{R} \\setminus \\left\\{${rootLatex}\\right\\}`,
+    };
+}
+
+function generateRadice(difficulty: Difficulty): FunctionDef {
+    const a = randomNonZero(-5, 5);
+    const b = randomInt(-10, 10);
+    const root = -b / a;
+    const rootLatex = formatFractionLatex(-b, a);
+
+    const radicando = formatLinearLatex(a, b);
+    const radicandoLatex = formatLinearLatex(a, b);
+
+    const solution: Solution =
+        a > 0
+            ? { type: "interval", left: root, right: Infinity, leftOpen: false, rightOpen: true }
+            : { type: "interval", left: -Infinity, right: root, leftOpen: true, rightOpen: false };
+
+    const domainCondition = a > 0 ? `x \\geq ${rootLatex}` : `x \\leq ${rootLatex}`;
+    const domainText = `\\left\\{ x \\in \\mathbb{R} : ${domainCondition} \\right\\}`;
+    const domainInterval =
+        a > 0 ? `\\left[${rootLatex}, +\\infty\\right)` : `\\left(-\\infty, ${rootLatex}\\right]`;
+
+    return {
+        expression: `√(${radicando})`,
+        latex: `\\sqrt{${radicandoLatex}}`,
+        type: "radice",
+        conditions: [
+            {
+                description: "Radice quadrata (indice pari): il radicando deve essere maggiore o uguale a zero",
+                condition: `${radicando} ≥ 0`,
+                conditionLatex: `${radicandoLatex} \\geq 0`,
+                resolution: [
+                    `${radicandoLatex} \\geq 0`,
+                    `${a}x \\geq ${-b}`,
+                    a > 0 ? `x \\geq ${rootLatex}` : `x \\leq ${rootLatex} \\text{ (cambio verso)}`,
+                ],
+                solution,
+            },
+        ],
+        domain: solution,
+        domainText,
+        domainInterval,
+    };
+}
+
+function generateLogaritmo(difficulty: Difficulty): FunctionDef {
+    const a = randomNonZero(-5, 5);
+    const b = randomInt(-10, 10);
+    const root = -b / a;
+    const rootLatex = formatFractionLatex(-b, a);
+
+    const argomento = formatLinearLatex(a, b);
+    const argomentoLatex = formatLinearLatex(a, b);
+
+    const solution: Solution =
+        a > 0
+            ? { type: "interval", left: root, right: Infinity, leftOpen: true, rightOpen: true }
+            : { type: "interval", left: -Infinity, right: root, leftOpen: true, rightOpen: true };
+
+    const base = difficulty === "base" ? 0 : randomInt(2, 5);
+    const logSymbol = base ? `\\log_{${base}}` : `\\ln`;
+
+    const domainCondition = a > 0 ? `x > ${rootLatex}` : `x < ${rootLatex}`;
+    const domainText = `\\left\\{ x \\in \\mathbb{R} : ${domainCondition} \\right\\}`;
+    const domainInterval =
+        a > 0 ? `\\left(${rootLatex}, +\\infty\\right)` : `\\left(-\\infty, ${rootLatex}\\right)`;
+
+    return {
+        expression: `log${base || ""}(${argomento})`,
+        latex: `${logSymbol}\\left(${argomentoLatex}\\right)`,
+        type: "logaritmo",
+        conditions: [
+            {
+                description: "Funzione logaritmica: l'argomento deve essere strettamente maggiore di zero",
+                condition: `${argomento} > 0`,
+                conditionLatex: `${argomentoLatex} > 0`,
+                resolution: [
+                    `${argomentoLatex} > 0`,
+                    `${a}x > ${-b}`,
+                    a > 0 ? `x > ${rootLatex}` : `x < ${rootLatex} \\text{ (cambio verso)}`,
+                ],
+                solution,
+            },
+        ],
+        domain: solution,
+        domainText,
+        domainInterval,
+    };
+}
+
+function generateEsponenziale(difficulty: Difficulty): FunctionDef {
+    const a = randomNonZero(-3, 3);
+    const b = randomInt(-5, 5);
+    const base = randomInt(2, 5);
+
+    const esponente = formatLinearLatex(a, b);
+    const esponenteLatex = formatLinearLatex(a, b);
+
+    return {
+        expression: `${base}^(${esponente})`,
+        latex: `${base}^{${esponenteLatex}}`,
+        type: "esponenziale",
+        conditions: [
+            {
+                description: "Funzione esponenziale con base positiva: è definita per ogni valore reale di x",
+                condition: "Nessuna restrizione",
+                conditionLatex: "\\text{Nessuna restrizione}",
+                resolution: [
+                    `\\text{La base } ${base} \\text{ è positiva}`,
+                    `\\text{L'esponente può assumere qualsiasi valore reale}`,
+                    `x \\in \\mathbb{R}`,
+                ],
+                solution: { type: "all" },
+            },
+        ],
+        domain: { type: "all" },
+        domainText: "\\left\\{ x \\in \\mathbb{R} \\right\\}",
+        domainInterval: "\\mathbb{R}",
+    };
+}
+
+function generateRazionaleRadice(difficulty: Difficulty): FunctionDef {
+    const a = randomNonZero(1, 5);
+    const b = randomInt(-10, 10);
+    const root = -b / a;
+    const rootLatex = formatFractionLatex(-b, a);
+
+    const radicando = formatLinearLatex(a, b);
+    const radicandoLatex = formatLinearLatex(a, b);
+
+    const solution: Solution = { type: "interval", left: root, right: Infinity, leftOpen: true, rightOpen: true };
+
+    return {
+        expression: `1 / √(${radicando})`,
+        latex: `\\frac{1}{\\sqrt{${radicandoLatex}}}`,
+        type: "razionale-radice",
+        conditions: [
+            {
+                description: "Radice quadrata al denominatore: il radicando deve essere ≥ 0",
+                condition: `${radicando} ≥ 0`,
+                conditionLatex: `${radicandoLatex} \\geq 0`,
+                resolution: [`${radicandoLatex} \\geq 0`, `x \\geq ${rootLatex}`],
+                solution: { type: "interval", left: root, right: Infinity, leftOpen: false, rightOpen: true },
+            },
+            {
+                description: "Denominatore diverso da zero: la radice deve essere ≠ 0",
+                condition: `√(${radicando}) ≠ 0`,
+                conditionLatex: `\\sqrt{${radicandoLatex}} \\neq 0`,
+                resolution: [`${radicandoLatex} \\neq 0`, `x \\neq ${rootLatex}`],
+                solution: { type: "point-excluded", excludedPoints: [root] },
+            },
+        ],
+        domain: solution,
+        domainText: `\\left\\{ x \\in \\mathbb{R} : x > ${rootLatex} \\right\\}`,
+        domainInterval: `\\left(${rootLatex}, +\\infty\\right)`,
+    };
+}
+
+function generateLogaritmoRadice(difficulty: Difficulty): FunctionDef {
+    const a = randomNonZero(1, 5);
+    const b = randomInt(-10, 10);
+    const root = -b / a;
+    const rootLatex = formatFractionLatex(-b, a);
+
+    const argomento = formatLinearLatex(a, b);
+    const argomentoLatex = formatLinearLatex(a, b);
+
+    const solution: Solution = { type: "interval", left: root, right: Infinity, leftOpen: true, rightOpen: true };
+
+    return {
+        expression: `log(√(${argomento}))`,
+        latex: `\\ln\\left(\\sqrt{${argomentoLatex}}\\right)`,
+        type: "logaritmo-radice",
+        conditions: [
+            {
+                description: "Radice quadrata: il radicando deve essere ≥ 0",
+                condition: `${argomento} ≥ 0`,
+                conditionLatex: `${argomentoLatex} \\geq 0`,
+                resolution: [`${argomentoLatex} \\geq 0`, `x \\geq ${rootLatex}`],
+                solution: { type: "interval", left: root, right: Infinity, leftOpen: false, rightOpen: true },
+            },
+            {
+                description: "Logaritmo: l'argomento deve essere > 0",
+                condition: `√(${argomento}) > 0`,
+                conditionLatex: `\\sqrt{${argomentoLatex}} > 0`,
+                resolution: [`${argomentoLatex} > 0`, `x > ${rootLatex}`],
+                solution: { type: "interval", left: root, right: Infinity, leftOpen: true, rightOpen: true },
+            },
+        ],
+        domain: solution,
+        domainText: `\\left\\{ x \\in \\mathbb{R} : x > ${rootLatex} \\right\\}`,
+        domainInterval: `\\left(${rootLatex}, +\\infty\\right)`,
+    };
+}
+
+function generateRazionaleLogaritmo(difficulty: Difficulty): FunctionDef {
+    const a = randomNonZero(1, 5);
+    const b = randomInt(-10, 10);
+    const root = -b / a;
+    const rootLatex = formatFractionLatex(-b, a);
+
+    const argomento = formatLinearLatex(a, b);
+    const argomentoLatex = formatLinearLatex(a, b);
+
+    const excludePoint = (1 - b) / a;
+    const excludePointLatex = formatFractionLatex(1 - b, a);
+
+    return {
+        expression: `1 / log(${argomento})`,
+        latex: `\\frac{1}{\\ln\\left(${argomentoLatex}\\right)}`,
+        type: "razionale-logaritmo",
+        conditions: [
+            {
+                description: "Logaritmo: l'argomento deve essere > 0",
+                condition: `${argomento} > 0`,
+                conditionLatex: `${argomentoLatex} > 0`,
+                resolution: [`${argomentoLatex} > 0`, `x > ${rootLatex}`],
+                solution: { type: "interval", left: root, right: Infinity, leftOpen: true, rightOpen: true },
+            },
+            {
+                description: "Denominatore ≠ 0: il logaritmo deve essere ≠ 0",
+                condition: `log(${argomento}) ≠ 0`,
+                conditionLatex: `\\ln\\left(${argomentoLatex}\\right) \\neq 0`,
+                resolution: [`${argomentoLatex} \\neq 1`, `${a}x \\neq ${1 - b}`, `x \\neq ${excludePointLatex}`],
+                solution: { type: "point-excluded", excludedPoints: [excludePoint] },
+            },
+        ],
+        domain: {
             type: "interval",
-            left: boundary,
-            leftOpen: isStrict,
+            left: root,
             right: Infinity,
-            rightOpen: true
-        };
-    } else {
-        return {
-            type: "interval",
-            left: -Infinity,
             leftOpen: true,
-            right: boundary,
-            rightOpen: isStrict
-        };
-    }
-}
-
-function intersectSolutions(solutions: Solution[]): Solution {
-    let left = -Infinity;
-    let right = Infinity;
-    let leftOpen = true;
-    let rightOpen = true;
-
-    for (const sol of solutions) {
-        if (sol.type === "none") {
-            return { type: "none" };
-        }
-        if (sol.type === "all") {
-            continue;
-        }
-
-        if (sol.left !== undefined && sol.left !== -Infinity) {
-            if (sol.left > left) {
-                left = sol.left;
-                leftOpen = sol.leftOpen ?? true;
-            } else if (sol.left === left) {
-                leftOpen = leftOpen || (sol.leftOpen ?? true);
-            }
-        }
-
-        if (sol.right !== undefined && sol.right !== Infinity) {
-            if (sol.right < right) {
-                right = sol.right;
-                rightOpen = sol.rightOpen ?? true;
-            } else if (sol.right === right) {
-                rightOpen = rightOpen || (sol.rightOpen ?? true);
-            }
-        }
-    }
-
-    if (left > right) {
-        return { type: "none" };
-    }
-    if (left === right && (leftOpen || rightOpen)) {
-        return { type: "none" };
-    }
-
-    if (left === -Infinity && right === Infinity) {
-        return { type: "all" };
-    }
-
-    return {
-        type: "interval",
-        left,
-        right,
-        leftOpen,
-        rightOpen
+            rightOpen: true,
+        },
+        domainText: `\\left\\{ x \\in \\mathbb{R} : x > ${rootLatex} \\land x \\neq ${excludePointLatex} \\right\\}`,
+        domainInterval: `\\left(${rootLatex}, ${excludePointLatex}\\right) \\cup \\left(${excludePointLatex}, +\\infty\\right)`,
     };
 }
 
-function formatSolutionAlgebraic(sol: Solution, inequalities: Inequality[]): { inequality: string; interval: string } {
-    if (sol.type === "none") {
-        return { inequality: "∅", interval: "∅ (nessuna soluzione)" };
+function generateFunction(difficulty: Difficulty): FunctionDef {
+    const types: FunctionType[] =
+        difficulty === "base"
+            ? ["razionale", "radice", "logaritmo", "esponenziale"]
+            : difficulty === "intermedio"
+                ? ["razionale", "radice", "logaritmo", "esponenziale", "razionale-radice"]
+                : [
+                    "razionale",
+                    "radice",
+                    "logaritmo",
+                    "esponenziale",
+                    "razionale-radice",
+                    "logaritmo-radice",
+                    "razionale-logaritmo",
+                ];
+
+    const type = types[randomInt(0, types.length - 1)];
+
+    switch (type) {
+        case "razionale":
+            return generateRazionale(difficulty);
+        case "radice":
+            return generateRadice(difficulty);
+        case "logaritmo":
+            return generateLogaritmo(difficulty);
+        case "esponenziale":
+            return generateEsponenziale(difficulty);
+        case "razionale-radice":
+            return generateRazionaleRadice(difficulty);
+        case "logaritmo-radice":
+            return generateLogaritmoRadice(difficulty);
+        case "razionale-logaritmo":
+            return generateRazionaleLogaritmo(difficulty);
+        default:
+            return generateRazionale(difficulty);
     }
-    if (sol.type === "all") {
-        return { inequality: "∀x ∈ ℝ", interval: "ℝ (tutti i numeri reali)" };
-    }
+}
 
-    const { left, right, leftOpen, rightOpen } = sol;
+// ============ COMPONENTE GRAFICO ============
+const SVG_WIDTH = 500;
+const SVG_HEIGHT = 400;
+const X_MIN = -8;
+const X_MAX = 8;
+const Y_MIN = -6;
+const Y_MAX = 6;
+const PADDING = 40;
 
-    // Trova i valori originali per le frazioni
-    let leftFrac = "";
-    let rightFrac = "";
+function scaleX(x: number): number {
+    const t = (x - X_MIN) / (X_MAX - X_MIN);
+    return PADDING + t * (SVG_WIDTH - 2 * PADDING);
+}
 
-    for (const ineq of inequalities) {
-        if (ineq.a !== 0) {
-            const boundary = -ineq.b / ineq.a;
-            if (left !== -Infinity && Math.abs(boundary - left!) < 0.0001) {
-                leftFrac = formatFraction(-ineq.b, ineq.a);
-            }
-            if (right !== Infinity && Math.abs(boundary - right!) < 0.0001) {
-                rightFrac = formatFraction(-ineq.b, ineq.a);
-            }
+function scaleY(y: number): number {
+    const t = (y - Y_MIN) / (Y_MAX - Y_MIN);
+    return SVG_HEIGHT - PADDING - t * (SVG_HEIGHT - 2 * PADDING);
+}
+
+function DomainGraph({ solution, showGraph }: { solution: Solution; showGraph: boolean }) {
+    const originX = scaleX(0);
+    const originY = scaleY(0);
+
+    const excludedRegions: { x1: number; x2: number }[] = [];
+    const excludedPoints: number[] = [];
+
+    if (solution.type === "none") {
+        excludedRegions.push({ x1: X_MIN, x2: X_MAX });
+    } else if (solution.type === "interval") {
+        const left = solution.left ?? -Infinity;
+        const right = solution.right ?? Infinity;
+
+        if (left > X_MIN) {
+            excludedRegions.push({ x1: X_MIN, x2: Math.min(left, X_MAX) });
         }
+        if (right < X_MAX) {
+            excludedRegions.push({ x1: Math.max(right, X_MIN), x2: X_MAX });
+        }
+    } else if (solution.type === "point-excluded" && solution.excludedPoints) {
+        excludedPoints.push(...solution.excludedPoints);
     }
 
-    if (!leftFrac && left !== -Infinity) leftFrac = left!.toString();
-    if (!rightFrac && right !== Infinity) rightFrac = right!.toString();
-
-    if (left === -Infinity) {
-        const bracket = rightOpen ? ")" : "]";
-        return {
-            inequality: `x ${rightOpen ? "<" : "≤"} ${rightFrac}`,
-            interval: `(−∞, ${rightFrac}${bracket}`
-        };
+    if (!showGraph) {
+        return (
+            <svg width={SVG_WIDTH} height={SVG_HEIGHT} style={{ maxWidth: "100%", display: "block", margin: "0 auto" }}>
+                <rect x={0} y={0} width={SVG_WIDTH} height={SVG_HEIGHT} fill="#fafafa" stroke="#ddd" rx={8} />
+                <line x1={PADDING} y1={originY} x2={SVG_WIDTH - PADDING} y2={originY} stroke="#ccc" strokeWidth={1} />
+                <line x1={originX} y1={PADDING} x2={originX} y2={SVG_HEIGHT - PADDING} stroke="#ccc" strokeWidth={1} />
+                <text x={SVG_WIDTH / 2} y={SVG_HEIGHT / 2} textAnchor="middle" fill="#94a3b8" fontSize={14} fontStyle="italic">
+                    Completa i passaggi per vedere il grafico
+                </text>
+            </svg>
+        );
     }
 
-    if (right === Infinity) {
-        const bracket = leftOpen ? "(" : "[";
-        return {
-            inequality: `x ${leftOpen ? ">" : "≥"} ${leftFrac}`,
-            interval: `${bracket}${leftFrac}, +∞)`
-        };
-    }
+    return (
+        <svg width={SVG_WIDTH} height={SVG_HEIGHT} style={{ maxWidth: "100%", display: "block", margin: "0 auto" }}>
+            {/* Sfondo e griglia */}
+            <rect x={0} y={0} width={SVG_WIDTH} height={SVG_HEIGHT} fill="#fafafa" stroke="#ddd" rx={8} />
+            {Array.from({ length: X_MAX - X_MIN + 1 }, (_, i) => {
+                const x = X_MIN + i;
+                if (x === 0) return null;
+                return (
+                    <line
+                        key={`vgrid-${x}`}
+                        x1={scaleX(x)}
+                        y1={PADDING}
+                        x2={scaleX(x)}
+                        y2={SVG_HEIGHT - PADDING}
+                        stroke="#e5e7eb"
+                        strokeWidth={1}
+                    />
+                );
+            })}
+            {Array.from({ length: Y_MAX - Y_MIN + 1 }, (_, i) => {
+                const y = Y_MIN + i;
+                if (y === 0) return null;
+                return (
+                    <line
+                        key={`hgrid-${y}`}
+                        x1={PADDING}
+                        y1={scaleY(y)}
+                        x2={SVG_WIDTH - PADDING}
+                        y2={scaleY(y)}
+                        stroke="#e5e7eb"
+                        strokeWidth={1}
+                    />
+                );
+            })}
 
-    const leftBracket = leftOpen ? "(" : "[";
-    const rightBracket = rightOpen ? ")" : "]";
-    const leftSign = leftOpen ? "<" : "≤";
-    const rightSign = rightOpen ? "<" : "≤";
+            {/* Zone escluse */}
+            {excludedRegions.map((region, idx) => (
+                <rect
+                    key={`excluded-${idx}`}
+                    x={scaleX(region.x1)}
+                    y={PADDING}
+                    width={scaleX(region.x2) - scaleX(region.x1)}
+                    height={SVG_HEIGHT - 2 * PADDING}
+                    fill="rgba(239, 68, 68, 0.15)"
+                    stroke="rgba(239, 68, 68, 0.3)"
+                    strokeWidth={1}
+                />
+            ))}
 
-    return {
-        inequality: `${leftFrac} ${leftSign} x ${rightSign} ${rightFrac}`,
-        interval: `${leftBracket}${leftFrac}, ${rightFrac}${rightBracket}`
-    };
-}
+            {/* Linee verticali per punti esclusi */}
+            {excludedPoints.map((point, idx) => {
+                const x = scaleX(point);
+                if (x < PADDING || x > SVG_WIDTH - PADDING) return null;
+                return (
+                    <g key={`excl-line-${idx}`}>
+                        <line
+                            x1={x}
+                            y1={PADDING}
+                            x2={x}
+                            y2={SVG_HEIGHT - PADDING}
+                            stroke="#ef4444"
+                            strokeWidth={2}
+                            strokeDasharray="8,4"
+                        />
+                    </g>
+                );
+            })}
 
-function generateRandomInequality(): Inequality {
-    let a = 0;
-    while (a === 0) {
-        a = Math.floor(Math.random() * 11) - 5;
-    }
-    const b = Math.floor(Math.random() * 21) - 10;
-    const sign = SIGNS[Math.floor(Math.random() * SIGNS.length)];
+            {/* Assi */}
+            <line x1={PADDING} y1={originY} x2={SVG_WIDTH - PADDING} y2={originY} stroke="#374151" strokeWidth={2} />
+            <line x1={originX} y1={SVG_HEIGHT - PADDING} x2={originX} y2={PADDING} stroke="#374151" strokeWidth={2} />
 
-    return { a, b, sign };
-}
+            {/* Frecce e etichette assi */}
+            <polygon
+                points={`${SVG_WIDTH - PADDING},${originY} ${SVG_WIDTH - PADDING - 8},${originY - 4} ${SVG_WIDTH - PADDING - 8},${originY + 4}`}
+                fill="#374151"
+            />
+            <text x={SVG_WIDTH - PADDING + 5} y={originY + 5} fontSize={14} fill="#374151" fontStyle="italic">
+                x
+            </text>
+            <polygon
+                points={`${originX},${PADDING} ${originX - 4},${PADDING + 8} ${originX + 4},${PADDING + 8}`}
+                fill="#374151"
+            />
+            <text x={originX + 8} y={PADDING + 5} fontSize={14} fill="#374151" fontStyle="italic">
+                y
+            </text>
 
-function generateRandomSystem(count: number): Inequality[] {
-    return Array.from({ length: count }, () => generateRandomInequality());
-}
+            {/* Tacche assi */}
+            {Array.from({ length: X_MAX - X_MIN + 1 }, (_, i) => {
+                const x = X_MIN + i;
+                if (x === 0) return null;
+                const xPos = scaleX(x);
+                return (
+                    <g key={`xtick-${x}`}>
+                        <line x1={xPos} y1={originY - 4} x2={xPos} y2={originY + 4} stroke="#374151" strokeWidth={1} />
+                        {x % 2 === 0 && (
+                            <text x={xPos} y={originY + 18} fontSize={11} textAnchor="middle" fill="#6b7280">
+                                {x}
+                            </text>
+                        )}
+                    </g>
+                );
+            })}
+            {Array.from({ length: Y_MAX - Y_MIN + 1 }, (_, i) => {
+                const y = Y_MIN + i;
+                if (y === 0) return null;
+                const yPos = scaleY(y);
+                return (
+                    <g key={`ytick-${y}`}>
+                        <line x1={originX - 4} y1={yPos} x2={originX + 4} y2={yPos} stroke="#374151" strokeWidth={1} />
+                        {y % 2 === 0 && (
+                            <text x={originX - 12} y={yPos + 4} fontSize={11} textAnchor="end" fill="#6b7280">
+                                {y}
+                            </text>
+                        )}
+                    </g>
+                );
+            })}
 
-const SVG_WIDTH = 800;
-const ROW_HEIGHT = 50;
-const PAD_LEFT = 60;
-const PAD_RIGHT = 60;
-const AXIS_Y = 25;
+            {/* Origine */}
+            <text x={originX - 12} y={originY + 16} fontSize={11} fill="#6b7280">
+                O
+            </text>
 
-export default function SistemiDisequazioniDemo() {
-    const [numInequalities, setNumInequalities] = useState(2);
-    const [inequalities, setInequalities] = useState<Inequality[]>(() =>
-        generateRandomSystem(2)
+            {/* Etichette per punti esclusi */}
+            {excludedPoints.map((point, idx) => {
+                const x = scaleX(point);
+                if (x < PADDING || x > SVG_WIDTH - PADDING) return null;
+                return (
+                    <g key={`excl-label-${idx}`}>
+                        <circle cx={x} cy={originY} r={6} fill="#fff" stroke="#ef4444" strokeWidth={2.5} />
+                        <line x1={x - 4} y1={originY - 4} x2={x + 4} y2={originY + 4} stroke="#ef4444" strokeWidth={2} />
+                        <line x1={x - 4} y1={originY + 4} x2={x + 4} y2={originY - 4} stroke="#ef4444" strokeWidth={2} />
+                        <text x={x} y={originY - 15} fontSize={12} textAnchor="middle" fill="#ef4444" fontWeight={600}>
+                            {formatNumberLatex(point).replace(/\\frac\{([^}]+)\}\{([^}]+)\}/, "$1/$2")}
+                        </text>
+                    </g>
+                );
+            })}
+
+            {/* Etichette per i bordi del dominio */}
+            {solution.type === "interval" && (
+                <>
+                    {solution.left !== undefined &&
+                        solution.left !== -Infinity &&
+                        solution.left >= X_MIN &&
+                        solution.left <= X_MAX && (
+                            <g>
+                                <circle
+                                    cx={scaleX(solution.left)}
+                                    cy={originY}
+                                    r={6}
+                                    fill={solution.leftOpen ? "#fff" : "#3b82f6"}
+                                    stroke="#3b82f6"
+                                    strokeWidth={2.5}
+                                />
+                                <text
+                                    x={scaleX(solution.left)}
+                                    y={originY + 25}
+                                    fontSize={12}
+                                    textAnchor="middle"
+                                    fill="#3b82f6"
+                                    fontWeight={600}
+                                >
+                                    {formatNumberLatex(solution.left).replace(/\\frac\{([^}]+)\}\{([^}]+)\}/, "$1/$2")}
+                                </text>
+                            </g>
+                        )}
+                    {solution.right !== undefined &&
+                        solution.right !== Infinity &&
+                        solution.right >= X_MIN &&
+                        solution.right <= X_MAX && (
+                            <g>
+                                <circle
+                                    cx={scaleX(solution.right)}
+                                    cy={originY}
+                                    r={6}
+                                    fill={solution.rightOpen ? "#fff" : "#3b82f6"}
+                                    stroke="#3b82f6"
+                                    strokeWidth={2.5}
+                                />
+                                <text
+                                    x={scaleX(solution.right)}
+                                    y={originY + 25}
+                                    fontSize={12}
+                                    textAnchor="middle"
+                                    fill="#3b82f6"
+                                    fontWeight={600}
+                                >
+                                    {formatNumberLatex(solution.right).replace(/\\frac\{([^}]+)\}\{([^}]+)\}/, "$1/$2")}
+                                </text>
+                            </g>
+                        )}
+                </>
+            )}
+
+            {/* Legenda */}
+            <g transform={`translate(${SVG_WIDTH - 150}, ${SVG_HEIGHT - 60})`}>
+                <rect x={0} y={0} width={140} height={50} fill="#fff" stroke="#e5e7eb" rx={6} />
+                <rect x={10} y={10} width={20} height={12} fill="rgba(239, 68, 68, 0.15)" stroke="rgba(239, 68, 68, 0.3)" />
+                <text x={35} y={20} fontSize={11} fill="#6b7280">
+                    Zona esclusa
+                </text>
+                <line x1={10} y1={35} x2={30} y2={35} stroke="#ef4444" strokeWidth={2} strokeDasharray="4,2" />
+                <text x={35} y={38} fontSize={11} fill="#6b7280">
+                    Punto escluso
+                </text>
+            </g>
+        </svg>
     );
-    const [showSteps, setShowSteps] = useState(false);
-    const [showGraph, setShowGraph] = useState(false);
+}
+
+// ============ COMPONENTE PRINCIPALE ============
+export default function DominiFunzioniDemo() {
+    const [difficulty, setDifficulty] = useState<Difficulty>("base");
+    const [func, setFunc] = useState<FunctionDef>(() => generateFunction("base"));
+
+    const totalSteps = 2 + func.conditions.length + 1;
+    const { currentStep, nextStep, prevStep, showAll, reset } = useStepNavigation(totalSteps);
 
     const handleGenerate = useCallback(() => {
-        setInequalities(generateRandomSystem(numInequalities));
-    }, [numInequalities]);
+        setFunc(generateFunction(difficulty));
+        reset(); // Resetta lo step corrente a 0
+    }, [difficulty, reset]);
 
-    const handleNumChange = (newNum: number) => {
-        setNumInequalities(newNum);
-        if (newNum > inequalities.length) {
-            const newIneqs = [...inequalities];
-            for (let i = inequalities.length; i < newNum; i++) {
-                newIneqs.push(generateRandomInequality());
-            }
-            setInequalities(newIneqs);
-        } else if (newNum < inequalities.length) {
-            setInequalities(inequalities.slice(0, newNum));
-        }
+    const handleDifficultyChange = (newDiff: Difficulty) => {
+        setDifficulty(newDiff);
+        setFunc(generateFunction(newDiff));
+        reset(); // Resetta anche quando cambia la difficoltà
     };
 
-    const updateInequality = (index: number, field: keyof Inequality, value: any) => {
-        const newIneqs = [...inequalities];
-        newIneqs[index] = { ...newIneqs[index], [field]: value };
-        setInequalities(newIneqs);
-    };
-
-    const solutions = useMemo(() =>
-            inequalities.map(ineq => solveInequality(ineq)),
-        [inequalities]
-    );
-
-    const intersection = useMemo(() =>
-            intersectSolutions(solutions),
-        [solutions]
-    );
-
-    const solutionFormatted = useMemo(() =>
-            formatSolutionAlgebraic(intersection, inequalities),
-        [intersection, inequalities]
-    );
-
-    const viewRange = useMemo(() => {
-        let min = -10;
-        let max = 10;
-
-        for (const sol of solutions) {
-            if (sol.type === "interval") {
-                if (sol.left !== undefined && sol.left !== -Infinity) {
-                    min = Math.min(min, sol.left - 3);
-                    max = Math.max(max, sol.left + 3);
-                }
-                if (sol.right !== undefined && sol.right !== Infinity) {
-                    min = Math.min(min, sol.right - 3);
-                    max = Math.max(max, sol.right + 3);
-                }
-            }
-        }
-
-        min = Math.floor(min);
-        max = Math.ceil(max);
-
-        return { min, max };
-    }, [solutions]);
-
-    const toX = (value: number) => {
-        const { min, max } = viewRange;
-        return PAD_LEFT + ((value - min) / (max - min)) * (SVG_WIDTH - PAD_LEFT - PAD_RIGHT);
-    };
-
-    const SVG_HEIGHT = (inequalities.length + 2) * ROW_HEIGHT + 40;
-
-    const ticks = useMemo(() => {
-        const { min, max } = viewRange;
-        const result: number[] = [];
-        const step = Math.max(1, Math.floor((max - min) / 10));
-        for (let v = Math.ceil(min); v <= Math.floor(max); v += step) {
-            result.push(v);
-        }
-        return result;
-    }, [viewRange]);
-
-    // Calcola i bounds dell'intersezione per il rettangolo verde
-    const intersectionBounds = useMemo(() => {
-        if (intersection.type === "none") return null;
-        if (intersection.type === "all") {
-            return { left: viewRange.min, right: viewRange.max };
-        }
-        return {
-            left: intersection.left === -Infinity ? viewRange.min : intersection.left!,
-            right: intersection.right === Infinity ? viewRange.max : intersection.right!
+    const getTypeName = (type: FunctionType): string => {
+        const names: { [key in FunctionType]: string } = {
+            razionale: "Funzione razionale fratta",
+            radice: "Funzione irrazionale (radice)",
+            logaritmo: "Funzione logaritmica",
+            esponenziale: "Funzione esponenziale",
+            "razionale-radice": "Funzione razionale con radice",
+            "logaritmo-radice": "Funzione logaritmo di radice",
+            "razionale-logaritmo": "Funzione razionale con logaritmo",
         };
-    }, [intersection, viewRange]);
-
-    const SolutionRow = ({
-                             sol,
-                             y,
-                             color,
-                             label,
-                             ineq
-                         }: {
-        sol: Solution;
-        y: number;
-        color: string;
-        label: string;
-        ineq?: Inequality;
-    }) => {
-        const { min, max } = viewRange;
-
-        if (sol.type === "none") {
-            return (
-                <g>
-                    <text x={PAD_LEFT - 10} y={y + 5} fontSize={12} textAnchor="end" fill={color} fontWeight={600}>
-                        {label}
-                    </text>
-                    <text x={SVG_WIDTH / 2} y={y + 5} fontSize={12} textAnchor="middle" fill="#94a3b8">
-                        (nessuna soluzione)
-                    </text>
-                </g>
-            );
-        }
-
-        if (sol.type === "all") {
-            return (
-                <g>
-                    <text x={PAD_LEFT - 10} y={y + 5} fontSize={12} textAnchor="end" fill={color} fontWeight={600}>
-                        {label}
-                    </text>
-                    <line
-                        x1={toX(min)}
-                        y1={y}
-                        x2={toX(max)}
-                        y2={y}
-                        stroke={color}
-                        strokeWidth={4}
-                    />
-                    <polygon
-                        points={`${toX(min)},${y} ${toX(min) + 10},${y - 5} ${toX(min) + 10},${y + 5}`}
-                        fill={color}
-                    />
-                    <polygon
-                        points={`${toX(max)},${y} ${toX(max) - 10},${y - 5} ${toX(max) - 10},${y + 5}`}
-                        fill={color}
-                    />
-                </g>
-            );
-        }
-
-        const { left, right, leftOpen, rightOpen } = sol;
-        const leftX = left === -Infinity ? toX(min) : toX(left!);
-        const rightX = right === Infinity ? toX(max) : toX(right!);
-
-        // Calcola la frazione per l'etichetta
-        let boundaryLabel = "";
-        if (ineq && ineq.a !== 0) {
-            boundaryLabel = formatFraction(-ineq.b, ineq.a);
-        }
-
-        return (
-            <g>
-                <text x={PAD_LEFT - 10} y={y + 5} fontSize={12} textAnchor="end" fill={color} fontWeight={600}>
-                    {label}
-                </text>
-
-                <line
-                    x1={leftX}
-                    y1={y}
-                    x2={rightX}
-                    y2={y}
-                    stroke={color}
-                    strokeWidth={4}
-                />
-
-                {left === -Infinity && (
-                    <polygon
-                        points={`${toX(min)},${y} ${toX(min) + 10},${y - 5} ${toX(min) + 10},${y + 5}`}
-                        fill={color}
-                    />
-                )}
-
-                {right === Infinity && (
-                    <polygon
-                        points={`${toX(max)},${y} ${toX(max) - 10},${y - 5} ${toX(max) - 10},${y + 5}`}
-                        fill={color}
-                    />
-                )}
-
-                {left !== -Infinity && (
-                    <>
-                        <circle
-                            cx={leftX}
-                            cy={y}
-                            r={6}
-                            fill={leftOpen ? "#fff" : color}
-                            stroke={color}
-                            strokeWidth={2.5}
-                        />
-                        {boundaryLabel && (
-                            <text x={leftX} y={y - 12} fontSize={10} textAnchor="middle" fill={color}>
-                                {boundaryLabel}
-                            </text>
-                        )}
-                    </>
-                )}
-
-                {right !== Infinity && (
-                    <>
-                        <circle
-                            cx={rightX}
-                            cy={y}
-                            r={6}
-                            fill={rightOpen ? "#fff" : color}
-                            stroke={color}
-                            strokeWidth={2.5}
-                        />
-                        {boundaryLabel && (
-                            <text x={rightX} y={y - 12} fontSize={10} textAnchor="middle" fill={color}>
-                                {boundaryLabel}
-                            </text>
-                        )}
-                    </>
-                )}
-            </g>
-        );
+        return names[type];
     };
 
     return (
-        <div style={{
-            maxWidth: 1100,
-            margin: "auto",
-            padding: 16,
-            fontFamily: "system-ui, sans-serif"
-        }}>
-            {/* Header */}
-            <div style={{ marginBottom: 16 }}>
-                <a href="#/" style={{ color: "#3b82f6", textDecoration: "none", fontSize: 14 }}>
-                    ← Torna alla home
-                </a>
-                <h1 style={{ margin: "8px 0", fontSize: 24 }}>
-                    Sistemi di Disequazioni Lineari
-                </h1>
-                <p style={{ color: "#64748b", margin: 0, fontSize: 14 }}>
-                    Risolvi graficamente sistemi di disequazioni lineari in una variabile.
-                </p>
-            </div>
-
-            <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
-                {/* Pannello controlli */}
-                <div style={{
-                    flex: "0 0 380px",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 12
-                }}>
-                    {/* Controlli generazione */}
-                    <div style={{
-                        background: "#fff",
-                        borderRadius: 12,
-                        padding: 16,
-                        boxShadow: "0 1px 4px rgba(0,0,0,0.1)"
-                    }}>
-                        <div style={{ fontWeight: 600, marginBottom: 12 }}>
-                            Genera sistema casuale
-                        </div>
-
-                        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
-                            <label style={{ fontSize: 14 }}>
-                                Numero di disequazioni:
-                            </label>
-                            <input
-                                type="number"
-                                min={2}
-                                max={6}
-                                value={numInequalities}
-                                onChange={(e) => handleNumChange(Math.max(2, Math.min(6, parseInt(e.target.value) || 2)))}
-                                style={{
-                                    width: 60,
-                                    padding: "6px 10px",
-                                    borderRadius: 6,
-                                    border: "1px solid #cbd5e1",
-                                    fontSize: 14
-                                }}
-                            />
-                        </div>
-
+        <DemoContainer
+            title="Dominio delle Funzioni"
+            description="Impara a determinare il dominio di una funzione passo dopo passo."
+        >
+            {/* Controlli */}
+            <div style={{ display: "flex", gap: 16, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
+                <div style={{ background: "#fff", borderRadius: 12, padding: "12px 16px", boxShadow: "0 1px 4px rgba(0,0,0,0.1)" }}>
+                    <span style={{ fontWeight: 500, fontSize: 14 }}>Difficoltà:</span>
+                    {(["base", "intermedio", "avanzato"] as Difficulty[]).map((d) => (
                         <button
-                            onClick={handleGenerate}
+                            key={d}
+                            onClick={() => handleDifficultyChange(d)}
                             style={{
-                                width: "100%",
-                                padding: "10px 16px",
-                                borderRadius: 8,
-                                border: "none",
-                                background: "linear-gradient(135deg, #3b82f6, #8b5cf6)",
-                                color: "#fff",
-                                fontWeight: 600,
-                                fontSize: 14,
+                                padding: "6px 12px",
+                                borderRadius: 6,
+                                border: difficulty === d ? "2px solid #3b82f6" : "1px solid #cbd5e1",
+                                background: difficulty === d ? "#eff6ff" : "#fff",
+                                color: difficulty === d ? "#1d4ed8" : "#334155",
+                                fontWeight: 500,
+                                fontSize: 13,
                                 cursor: "pointer",
-                                transition: "transform 0.1s"
-                            }}
-                            onMouseOver={(e) => e.currentTarget.style.transform = "scale(1.02)"}
-                            onMouseOut={(e) => e.currentTarget.style.transform = "scale(1)"}
-                        >
-                            🎲 Genera sistema casuale
-                        </button>
-                    </div>
-
-                    {/* Sistema con parentesi graffa */}
-                    <div style={{
-                        background: "#fff",
-                        borderRadius: 12,
-                        padding: 16,
-                        boxShadow: "0 1px 4px rgba(0,0,0,0.1)"
-                    }}>
-                        <div style={{ fontWeight: 600, marginBottom: 12 }}>
-                            Sistema di disequazioni
-                        </div>
-
-                        <div style={{ display: "flex", alignItems: "stretch", gap: 8 }}>
-                            {/* Parentesi graffa SVG */}
-                            <svg
-                                width="20"
-                                height={inequalities.length * 52 + 10}
-                                style={{ flexShrink: 0 }}
-                            >
-                                <path
-                                    d={`M 18 5 
-                                        Q 10 5, 10 15 
-                                        L 10 ${(inequalities.length * 52) / 2 - 10}
-                                        Q 10 ${(inequalities.length * 52) / 2}, 2 ${(inequalities.length * 52) / 2 + 5}
-                                        Q 10 ${(inequalities.length * 52) / 2 + 10}, 10 ${(inequalities.length * 52) / 2 + 20}
-                                        L 10 ${inequalities.length * 52 - 5}
-                                        Q 10 ${inequalities.length * 52 + 5}, 18 ${inequalities.length * 52 + 5}`}
-                                    fill="none"
-                                    stroke="#334155"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                />
-                            </svg>
-
-                            {/* Disequazioni */}
-                            <div style={{ flex: 1 }}>
-                                {inequalities.map((ineq, index) => (
-                                    <div key={index} style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: 6,
-                                        marginBottom: 8,
-                                        padding: 10,
-                                        background: "#f8fafc",
-                                        borderRadius: 8,
-                                        borderLeft: `4px solid ${COLORS[index % COLORS.length]}`
-                                    }}>
-                                        <input
-                                            type="number"
-                                            value={ineq.a}
-                                            onChange={(e) => updateInequality(index, "a", parseInt(e.target.value) || 0)}
-                                            style={{
-                                                width: 45,
-                                                padding: "4px 6px",
-                                                borderRadius: 4,
-                                                border: "1px solid #cbd5e1",
-                                                fontSize: 13,
-                                                textAlign: "center"
-                                            }}
-                                        />
-                                        <span style={{ fontSize: 14, fontWeight: 500 }}>x</span>
-                                        <span style={{ fontSize: 14 }}>+</span>
-
-                                        <input
-                                            type="number"
-                                            value={ineq.b}
-                                            onChange={(e) => updateInequality(index, "b", parseInt(e.target.value) || 0)}
-                                            style={{
-                                                width: 45,
-                                                padding: "4px 6px",
-                                                borderRadius: 4,
-                                                border: "1px solid #cbd5e1",
-                                                fontSize: 13,
-                                                textAlign: "center"
-                                            }}
-                                        />
-
-                                        <select
-                                            value={ineq.sign}
-                                            onChange={(e) => updateInequality(index, "sign", e.target.value)}
-                                            style={{
-                                                padding: "4px 6px",
-                                                borderRadius: 4,
-                                                border: "1px solid #cbd5e1",
-                                                fontSize: 13,
-                                                background: "#fff"
-                                            }}
-                                        >
-                                            <option value="<">&lt;</option>
-                                            <option value=">">&gt;</option>
-                                            <option value="<=">≤</option>
-                                            <option value=">=">≥</option>
-                                        </select>
-
-                                        <span style={{ fontSize: 14 }}>0</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Pulsanti mostra/nascondi */}
-                    <div style={{
-                        display: "flex",
-                        gap: 10
-                    }}>
-                        <button
-                            onClick={() => setShowSteps(!showSteps)}
-                            style={{
-                                flex: 1,
-                                padding: "10px 12px",
-                                borderRadius: 8,
-                                border: showSteps ? "2px solid #3b82f6" : "1px solid #cbd5e1",
-                                background: showSteps ? "#eff6ff" : "#fff",
-                                color: showSteps ? "#1d4ed8" : "#334155",
-                                fontWeight: 500,
-                                fontSize: 13,
-                                cursor: "pointer"
+                                textTransform: "capitalize",
                             }}
                         >
-                            {showSteps ? "✓ " : ""}Passaggi risolutivi
+                            {d}
                         </button>
-                        <button
-                            onClick={() => setShowGraph(!showGraph)}
-                            style={{
-                                flex: 1,
-                                padding: "10px 12px",
-                                borderRadius: 8,
-                                border: showGraph ? "2px solid #3b82f6" : "1px solid #cbd5e1",
-                                background: showGraph ? "#eff6ff" : "#fff",
-                                color: showGraph ? "#1d4ed8" : "#334155",
-                                fontWeight: 500,
-                                fontSize: 13,
-                                cursor: "pointer"
-                            }}
-                        >
-                            {showGraph ? "✓ " : ""}Rappresentazione grafica
-                        </button>
-                    </div>
-
-                    {/* Soluzione algebrica */}
-                    <div style={{
-                        background: intersection.type === "none" ? "#fee2e2" : "#dcfce7",
-                        borderRadius: 12,
-                        padding: 16,
-                        boxShadow: "0 1px 4px rgba(0,0,0,0.1)"
-                    }}>
-                        <div style={{
-                            fontWeight: 600,
-                            marginBottom: 8,
-                            color: intersection.type === "none" ? "#991b1b" : "#166534"
-                        }}>
-                            {intersection.type === "none" ? "✗ Sistema impossibile" : "✓ Soluzione del sistema"}
-                        </div>
-                        <div style={{
-                            fontSize: 18,
-                            fontFamily: "Georgia, serif",
-                            color: intersection.type === "none" ? "#991b1b" : "#166534",
-                            fontWeight: 500,
-                            marginBottom: 4
-                        }}>
-                            {solutionFormatted.inequality}
-                        </div>
-                        <div style={{
-                            fontSize: 14,
-                            color: intersection.type === "none" ? "#b91c1c" : "#15803d"
-                        }}>
-                            Intervallo: {solutionFormatted.interval}
-                        </div>
-                    </div>
-
-                    {/* Legenda */}
-                    <div style={{
-                        background: "#fff",
-                        borderRadius: 12,
-                        padding: 16,
-                        boxShadow: "0 1px 4px rgba(0,0,0,0.1)"
-                    }}>
-                        <div style={{ fontWeight: 600, marginBottom: 10 }}>
-                            Legenda
-                        </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8, fontSize: 13 }}>
-                            <svg width={30} height={20}>
-                                <circle cx={15} cy={10} r={6} fill="#fff" stroke="#334155" strokeWidth={2.5} />
-                            </svg>
-                            <span>Pallino vuoto: estremo <strong>escluso</strong> (&lt; o &gt;)</span>
-                        </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8, fontSize: 13 }}>
-                            <svg width={30} height={20}>
-                                <circle cx={15} cy={10} r={6} fill="#334155" stroke="#334155" strokeWidth={2.5} />
-                            </svg>
-                            <span>Pallino pieno: estremo <strong>incluso</strong> (≤ o ≥)</span>
-                        </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8, fontSize: 13 }}>
-                            <svg width={30} height={20}>
-                                <polygon points="5,10 15,5 15,15" fill="#334155" />
-                            </svg>
-                            <span>Freccia: intervallo illimitato (−∞ o +∞)</span>
-                        </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13 }}>
-                            <svg width={30} height={20}>
-                                <rect x={2} y={2} width={26} height={16} fill="rgba(34, 197, 94, 0.3)" stroke="#22c55e" strokeWidth={1} rx={2} />
-                            </svg>
-                            <span>Area verde: <strong>intersezione</strong> (soluzione)</span>
-                        </div>
-                    </div>
+                    ))}
                 </div>
-
-                {/* Colonna destra */}
-                <div style={{
-                    flex: 1,
-                    minWidth: 450,
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 16
-                }}>
-                    {/* Passaggi risolutivi */}
-                    {showSteps && (
-                        <div style={{
-                            background: "#fff",
-                            borderRadius: 12,
-                            padding: 16,
-                            boxShadow: "0 1px 4px rgba(0,0,0,0.1)"
-                        }}>
-                            <div style={{ fontWeight: 600, marginBottom: 12 }}>
-                                Passaggi risolutivi
-                            </div>
-                            {inequalities.map((ineq, index) => {
-                                const sol = solutions[index];
-                                const boundaryFrac = ineq.a !== 0 ? formatFraction(-ineq.b, ineq.a) : "";
-                                const invertedSign = ineq.sign === "<" ? ">" : ineq.sign === ">" ? "<" : ineq.sign === "<=" ? ">=" : "<=";
-
-                                return (
-                                    <div key={index} style={{
-                                        marginBottom: 16,
-                                        paddingLeft: 12,
-                                        borderLeft: `3px solid ${COLORS[index % COLORS.length]}`
-                                    }}>
-                                        <div style={{ fontWeight: 600, color: COLORS[index % COLORS.length], marginBottom: 6 }}>
-                                            Disequazione {index + 1}: {formatInequality(ineq)}
-                                        </div>
-
-                                        {ineq.a !== 0 ? (
-                                            <div style={{ fontSize: 14, color: "#475569", lineHeight: 1.8 }}>
-                                                <div>
-                                                    <span style={{ color: "#64748b" }}>1.</span> Isoliamo x: {ineq.a > 0 ? ineq.a : `(${ineq.a})`}x {formatSign(ineq.sign)} {-ineq.b}
-                                                </div>
-                                                <div>
-                                                    <span style={{ color: "#64748b" }}>2.</span> Dividiamo per {ineq.a}
-                                                    {ineq.a < 0 && <span style={{ color: "#dc2626", fontWeight: 500 }}> (cambio verso!)</span>}
-                                                </div>
-                                                <div style={{
-                                                    marginTop: 4,
-                                                    padding: "6px 10px",
-                                                    background: "#f1f5f9",
-                                                    borderRadius: 6,
-                                                    fontFamily: "Georgia, serif",
-                                                    fontSize: 15
-                                                }}>
-                                                    x {formatSign(ineq.a > 0 ? ineq.sign : invertedSign)} {boundaryFrac}
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <div style={{ fontSize: 14, color: "#475569" }}>
-                                                <div>
-                                                    <span style={{ color: "#64748b" }}>1.</span> La disequazione diventa: {ineq.b} {formatSign(ineq.sign)} 0
-                                                </div>
-                                                <div style={{
-                                                    marginTop: 4,
-                                                    padding: "6px 10px",
-                                                    background: sol.type === "all" ? "#dcfce7" : "#fee2e2",
-                                                    borderRadius: 6,
-                                                    color: sol.type === "all" ? "#166534" : "#991b1b"
-                                                }}>
-                                                    {sol.type === "all" ? "Sempre verificata (∀x ∈ ℝ)" : "Mai verificata (∅)"}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                );
-                            })}
-
-                            {/* Conclusione */}
-                            <div style={{
-                                marginTop: 8,
-                                padding: 12,
-                                background: intersection.type === "none" ? "#fee2e2" : "#dcfce7",
-                                borderRadius: 8,
-                                borderLeft: `4px solid ${intersection.type === "none" ? "#dc2626" : "#22c55e"}`
-                            }}>
-                                <div style={{ fontWeight: 600, marginBottom: 4, color: intersection.type === "none" ? "#991b1b" : "#166534" }}>
-                                    Intersezione delle soluzioni:
-                                </div>
-                                <div style={{
-                                    fontFamily: "Georgia, serif",
-                                    fontSize: 16,
-                                    color: intersection.type === "none" ? "#991b1b" : "#166534"
-                                }}>
-                                    S = {solutionFormatted.interval}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Grafico */}
-                    {showGraph && (
-                        <div style={{
-                            background: "#fff",
-                            borderRadius: 12,
-                            padding: 16,
-                            boxShadow: "0 1px 4px rgba(0,0,0,0.1)"
-                        }}>
-                            <div style={{ fontWeight: 600, marginBottom: 12 }}>
-                                Rappresentazione grafica
-                            </div>
-
-                            <svg
-                                width="100%"
-                                viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
-                                style={{ background: "#fafafa", borderRadius: 8 }}
-                            >
-                                {/* Rettangolo verde dell'intersezione */}
-                                {intersectionBounds && (
-                                    <rect
-                                        x={toX(intersectionBounds.left)}
-                                        y={AXIS_Y + 30}
-                                        width={toX(intersectionBounds.right) - toX(intersectionBounds.left)}
-                                        height={ROW_HEIGHT * inequalities.length + 30}
-                                        fill="rgba(34, 197, 94, 0.25)"
-                                        stroke="rgba(34, 197, 94, 0.5)"
-                                        strokeWidth={1}
-                                    />
-                                )}
-
-                                {/* Retta reale principale */}
-                                <g>
-                                    <text x={PAD_LEFT - 10} y={AXIS_Y + 5} fontSize={12} textAnchor="end" fill="#334155" fontWeight={600}>
-                                        ℝ
-                                    </text>
-                                    <line
-                                        x1={toX(viewRange.min)}
-                                        y1={AXIS_Y}
-                                        x2={toX(viewRange.max)}
-                                        y2={AXIS_Y}
-                                        stroke="#334155"
-                                        strokeWidth={2}
-                                    />
-                                    <polygon
-                                        points={`${toX(viewRange.min)},${AXIS_Y} ${toX(viewRange.min) + 8},${AXIS_Y - 4} ${toX(viewRange.min) + 8},${AXIS_Y + 4}`}
-                                        fill="#334155"
-                                    />
-                                    <polygon
-                                        points={`${toX(viewRange.max)},${AXIS_Y} ${toX(viewRange.max) - 8},${AXIS_Y - 4} ${toX(viewRange.max) - 8},${AXIS_Y + 4}`}
-                                        fill="#334155"
-                                    />
-
-                                    {ticks.map(v => (
-                                        <g key={v}>
-                                            <line
-                                                x1={toX(v)}
-                                                y1={AXIS_Y - 5}
-                                                x2={toX(v)}
-                                                y2={AXIS_Y + 5}
-                                                stroke="#334155"
-                                                strokeWidth={1.5}
-                                            />
-                                            <text
-                                                x={toX(v)}
-                                                y={AXIS_Y + 18}
-                                                fontSize={11}
-                                                textAnchor="middle"
-                                                fill="#64748b"
-                                            >
-                                                {v}
-                                            </text>
-                                        </g>
-                                    ))}
-                                </g>
-
-                                {/* Linee guida verticali */}
-                                {solutions.map((sol, index) => {
-                                    if (sol.type !== "interval") return null;
-                                    const points: number[] = [];
-                                    if (sol.left !== undefined && sol.left !== -Infinity) points.push(sol.left);
-                                    if (sol.right !== undefined && sol.right !== Infinity) points.push(sol.right);
-
-                                    return points.map((p, i) => (
-                                        <line
-                                            key={`guide-${index}-${i}`}
-                                            x1={toX(p)}
-                                            y1={AXIS_Y + 25}
-                                            x2={toX(p)}
-                                            y2={ROW_HEIGHT * (inequalities.length + 1) + 20}
-                                            stroke="#cbd5e1"
-                                            strokeWidth={1}
-                                            strokeDasharray="4,4"
-                                        />
-                                    ));
-                                })}
-
-                                {/* Soluzioni singole */}
-                                {solutions.map((sol, index) => (
-                                    <SolutionRow
-                                        key={index}
-                                        sol={sol}
-                                        y={ROW_HEIGHT * (index + 1) + AXIS_Y}
-                                        color={COLORS[index % COLORS.length]}
-                                        label={`D${index + 1}`}
-                                        ineq={inequalities[index]}
-                                    />
-                                ))}
-
-                                {/* Separatore */}
-                                <line
-                                    x1={PAD_LEFT}
-                                    y1={ROW_HEIGHT * (inequalities.length + 1) + 10}
-                                    x2={SVG_WIDTH - PAD_RIGHT}
-                                    y2={ROW_HEIGHT * (inequalities.length + 1) + 10}
-                                    stroke="#94a3b8"
-                                    strokeWidth={1}
-                                    strokeDasharray="8,4"
-                                />
-
-                                <text
-                                    x={SVG_WIDTH / 2}
-                                    y={ROW_HEIGHT * (inequalities.length + 1) + 8}
-                                    fontSize={11}
-                                    textAnchor="middle"
-                                    fill="#64748b"
-                                >
-                                    INTERSEZIONE
-                                </text>
-
-                                {/* Soluzione finale */}
-                                <SolutionRow
-                                    sol={intersection}
-                                    y={ROW_HEIGHT * (inequalities.length + 1) + 35}
-                                    color="#166534"
-                                    label="S"
-                                />
-                            </svg>
-                        </div>
-                    )}
-                </div>
+                <GenerateButton onClick={handleGenerate} text="Nuova funzione" emoji="🎲" />
             </div>
+
+            {/* Funzione */}
+            <ProblemCard label="Determina il dominio della funzione">
+                <Latex display>{`f(x) = ${func.latex}`}</Latex>
+            </ProblemCard>
+
+            {/* Passaggi */}
+            <div style={{ background: "#fff", borderRadius: 12, padding: 20, marginBottom: 16, boxShadow: "0 1px 4px rgba(0,0,0,0.1)" }}>
+                <NavigationButtons
+                    currentStep={currentStep}
+                    totalSteps={totalSteps}
+                    onNext={nextStep}
+                    onPrev={prevStep}
+                    onShowAll={showAll}
+                />
+
+                {/* Step 1: Tipologia */}
+                <StepCard
+                    title="Riconosci la tipologia"
+                    stepNumber={1}
+                    color="green"
+                    isActive={currentStep >= 1}
+                >
+                    {getTypeName(func.type)}
+                </StepCard>
+
+                {/* Step 2+: Condizioni */}
+                {func.conditions.map((cond, idx) => (
+                    <StepCard
+                        key={idx}
+                        title={cond.description}
+                        stepNumber={2 + idx}
+                        color="blue"
+                        isActive={currentStep >= 2 + idx}
+                    >
+                        <div style={{ fontSize: 18, color: "#334155", marginBottom: 8, padding: "8px 12px", background: "#fff", borderRadius: 6, display: "inline-block" }}>
+                            <Latex>{cond.conditionLatex || cond.condition}</Latex>
+                        </div>
+                        <div style={{ marginTop: 8 }}>
+                            <div style={{ fontSize: 13, color: "#64748b", marginBottom: 4 }}>Risoluzione:</div>
+                            {cond.resolution.map((step, i) => (
+                                <div key={i} style={{ fontSize: 15, color: "#475569", padding: "6px 0", paddingLeft: 12, borderLeft: "2px solid #cbd5e1" }}>
+                                    <Latex>{step}</Latex>
+                                </div>
+                            ))}
+                        </div>
+                    </StepCard>
+                ))}
+
+                {/* Step finale: Dominio */}
+                <StepCard
+                    title="Scrivi il dominio"
+                    stepNumber={totalSteps}
+                    color="amber"
+                    isActive={currentStep >= totalSteps - 1}
+                >
+                    <div style={{ display: "flex", gap: 20, flexWrap: "wrap", alignItems: "center" }}>
+                        <div>
+                            <div style={{ fontSize: 12, color: "#64748b", marginBottom: 4 }}>Forma algebrica:</div>
+                            <div style={{ fontSize: 20, color: "#92400e", fontWeight: 500 }}>
+                                <Latex>{`D = ${func.domainText}`}</Latex>
+                            </div>
+                        </div>
+                        <div>
+                            <div style={{ fontSize: 12, color: "#64748b", marginBottom: 4 }}>Notazione intervalli:</div>
+                            <div style={{ fontSize: 20, color: "#92400e", fontWeight: 500 }}>
+                                <Latex>{`D = ${func.domainInterval}`}</Latex>
+                            </div>
+                        </div>
+                    </div>
+                </StepCard>
+            </div>
+
+            {/* Grafico */}
+            <GraphContainer
+                title="Rappresentazione grafica del dominio"
+                footer={
+                    currentStep >= totalSteps - 1 ? (
+                        <>
+                            Le <strong>zone rosse</strong> indicano i valori di x dove la funzione <strong>non è definita</strong>.
+                        </>
+                    ) : (
+                        <span style={{ fontStyle: "italic" }}>Completa tutti i passaggi per vedere il grafico</span>
+                    )
+                }
+            >
+                <DomainGraph solution={func.domain} showGraph={currentStep >= totalSteps - 1} />
+            </GraphContainer>
 
             {/* Spiegazione */}
-            <div style={{
-                marginTop: 16,
-                background: "#eff6ff",
-                borderRadius: 12,
-                padding: 16,
-                fontSize: 13,
-                color: "#1e3a8a"
-            }}>
-                <strong>Metodo risolutivo:</strong> Per risolvere un sistema di disequazioni lineari in una variabile:
+            <InfoBox title="Come determinare il dominio:" variant="blue">
                 <ol style={{ margin: "8px 0 0 0", paddingLeft: 20 }}>
-                    <li>Si risolve <em>separatamente</em> ogni disequazione, trovando l'insieme delle soluzioni</li>
-                    <li>Si rappresentano le soluzioni sulla retta reale (pallino pieno = incluso, vuoto = escluso)</li>
-                    <li>La soluzione del sistema è l'<strong>intersezione</strong> di tutte le soluzioni individuali</li>
-                    <li>Se l'intersezione è vuota, il sistema è <em>impossibile</em></li>
+                    <li><strong>Riconosci la tipologia</strong> della funzione (razionale, irrazionale, logaritmica, ecc.)</li>
+                    <li><strong>Scrivi le condizioni</strong> di esistenza (denominatore ≠ 0, radicando ≥ 0, argomento log {">"} 0, ecc.)</li>
+                    <li><strong>Risolvi</strong> le disequazioni o equazioni associate</li>
+                    <li><strong>Interseca</strong> le soluzioni se ci sono più condizioni</li>
+                    <li><strong>Scrivi</strong> il dominio in forma algebrica e come intervallo</li>
                 </ol>
-            </div>
-        </div>
+            </InfoBox>
+        </DemoContainer>
     );
 }
