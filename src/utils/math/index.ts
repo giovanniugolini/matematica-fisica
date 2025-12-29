@@ -70,10 +70,7 @@ export {
 
 export type { InequalitySign, TermDef } from "./latex";
 
-// Vectors (se presente)
-export * from "./vectors";
-
-// Formatting (se presente) - escludi lerp che è già in vectors
+// Formatting utilities
 export {
     // Costanti
     PI,
@@ -90,65 +87,79 @@ export {
     normalizeAngleDeg,
     normalizeAngleDegSigned,
 
-    // Arrotondamento
-    roundToDecimals,
-    roundToSignificant,
-    truncateDecimals,
-    roundToNearest,
-    ceilToNearest,
-    floorToNearest,
+    // Formattazione angoli
+    formatRadiansPi,
+    formatRadiansPiLatex,
+    NOTABLE_ANGLES_DEG,
+    snapToNotableAngle,
 
-    // Notazione scientifica
-    toScientificNotation,
-    formatScientific,
-    formatScientificLatex,
-    formatScientificHTML,
-    fromScientificNotation,
-
-    // Frazioni (formatting.ts)
-    toFraction,
-    formatFraction,
-    formatFractionLatex as formatFractionLatexAlt,
-    numberToFractionLatex,
-    lcm,
+    // Range e clamp
+    clamp,
+    mapRange,
+    lerp,
+    inverseLerp,
 
     // Formattazione numeri
     formatWithThousands,
     formatFixed,
     formatClean,
-    formatSI,
-    formatWithUnit,
-
-    // Conversioni unità
-    convertLength,
-    convertTime,
-    convertMass,
-
-    // Range e clamp
-    clamp,
-    mapRange,
-    mapRangeClamped,
-    // lerp è già esportato da vectors
-    inverseLerp,
-
-    // Validazione
-    isValidNumber,
-    approximately,
-    isZero as isZeroValue,
-    isPositive,
-    isNegative,
-    sign,
+    roundToSignificant,
+    roundToDecimals,
 
     // Coordinate
-    formatPoint,
-    formatPointLatex,
-    formatVectorLatex,
+    polarToCartesian,
+    polarToCartesianSVG,
+    cartesianToPolar,
+    distance,
+
+    // SVG helpers
+    svgArcPath,
+    svgSectorPath,
 } from "./formatting";
 
-export type {
-    ScientificNotation,
-    Fraction,
-    LengthUnit,
-    TimeUnit,
-    MassUnit,
-} from "./formatting";
+// Physics utilities
+export {
+    // Costanti fisiche
+    K_COULOMB,
+    G_GRAVITATIONAL,
+    C_LIGHT,
+    E_CHARGE,
+    M_ELECTRON,
+    M_PROTON,
+    H_PLANCK,
+    K_BOLTZMANN,
+    G_EARTH,
+    EPSILON_0,
+    MU_0,
+
+    // Conversioni unità elettriche
+    microCoulombToC,
+    nanoCoulombToC,
+    cToMicroCoulomb,
+    cToNanoCoulomb,
+
+    // Operazioni vettoriali
+    vecLength,
+    vecNormalize,
+    vecAdd,
+    vecSub,
+    vecScale,
+    vecDot,
+    vecDistance,
+    constrainWithinRadius,
+
+    // Campo elettrico
+    electricFieldAt,
+    electricForce,
+    coulombForce,
+
+    // Formattazione scientifica
+    formatScientific,
+    formatScientificLatex,
+
+    // Coordinate mapping
+    createCoordinateMapper,
+    clientToViewBox,
+} from "./physics";
+
+export type { Vec2, Vec3, EField, WorldBounds, CoordinateMapper } from "./physics";

@@ -1,921 +1,335 @@
-import React, { useMemo, useState } from "react";
+/**
+ * UrnProbabilityTreeDemo - Versione refactorizzata
+ * Albero di probabilità per estrazioni da un'urna
+ */
 
-type ColorInfo = {
+import React, { useMemo, useState } from "react";
+import { DemoContainer } from "../../components/ui";
+
+// ============ TIPI ============
+
+type BallColor = {
     id: string;
     name: string;
     short: string;
     count: number;
-    color: string;
+    hex: string;
 };
 
-type BranchProb = {
-    num: number;
-    den: number;
-    fracString: string;
-    decimalString: string;
-};
+type Fraction = { num: number; den: number; str: string; dec: string };
 
-const SVG_WIDTH = 800;
-const SVG_HEIGHT = 420;
+// ============ COSTANTI ============
 
-const COLORS_BASE: Omit<ColorInfo, "count">[] = [
-    { id: "R", name: "rosso", short: "R", color: "#e74c3c" },
-    { id: "B", name: "blu", short: "B", color: "#3498db" },
-    { id: "V", name: "verde", short: "V", color: "#27ae60" },
+const COLORS_BASE = [
+    { id: "R", name: "Rosso", short: "R", hex: "#ef4444" },
+    { id: "B", name: "Blu", short: "B", hex: "#3b82f6" },
+    { id: "V", name: "Verde", short: "V", hex: "#22c55e" },
+    { id: "G", name: "Giallo", short: "G", hex: "#eab308" },
 ];
 
-const MAX_COLORS = COLORS_BASE.length;
+const SVG_W = 750, SVG_H = 400;
 
-// --- Utilità matematiche ---
+// ============ UTILITY ============
 
 function gcd(a: number, b: number): number {
-    a = Math.abs(a);
-    b = Math.abs(b);
-    while (b !== 0) {
-        const t = b;
-        b = a % b;
-        a = t;
-    }
+    a = Math.abs(a); b = Math.abs(b);
+    while (b) { const t = b; b = a % b; a = t; }
     return a || 1;
 }
 
-function makeBranchProb(num: number, den: number): BranchProb {
-    if (den === 0 || num === 0) {
-        return {
-            num: 0,
-            den: 1,
-            fracString: "0",
-            decimalString: "0",
-        };
-    }
+function makeFrac(num: number, den: number): Fraction {
+    if (den === 0 || num === 0) return { num: 0, den: 1, str: "0", dec: "0" };
     const d = gcd(num, den);
-    const sn = num / d;
-    const sd = den / d;
-    const fracString = sd === 1 ? `${sn}` : `${sn}/${sd}`;
-    const decimal = sn / sd;
-    let decimalString: string;
-
-    if (decimal === 0) {
-        decimalString = "0";
-    } else if (decimal >= 1e-3 && decimal < 1e4) {
-        decimalString = decimal
-            .toLocaleString("it-IT", { maximumFractionDigits: 4 })
-            .replace(/\./g, " ");
-    } else {
-        decimalString = decimal.toExponential(2).replace(".", ",");
-    }
-
-    return { num: sn, den: sd, fracString, decimalString };
+    const n = num / d, dn = den / d;
+    const str = dn === 1 ? `${n}` : `${n}/${dn}`;
+    const val = n / dn;
+    const dec = val >= 0.001 ? val.toFixed(3).replace(".", ",") : val.toExponential(2);
+    return { num: n, den: dn, str, dec };
 }
 
-function formatIntWithSpaces(n: number): string {
-    return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-}
-
-// --- Badge semitrasparente per le probabilità sui rami ---
-
-type ProbBadgeProps = {
-    x: number;
-    y: number;
-    line1: string;
-    line2?: string;
-};
-
-const ProbBadge: React.FC<ProbBadgeProps> = ({ x, y, line1, line2 }) => {
-    const paddingX = 6;
-    const paddingY = 4;
-    const lineHeight = 11;
-
-    const maxLen = Math.max(line1.length, line2 ? line2.length : 0);
-    const textWidth = Math.max(28, maxLen * 6); // stima ampiezza testo
-    const height = line2 ? lineHeight * 2 + paddingY * 2 : lineHeight + paddingY * 2;
-    const width = textWidth + paddingX * 2;
-
-    const x0 = x - width / 2;
-    const y0 = y - height / 2;
-
-    return (
-        <g>
-            <rect
-                x={x0}
-                y={y0}
-                width={width}
-                height={height}
-                rx={8}
-                ry={8}
-                fill="#ffffffcc"
-                stroke="#bbbbbb"
-                strokeWidth={0.8}
-            />
-            <text
-                x={x}
-                y={y - (line2 ? 2 : 0)}
-                fontSize={11}
-                textAnchor="middle"
-                fill="#333"
-            >
-                {line1}
-            </text>
-            {line2 && (
-                <text
-                    x={x}
-                    y={y + 9}
-                    fontSize={9}
-                    textAnchor="middle"
-                    fill="#666"
-                >
-                    {line2}
-                </text>
-            )}
-        </g>
-    );
-};
-
-// --- Generazione urna casuale ---
-
-function generateRandomUrn(): ColorInfo[] {
-    const numColors = 2 + Math.floor(Math.random() * (MAX_COLORS - 1)); // 2 o 3
-    const chosen = COLORS_BASE.slice(0, numColors);
-
-    const colors: ColorInfo[] = chosen.map((c) => ({
+function generateRandomUrn(): BallColor[] {
+    const numColors = 2 + Math.floor(Math.random() * 2); // 2 o 3
+    return COLORS_BASE.slice(0, numColors).map(c => ({
         ...c,
-        count: 1 + Math.floor(Math.random() * 5),
+        count: 1 + Math.floor(Math.random() * 5)
     }));
-
-    return colors;
 }
 
-const UrnProbabilityTreeDemo: React.FC = () => {
-    const [colors, setColors] = useState<ColorInfo[]>(() => generateRandomUrn());
-    const [withReplacement, setWithReplacement] = useState<boolean>(false);
+// ============ COMPONENTE PRINCIPALE ============
 
-    const totalBalls = useMemo(
-        () => colors.reduce((sum, c) => sum + c.count, 0),
-        [colors]
-    );
+export default function UrnProbabilityTreeDemo() {
+    const [colors, setColors] = useState<BallColor[]>(() => generateRandomUrn());
+    const [withReplacement, setWithReplacement] = useState(false);
 
-    const numColors = colors.length;
-    const numLeaves = numColors * numColors;
+    const total = useMemo(() => colors.reduce((s, c) => s + c.count, 0), [colors]);
+    const n = colors.length;
 
-    // Primo livello
-    const firstDrawProbs: BranchProb[] = useMemo(
-        () => colors.map((c) => makeBranchProb(c.count, totalBalls)),
-        [colors, totalBalls]
-    );
+    // Probabilità primo livello
+    const prob1 = useMemo(() => colors.map(c => makeFrac(c.count, total)), [colors, total]);
 
-    // Secondo livello condizionato
-    const secondDrawProbs: BranchProb[][] = useMemo(() => {
-        return colors.map((cFirst, i) => {
-            if (withReplacement) {
-                return colors.map((cSecond) =>
-                    makeBranchProb(cSecond.count, totalBalls)
-                );
-            } else {
-                const denom = totalBalls - 1;
-                return colors.map((cSecond, j) => {
-                    const num =
-                        i === j ? Math.max(cSecond.count - 1, 0) : cSecond.count;
-                    return makeBranchProb(num, denom);
-                });
-            }
+    // Probabilità secondo livello (condizionate)
+    const prob2 = useMemo(() => {
+        return colors.map((_, i) => {
+            if (withReplacement) return colors.map(c => makeFrac(c.count, total));
+            const den = total - 1;
+            return colors.map((c, j) => makeFrac(i === j ? Math.max(c.count - 1, 0) : c.count, den));
         });
-    }, [colors, totalBalls, withReplacement]);
+    }, [colors, total, withReplacement]);
 
-    // Probabilità congiunte per la tabella riepilogo
-    const jointProbs: BranchProb[][] = useMemo(() => {
-        return colors.map((_, i) =>
-            colors.map((_, j) => {
-                const p1 = firstDrawProbs[i];
-                const p2 = secondDrawProbs[i][j];
-                const num = p1.num * p2.num;
-                const den = p1.den * p2.den;
-                return makeBranchProb(num, den);
-            })
-        );
-    }, [colors, firstDrawProbs, secondDrawProbs]);
+    // Probabilità congiunte
+    const jointProb = useMemo(() => {
+        return colors.map((_, i) => colors.map((_, j) => {
+            const p1 = prob1[i], p2 = prob2[i][j];
+            return makeFrac(p1.num * p2.num, p1.den * p2.den);
+        }));
+    }, [colors, prob1, prob2]);
 
-    // --- Layout albero (2 estrazioni) ---
+    // Layout albero
+    const layout = useMemo(() => {
+        const xRoot = 70, xFirst = 260, xSecond = 520;
+        const topM = 30, botM = 30;
+        const space = SVG_H - topM - botM;
+        const leafCount = n * n;
+        const leafY = Array.from({ length: leafCount }, (_, i) => topM + (leafCount > 1 ? i * space / (leafCount - 1) : space / 2));
 
-    const topMargin = 40;
-    const bottomMargin = 40;
-    const verticalSpace = SVG_HEIGHT - topMargin - bottomMargin;
-    const leafSpacing = numLeaves > 1 ? verticalSpace / (numLeaves - 1) : 0;
-
-    const xRoot = 80;
-    const xFirst = 280;
-    const xSecond = 580;
-
-    const leafYPositions: number[] = [];
-    for (let i = 0; i < numLeaves; i++) {
-        leafYPositions.push(topMargin + i * leafSpacing);
-    }
-
-    const ySecond: number[][] = [];
-    for (let i = 0; i < numColors; i++) {
-        ySecond[i] = [];
-        for (let j = 0; j < numColors; j++) {
-            const leafIndex = i * numColors + j;
-            ySecond[i][j] = leafYPositions[leafIndex];
+        const ySecond: number[][] = [];
+        for (let i = 0; i < n; i++) {
+            ySecond[i] = [];
+            for (let j = 0; j < n; j++) {
+                ySecond[i][j] = leafY[i * n + j];
+            }
         }
-    }
 
-    const yFirst: number[] = [];
-    for (let i = 0; i < numColors; i++) {
-        const ys = ySecond[i];
-        const avg = ys.reduce((s, y) => s + y, 0) / ys.length;
-        yFirst.push(avg);
-    }
+        const yFirst = colors.map((_, i) => {
+            const ys = ySecond[i];
+            return ys.reduce((s, y) => s + y, 0) / ys.length;
+        });
 
-    const yRoot =
-        leafYPositions.reduce((s, y) => s + y, 0) /
-        (leafYPositions.length || 1);
+        const yRoot = leafY.reduce((s, y) => s + y, 0) / leafY.length;
 
-    // --- Handlers per impostazione manuale ---
+        return { xRoot, xFirst, xSecond, yRoot, yFirst, ySecond };
+    }, [n, colors]);
 
-    const handleNumColorsChange = (
-        e: React.ChangeEvent<HTMLInputElement>
-    ) => {
-        const raw = parseInt(e.target.value || "1", 10);
-        const n = Math.min(
-            MAX_COLORS,
-            Math.max(1, Number.isNaN(raw) ? 1 : raw)
-        );
+    // Handlers
+    const handleCountChange = (idx: number, val: number) => {
+        setColors(prev => prev.map((c, i) => i === idx ? { ...c, count: Math.max(0, val) } : c));
+    };
 
-        setColors((prev) => {
+    const handleNumColors = (num: number) => {
+        const n = Math.max(1, Math.min(4, num));
+        setColors(prev => {
             if (n === prev.length) return prev;
-            if (n < prev.length) {
-                return prev.slice(0, n);
-            }
-            // n > prev.length
-            const newColors = [...prev];
-            for (let i = prev.length; i < n; i++) {
-                const base = COLORS_BASE[i];
-                newColors.push({
-                    ...base,
-                    count: 1,
-                });
-            }
-            return newColors;
+            if (n < prev.length) return prev.slice(0, n);
+            return [...prev, ...COLORS_BASE.slice(prev.length, n).map(c => ({ ...c, count: 2 }))];
         });
     };
 
-    const handleCountChange = (
-        index: number,
-        e: React.ChangeEvent<HTMLInputElement>
-    ) => {
-        const raw = parseInt(e.target.value || "0", 10);
-        const value = Math.max(0, Number.isNaN(raw) ? 0 : raw);
-
-        setColors((prev) =>
-            prev.map((c, i) =>
-                i === index
-                    ? {
-                        ...c,
-                        count: value,
-                    }
-                    : c
-            )
-        );
-    };
-
-    // dati tabella flat
-    const flatRows = useMemo(
-        () =>
-            colors.flatMap((c1, i) =>
-                colors.map((c2, j) => ({
-                    id: `row-${i}-${j}`,
-                    first: c1.short,
-                    firstName: c1.name,
-                    second: c2.short,
-                    secondName: c2.name,
-                    outcome: `${c1.short}${c2.short}`,
-                    prob: jointProbs[i][j],
-                }))
-            ),
-        [colors, jointProbs]
-    );
+    // Stili
+    const cardStyle: React.CSSProperties = { background: "#fff", borderRadius: 12, padding: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.08)" };
 
     return (
-        <div
-            style={{
-                padding: "1.5rem",
-                maxWidth: "1100px",
-                margin: "0 auto",
-                fontFamily:
-                    "system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
-            }}
+        <DemoContainer
+            title="Albero di probabilità – Estrazioni da un'urna"
+            description="Visualizza le probabilità di due estrazioni successive, con o senza reimmissione."
         >
-            <h1 style={{ fontSize: "1.8rem", marginBottom: "0.5rem" }}>
-                Albero di probabilità – estrazioni da un&apos;urna
-            </h1>
-            <p style={{ marginBottom: "1rem", lineHeight: 1.4 }}>
-                Qui puoi impostare un&apos;<strong>urna di palline colorate</strong> e
-                visualizzare l&apos;<strong>albero delle probabilità</strong> per{" "}
-                <strong>due estrazioni</strong>, con o senza reimmissione. Puoi sia
-                generare un problema casuale, sia impostare manualmente il numero di
-                colori e le quantità.
-            </p>
-
-            <div
-                style={{
-                    display: "grid",
-                    gridTemplateColumns: "minmax(0, 1.4fr) minmax(0, 1fr)",
-                    gap: "1.5rem",
-                    alignItems: "flex-start",
-                }}
-            >
-                {/* ALBERO + RIEPILOGO */}
-                <div
-                    style={{
-                        border: "1px solid #ddd",
-                        borderRadius: "16px",
-                        padding: "0.75rem 0.75rem 1rem",
-                        boxShadow: "0 3px 10px rgba(0,0,0,0.08)",
-                        background: "white",
-                        overflowX: "auto",
-                    }}
-                >
-                    <svg width={SVG_WIDTH} height={SVG_HEIGHT}>
-                        {/* sfondo quaderno a quadretti */}
-                        <defs>
-                            <pattern
-                                id="gridPatternProb"
-                                width="20"
-                                height="20"
-                                patternUnits="userSpaceOnUse"
-                            >
-                                <rect
-                                    width="20"
-                                    height="20"
-                                    fill="#fdfdfd"
-                                />
-                                <path
-                                    d="M 20 0 L 0 0 0 20"
-                                    fill="none"
-                                    stroke="#e5e5e5"
-                                    strokeWidth={1}
-                                />
-                            </pattern>
-                        </defs>
-
-                        <rect
-                            x={0}
-                            y={0}
-                            width={SVG_WIDTH}
-                            height={SVG_HEIGHT}
-                            fill="url(#gridPatternProb)"
-                            stroke="#d0d0d0"
-                        />
-
-                        {/* Rami primo livello (neutri) */}
-                        {colors.map((c, i) => {
-                            const y1 = yFirst[i];
-                            const cx = (xRoot + xFirst) / 2;
-                            const cy = (yRoot + y1) / 2;
-                            return (
-                                <g key={`level1-${c.id}`}>
-                                    <line
-                                        x1={xRoot}
-                                        y1={yRoot}
-                                        x2={xFirst}
-                                        y2={y1}
-                                        stroke="#555"
-                                        strokeWidth={1.6}
-                                    />
-                                    <ProbBadge
-                                        x={cx}
-                                        y={cy}
-                                        line1={firstDrawProbs[i].fracString}
-                                        line2={`(${firstDrawProbs[i].decimalString})`}
-                                    />
-                                </g>
-                            );
-                        })}
-
-                        {/* Rami secondo livello (neutri, tratteggiati se prob 0) */}
-                        {colors.map((c1, i) =>
-                            colors.map((c2, j) => {
-                                const y1 = yFirst[i];
-                                const y2 = ySecond[i][j];
-                                const prob = secondDrawProbs[i][j];
-                                const isZero = prob.num === 0;
-                                const cx = (xFirst + xSecond) / 2;
-                                const cy = (y1 + y2) / 2;
-
-                                const key = `level2-${c1.id}-${c2.id}-${i}-${j}`;
-
-                                return (
-                                    <g key={key}>
-                                        <line
-                                            x1={xFirst}
-                                            y1={y1}
-                                            x2={xSecond}
-                                            y2={y2}
-                                            stroke={isZero ? "#bbbbbb" : "#555"}
-                                            strokeWidth={isZero ? 1.2 : 1.6}
-                                            strokeDasharray={isZero ? "5 4" : undefined}
-                                        />
-                                        <ProbBadge
-                                            x={cx}
-                                            y={cy}
-                                            line1={prob.fracString}
-                                            line2={`(${prob.decimalString})`}
-                                        />
-                                    </g>
-                                );
-                            })
-                        )}
-
-                        {/* Nodo radice */}
-                        <g>
-                            <circle
-                                cx={xRoot}
-                                cy={yRoot}
-                                r={12}
-                                fill="#fff"
-                                stroke="#555"
-                                strokeWidth={1.8}
-                            />
-                            <text
-                                x={xRoot}
-                                y={yRoot + 4}
-                                fontSize={11}
-                                textAnchor="middle"
-                            >
-                                Inizio
-                            </text>
-                        </g>
-
-                        {/* Nodi primo livello: prima estrazione */}
+            {/* Controlli urna */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div style={cardStyle}>
+                    <div style={{ fontWeight: 600, marginBottom: 12 }}>🎱 Composizione urna</div>
+                    <div style={{ display: "grid", gap: 8 }}>
                         {colors.map((c, i) => (
-                            <g key={`node1-${c.id}`}>
-                                <circle
-                                    cx={xFirst}
-                                    cy={yFirst[i]}
-                                    r={12}
-                                    fill="#ffffff"
-                                    stroke={c.color}
-                                    strokeWidth={2}
-                                />
-                                <text
-                                    x={xFirst}
-                                    y={yFirst[i] + 4}
-                                    fontSize={12}
-                                    textAnchor="middle"
-                                    fill={c.color}
-                                    fontWeight={600}
-                                >
-                                    {c.short}
-                                </text>
-                            </g>
-                        ))}
-
-                        {/* Nodi secondo livello: seconda pallina + riepilogo ramo */}
-                        {colors.map((c1, i) =>
-                            colors.map((c2, j) => {
-                                const y2 = ySecond[i][j];
-                                const leafLabel = `${c1.short}${c2.short}`;
-                                const key = `leaf-${c1.id}-${c2.id}-${i}-${j}`;
-                                return (
-                                    <g key={key}>
-                                        {/* pallina della seconda estrazione */}
-                                        <circle
-                                            cx={xSecond}
-                                            cy={y2}
-                                            r={12}
-                                            fill="#ffffff"
-                                            stroke={c2.color}
-                                            strokeWidth={2}
-                                        />
-                                        <text
-                                            x={xSecond}
-                                            y={y2 + 4}
-                                            fontSize={12}
-                                            textAnchor="middle"
-                                            fill={c2.color}
-                                            fontWeight={600}
-                                        >
-                                            {c2.short}
-                                        </text>
-
-                                        {/* riepilogo del ramo (es. RR, RB, ...) alla fine */}
-                                        <text
-                                            x={xSecond + 40}
-                                            y={y2 + 4}
-                                            fontSize={12}
-                                            textAnchor="start"
-                                            fill="#333"
-                                            fontFamily="monospace"
-                                        >
-                                            {leafLabel}
-                                        </text>
-                                    </g>
-                                );
-                            })
-                        )}
-                    </svg>
-
-                    {/* Tabella riepilogo esiti */}
-                    <div
-                        style={{
-                            marginTop: "0.9rem",
-                            borderTop: "1px solid #eee",
-                            paddingTop: "0.6rem",
-                        }}
-                    >
-                        <h2
-                            style={{
-                                fontSize: "1.05rem",
-                                marginBottom: "0.4rem",
-                            }}
-                        >
-                            Riepilogo esiti e probabilità
-                        </h2>
-                        <div
-                            style={{
-                                maxHeight: "220px",
-                                overflowY: "auto",
-                                borderRadius: "10px",
-                                border: "1px solid #eee",
-                            }}
-                        >
-                            <table
-                                style={{
-                                    width: "100%",
-                                    borderCollapse: "collapse",
-                                    fontSize: "0.85rem",
-                                }}
-                            >
-                                <thead
-                                    style={{
-                                        position: "sticky",
-                                        top: 0,
-                                        background: "#f7f9ff",
-                                        zIndex: 1,
-                                    }}
-                                >
-                                <tr>
-                                    <th
-                                        style={{
-                                            padding: "0.4rem 0.5rem",
-                                            borderBottom: "1px solid #e0e0e0",
-                                            textAlign: "left",
-                                        }}
-                                    >
-                                        Prima
-                                    </th>
-                                    <th
-                                        style={{
-                                            padding: "0.4rem 0.5rem",
-                                            borderBottom: "1px solid #e0e0e0",
-                                            textAlign: "left",
-                                        }}
-                                    >
-                                        Seconda
-                                    </th>
-                                    <th
-                                        style={{
-                                            padding: "0.4rem 0.5rem",
-                                            borderBottom: "1px solid #e0e0e0",
-                                            textAlign: "left",
-                                        }}
-                                    >
-                                        Esito
-                                    </th>
-                                    <th
-                                        style={{
-                                            padding: "0.4rem 0.5rem",
-                                            borderBottom: "1px solid #e0e0e0",
-                                            textAlign: "left",
-                                        }}
-                                    >
-                                        Probabilità
-                                    </th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {flatRows.map((row, idx) => (
-                                    <tr
-                                        key={row.id}
-                                        style={{
-                                            backgroundColor:
-                                                idx % 2 === 0
-                                                    ? "#ffffff"
-                                                    : "#fafbff",
-                                        }}
-                                    >
-                                        <td
-                                            style={{
-                                                padding: "0.3rem 0.5rem",
-                                                whiteSpace: "nowrap",
-                                            }}
-                                        >
-                                            {row.first} (
-                                            <span style={{ fontSize: "0.8rem" }}>
-                                                    {row.firstName}
-                                                </span>
-                                            )
-                                        </td>
-                                        <td
-                                            style={{
-                                                padding: "0.3rem 0.5rem",
-                                                whiteSpace: "nowrap",
-                                            }}
-                                        >
-                                            {row.second} (
-                                            <span style={{ fontSize: "0.8rem" }}>
-                                                    {row.secondName}
-                                                </span>
-                                            )
-                                        </td>
-                                        <td
-                                            style={{
-                                                padding: "0.3rem 0.5rem",
-                                                fontFamily: "monospace",
-                                            }}
-                                        >
-                                            {row.outcome}
-                                        </td>
-                                        <td
-                                            style={{
-                                                padding: "0.3rem 0.5rem",
-                                                fontFamily: "monospace",
-                                            }}
-                                        >
-                                            {row.prob.fracString}{" "}
-                                            <span
-                                                style={{
-                                                    fontSize: "0.8rem",
-                                                    color: "#555",
-                                                }}
-                                            >
-                                                    (
-                                                {row.prob.decimalString}
-                                                )
-                                                </span>
-                                        </td>
-                                    </tr>
-                                ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                {/* PANNELLO DI CONTROLLO E SPIEGAZIONI */}
-                <div
-                    style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "0.9rem",
-                    }}
-                >
-                    {/* Urna e modalità + impostazione manuale */}
-                    <div
-                        style={{
-                            border: "1px solid #ddd",
-                            borderRadius: "16px",
-                            padding: "0.75rem 1rem",
-                            boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
-                            background: "white",
-                        }}
-                    >
-                        <h2
-                            style={{
-                                fontSize: "1.1rem",
-                                marginBottom: "0.4rem",
-                            }}
-                        >
-                            Problema generato / impostato
-                        </h2>
-
-                        <p style={{ marginBottom: "0.4rem", fontSize: "0.95rem" }}>
-                            Il numero totale di palline è{" "}
-                            <strong>{formatIntWithSpaces(totalBalls)}</strong>.
-                        </p>
-
-                        <ul
-                            style={{
-                                paddingLeft: "1.1rem",
-                                marginTop: 0,
-                                marginBottom: "0.6rem",
-                                fontSize: "0.9rem",
-                            }}
-                        >
-                            {colors.map((c, index) => (
-                                <li key={`desc-${c.id}`}>
-                                    <span
-                                        style={{
-                                            display: "inline-block",
-                                            width: "0.7rem",
-                                            height: "0.7rem",
-                                            borderRadius: "999px",
-                                            background: c.color,
-                                            marginRight: "0.3rem",
-                                        }}
-                                    />
-                                    <strong>{c.name}</strong>:{" "}
-                                    <input
-                                        type="number"
-                                        min={0}
-                                        step={1}
-                                        value={c.count}
-                                        onChange={(e) => handleCountChange(index, e)}
-                                        style={{
-                                            width: "4rem",
-                                            padding: "0.1rem 0.3rem",
-                                            marginLeft: "0.2rem",
-                                            marginRight: "0.2rem",
-                                        }}
-                                    />
-                                    pallin{c.count === 1 ? "a" : "e"}
-                                </li>
-                            ))}
-                        </ul>
-
-                        <p style={{ fontSize: "0.9rem" }}>
-                            Si estraggono <strong>due palline</strong> una dopo l&apos;altra{" "}
-                            <strong>
-                                {withReplacement
-                                    ? "CON reimmissione (dopo ogni estrazione la pallina viene rimessa nell'urna)"
-                                    : "SENZA reimmissione (la pallina estratta non viene rimessa nell'urna)"}
-                            </strong>
-                            .
-                        </p>
-
-                        <div
-                            style={{
-                                display: "flex",
-                                gap: "0.5rem",
-                                flexWrap: "wrap",
-                                marginTop: "0.6rem",
-                                marginBottom: "0.6rem",
-                            }}
-                        >
-                            <button
-                                onClick={() => setColors(generateRandomUrn())}
-                                style={{
-                                    padding: "0.35rem 0.8rem",
-                                    borderRadius: "999px",
-                                    border: "none",
-                                    cursor: "pointer",
-                                    fontSize: "0.9rem",
-                                    boxShadow: "0 1px 3px rgba(0,0,0,0.25)",
-                                    background:
-                                        "linear-gradient(135deg, #fdfbff, #f0f4ff)",
-                                }}
-                            >
-                                Nuovo problema casuale
-                            </button>
-                            <button
-                                onClick={() => setWithReplacement((prev) => !prev)}
-                                style={{
-                                    padding: "0.35rem 0.8rem",
-                                    borderRadius: "999px",
-                                    border: "1px solid #ccc",
-                                    cursor: "pointer",
-                                    fontSize: "0.9rem",
-                                    background: "#ffffff",
-                                }}
-                            >
-                                Passa a{" "}
-                                {withReplacement ? "senza reimmissione" : "con reimmissione"}
-                            </button>
-                        </div>
-
-                        {/* Impostazione manuale numero di colori */}
-                        <div
-                            style={{
-                                borderTop: "1px solid #eee",
-                                paddingTop: "0.6rem",
-                                marginTop: "0.4rem",
-                                fontSize: "0.9rem",
-                            }}
-                        >
-                            <h3
-                                style={{
-                                    fontSize: "0.95rem",
-                                    marginBottom: "0.3rem",
-                                }}
-                            >
-                                Impostazione manuale
-                            </h3>
-                            <label>
-                                Numero di colori (1–{MAX_COLORS}):{" "}
+                            <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                <div style={{ width: 16, height: 16, borderRadius: "50%", background: c.hex }} />
+                                <span style={{ minWidth: 60, fontWeight: 500 }}>{c.name}</span>
                                 <input
                                     type="number"
-                                    min={1}
-                                    max={MAX_COLORS}
-                                    step={1}
-                                    value={colors.length}
-                                    onChange={handleNumColorsChange}
-                                    style={{
-                                        width: "3.5rem",
-                                        marginLeft: "0.3rem",
-                                        padding: "0.1rem 0.3rem",
-                                    }}
+                                    min={0}
+                                    value={c.count}
+                                    onChange={e => handleCountChange(i, parseInt(e.target.value) || 0)}
+                                    style={{ width: 60, padding: "4px 8px", borderRadius: 6, border: "1px solid #d1d5db" }}
                                 />
-                            </label>
-                            <p
-                                style={{
-                                    fontSize: "0.8rem",
-                                    marginTop: "0.35rem",
-                                    color: "#555",
-                                }}
-                            >
-                                Dopo aver scelto il numero di colori, regola il numero di
-                                palline per ciascun colore negli input sopra.
-                            </p>
-                        </div>
+                                <span style={{ fontSize: 12, color: "#6b7280" }}>palline</span>
+                            </div>
+                        ))}
                     </div>
-
-                    {/* Spiegazione uso dell'albero */}
-                    <div
-                        style={{
-                            border: "1px solid #ddd",
-                            borderRadius: "16px",
-                            padding: "0.75rem 1rem",
-                            fontSize: "0.9rem",
-                            background: "white",
-                        }}
-                    >
-                        <h2
-                            style={{
-                                fontSize: "1.05rem",
-                                marginBottom: "0.35rem",
-                            }}
-                        >
-                            Come leggere l&apos;albero
-                        </h2>
-                        <ul style={{ paddingLeft: "1.1rem", marginTop: 0 }}>
-                            <li>
-                                Ogni <strong>ramo in uscita dalla radice</strong> rappresenta il
-                                colore della <strong>prima estrazione</strong>.
-                            </li>
-                            <li>
-                                Ogni <strong>ramo del secondo livello</strong> rappresenta il
-                                colore della <strong>seconda estrazione</strong>, sapendo com’è
-                                andata la prima.
-                            </li>
-                            <li>
-                                La probabilità di una coppia (per esempio{" "}
-                                <em>prima R poi B</em>) è il prodotto delle probabilità sui due
-                                rami:
-                                <br />
-                                <span style={{ fontFamily: "monospace" }}>
-                                    P(R poi B) = P(R alla prima) × P(B alla seconda | R)
-                                </span>
-                                .
-                            </li>
-                            <li>
-                                In modalità <strong>senza reimmissione</strong>, le probabilità
-                                del secondo livello cambiano perché l&apos;urna è stata
-                                modificata dalla prima estrazione.
-                            </li>
-                        </ul>
-                    </div>
-
-                    {/* Suggerimenti didattici */}
-                    <div
-                        style={{
-                            border: "1px solid #eee",
-                            borderRadius: "16px",
-                            padding: "0.7rem 1rem",
-                            fontSize: "0.85rem",
-                            background: "#fafafa",
-                        }}
-                    >
-                        <h3
-                            style={{
-                                fontSize: "0.95rem",
-                                marginBottom: "0.3rem",
-                            }}
-                        >
-                            Spunti per esercizi
-                        </h3>
-                        <ul style={{ paddingLeft: "1.1rem", margin: 0 }}>
-                            <li>
-                                Calcolare la probabilità di estrarre{" "}
-                                <strong>due palline dello stesso colore</strong>.
-                            </li>
-                            <li>
-                                Calcolare la probabilità di estrarre{" "}
-                                <strong>due colori diversi</strong>.
-                            </li>
-                            <li>
-                                Confrontare i risultati <strong>con</strong> e{" "}
-                                <strong>senza reimmissione</strong>.
-                            </li>
-                            <li>
-                                Fare prima i conti a mano, poi usare l&apos;albero per
-                                verificare.
-                            </li>
-                        </ul>
+                    <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid #e5e7eb" }}>
+                        <label style={{ fontSize: 13 }}>
+                            Colori:
+                            <input
+                                type="number"
+                                min={1}
+                                max={4}
+                                value={colors.length}
+                                onChange={e => handleNumColors(parseInt(e.target.value) || 2)}
+                                style={{ width: 50, marginLeft: 8, padding: "4px 8px", borderRadius: 6, border: "1px solid #d1d5db" }}
+                            />
+                        </label>
+                        <span style={{ marginLeft: 12, fontSize: 13, color: "#6b7280" }}>Totale: <strong>{total}</strong></span>
                     </div>
                 </div>
-            </div>
-        </div>
-    );
-};
 
-export default UrnProbabilityTreeDemo;
+                <div style={cardStyle}>
+                    <div style={{ fontWeight: 600, marginBottom: 12 }}>⚙️ Modalità</div>
+                    <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+                        <button
+                            onClick={() => setWithReplacement(false)}
+                            style={{
+                                flex: 1,
+                                padding: "12px 16px",
+                                borderRadius: 8,
+                                border: !withReplacement ? "2px solid #3b82f6" : "1px solid #d1d5db",
+                                background: !withReplacement ? "#dbeafe" : "#fff",
+                                cursor: "pointer",
+                                textAlign: "left"
+                            }}
+                        >
+                            <div style={{ fontWeight: 600 }}>Senza reimmissione</div>
+                            <div style={{ fontSize: 11, color: "#6b7280" }}>La pallina non torna nell'urna</div>
+                        </button>
+                        <button
+                            onClick={() => setWithReplacement(true)}
+                            style={{
+                                flex: 1,
+                                padding: "12px 16px",
+                                borderRadius: 8,
+                                border: withReplacement ? "2px solid #22c55e" : "1px solid #d1d5db",
+                                background: withReplacement ? "#dcfce7" : "#fff",
+                                cursor: "pointer",
+                                textAlign: "left"
+                            }}
+                        >
+                            <div style={{ fontWeight: 600 }}>Con reimmissione</div>
+                            <div style={{ fontSize: 11, color: "#6b7280" }}>La pallina torna nell'urna</div>
+                        </button>
+                    </div>
+                    <button
+                        onClick={() => setColors(generateRandomUrn())}
+                        style={{ width: "100%", padding: "10px 16px", borderRadius: 8, border: "none", background: "#f59e0b", color: "#fff", cursor: "pointer", fontWeight: 600 }}
+                    >
+                        🎲 Genera problema casuale
+                    </button>
+                </div>
+            </div>
+
+            {/* Albero SVG */}
+            <div style={{ ...cardStyle, marginTop: 12, overflowX: "auto" }}>
+                <div style={{ fontWeight: 600, marginBottom: 8 }}>📊 Albero delle probabilità</div>
+                <svg viewBox={`0 0 ${SVG_W} ${SVG_H}`} style={{ width: "100%", maxHeight: "50vh" }}>
+                    <rect x={0} y={0} width={SVG_W} height={SVG_H} fill="#fafafa" rx={8} />
+
+                    {/* Rami livello 1 */}
+                    {colors.map((c, i) => {
+                        const { xRoot, xFirst, yRoot, yFirst } = layout;
+                        const mx = (xRoot + xFirst) / 2, my = (yRoot + yFirst[i]) / 2;
+                        return (
+                            <g key={`l1-${i}`}>
+                                <line x1={xRoot} y1={yRoot} x2={xFirst} y2={yFirst[i]} stroke="#94a3b8" strokeWidth={2} />
+                                <rect x={mx - 28} y={my - 14} width={56} height={28} rx={6} fill="#fff" stroke="#d1d5db" />
+                                <text x={mx} y={my + 1} fontSize={11} textAnchor="middle" fill="#374151">{prob1[i].str}</text>
+                                <text x={mx} y={my + 12} fontSize={9} textAnchor="middle" fill="#9ca3af">({prob1[i].dec})</text>
+                            </g>
+                        );
+                    })}
+
+                    {/* Rami livello 2 */}
+                    {colors.map((_, i) => colors.map((_, j) => {
+                        const { xFirst, xSecond, yFirst, ySecond } = layout;
+                        const y1 = yFirst[i], y2 = ySecond[i][j];
+                        const mx = (xFirst + xSecond) / 2, my = (y1 + y2) / 2;
+                        const p = prob2[i][j];
+                        const isZero = p.num === 0;
+                        return (
+                            <g key={`l2-${i}-${j}`}>
+                                <line x1={xFirst} y1={y1} x2={xSecond} y2={y2} stroke={isZero ? "#e5e7eb" : "#94a3b8"} strokeWidth={isZero ? 1 : 2} strokeDasharray={isZero ? "4 3" : undefined} />
+                                <rect x={mx - 28} y={my - 14} width={56} height={28} rx={6} fill="#fff" stroke="#d1d5db" />
+                                <text x={mx} y={my + 1} fontSize={11} textAnchor="middle" fill={isZero ? "#9ca3af" : "#374151"}>{p.str}</text>
+                                <text x={mx} y={my + 12} fontSize={9} textAnchor="middle" fill="#9ca3af">({p.dec})</text>
+                            </g>
+                        );
+                    }))}
+
+                    {/* Nodo radice */}
+                    <circle cx={layout.xRoot} cy={layout.yRoot} r={14} fill="#fff" stroke="#374151" strokeWidth={2} />
+                    <text x={layout.xRoot} y={layout.yRoot + 4} fontSize={10} textAnchor="middle" fill="#374151">Inizio</text>
+
+                    {/* Nodi livello 1 */}
+                    {colors.map((c, i) => (
+                        <g key={`n1-${i}`}>
+                            <circle cx={layout.xFirst} cy={layout.yFirst[i]} r={14} fill="#fff" stroke={c.hex} strokeWidth={3} />
+                            <text x={layout.xFirst} y={layout.yFirst[i] + 5} fontSize={13} textAnchor="middle" fill={c.hex} fontWeight={700}>{c.short}</text>
+                        </g>
+                    ))}
+
+                    {/* Nodi livello 2 (foglie) */}
+                    {colors.map((c1, i) => colors.map((c2, j) => {
+                        const y = layout.ySecond[i][j];
+                        const label = `${c1.short}${c2.short}`;
+                        const jp = jointProb[i][j];
+                        return (
+                            <g key={`n2-${i}-${j}`}>
+                                <circle cx={layout.xSecond} cy={y} r={14} fill="#fff" stroke={c2.hex} strokeWidth={3} />
+                                <text x={layout.xSecond} y={y + 5} fontSize={13} textAnchor="middle" fill={c2.hex} fontWeight={700}>{c2.short}</text>
+                                <text x={layout.xSecond + 24} y={y + 4} fontSize={12} textAnchor="start" fill="#374151" fontWeight={600}>{label}</text>
+                                <text x={layout.xSecond + 60} y={y + 4} fontSize={11} textAnchor="start" fill="#6b7280">P = {jp.str}</text>
+                            </g>
+                        );
+                    }))}
+
+                    {/* Labels livelli */}
+                    <text x={layout.xRoot} y={15} fontSize={11} textAnchor="middle" fill="#6b7280">Partenza</text>
+                    <text x={layout.xFirst} y={15} fontSize={11} textAnchor="middle" fill="#6b7280">1ª estrazione</text>
+                    <text x={layout.xSecond} y={15} fontSize={11} textAnchor="middle" fill="#6b7280">2ª estrazione</text>
+                </svg>
+            </div>
+
+            {/* Tabella riepilogo */}
+            <div style={{ ...cardStyle, marginTop: 12 }}>
+                <div style={{ fontWeight: 600, marginBottom: 12 }}>📋 Tabella probabilità congiunte</div>
+                <div style={{ overflowX: "auto" }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                        <thead>
+                        <tr style={{ background: "#f8fafc" }}>
+                            <th style={{ padding: "8px 12px", borderBottom: "2px solid #e5e7eb", textAlign: "left" }}>Esito</th>
+                            <th style={{ padding: "8px 12px", borderBottom: "2px solid #e5e7eb", textAlign: "left" }}>P(1ª)</th>
+                            <th style={{ padding: "8px 12px", borderBottom: "2px solid #e5e7eb", textAlign: "left" }}>P(2ª|1ª)</th>
+                            <th style={{ padding: "8px 12px", borderBottom: "2px solid #e5e7eb", textAlign: "left" }}>P(esito)</th>
+                            <th style={{ padding: "8px 12px", borderBottom: "2px solid #e5e7eb", textAlign: "left" }}>Decimale</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {colors.flatMap((c1, i) => colors.map((c2, j) => {
+                            const jp = jointProb[i][j];
+                            return (
+                                <tr key={`${i}-${j}`} style={{ background: (i * n + j) % 2 === 0 ? "#fff" : "#f8fafc" }}>
+                                    <td style={{ padding: "8px 12px", borderBottom: "1px solid #e5e7eb" }}>
+                                            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                                                <span style={{ width: 12, height: 12, borderRadius: "50%", background: c1.hex }} />
+                                                <span style={{ width: 12, height: 12, borderRadius: "50%", background: c2.hex }} />
+                                                <strong>{c1.short}{c2.short}</strong>
+                                            </span>
+                                    </td>
+                                    <td style={{ padding: "8px 12px", borderBottom: "1px solid #e5e7eb" }}>{prob1[i].str}</td>
+                                    <td style={{ padding: "8px 12px", borderBottom: "1px solid #e5e7eb" }}>{prob2[i][j].str}</td>
+                                    <td style={{ padding: "8px 12px", borderBottom: "1px solid #e5e7eb", fontWeight: 600 }}>{jp.str}</td>
+                                    <td style={{ padding: "8px 12px", borderBottom: "1px solid #e5e7eb", color: "#6b7280" }}>{jp.dec}</td>
+                                </tr>
+                            );
+                        }))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {/* Spiegazione */}
+            <div style={{ marginTop: 12, background: "#eff6ff", borderRadius: 12, padding: 16, fontSize: 13, color: "#1e40af" }}>
+                <strong>💡 Come leggere l'albero:</strong>
+                <ul style={{ margin: "8px 0 0 0", paddingLeft: 20 }}>
+                    <li>Ogni ramo mostra la probabilità di quell'evento</li>
+                    <li>La probabilità di un percorso si calcola <strong>moltiplicando</strong> le probabilità sui rami</li>
+                    <li><strong>Senza reimmissione:</strong> le probabilità del 2° livello cambiano (il denominatore diminuisce di 1)</li>
+                    <li><strong>Con reimmissione:</strong> le probabilità restano uguali ad ogni livello (eventi indipendenti)</li>
+                </ul>
+            </div>
+        </DemoContainer>
+    );
+}

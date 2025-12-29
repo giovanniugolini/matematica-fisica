@@ -1,5 +1,5 @@
 /**
- * Formatting - Libreria per formattazione numeri e conversioni
+ * Formatting Utilities - Funzioni per formattazione numeri, angoli e coordinate
  * @module utils/math/formatting
  */
 
@@ -8,8 +8,8 @@
 export const PI = Math.PI;
 export const TAU = 2 * Math.PI;
 export const E = Math.E;
-export const DEG_TO_RAD = PI / 180;
-export const RAD_TO_DEG = 180 / PI;
+export const DEG_TO_RAD = Math.PI / 180;
+export const RAD_TO_DEG = 180 / Math.PI;
 
 // ============ CONVERSIONI ANGOLARI ============
 
@@ -31,401 +31,120 @@ export function toDegrees(radians: number): number {
  * Normalizza un angolo in radianti nell'intervallo [0, 2π)
  */
 export function normalizeAngle(radians: number): number {
-    const result = radians % TAU;
-    return result < 0 ? result + TAU : result;
+    let r = radians % TAU;
+    if (r < 0) r += TAU;
+    return r;
 }
 
 /**
  * Normalizza un angolo in radianti nell'intervallo [-π, π)
  */
 export function normalizeAngleSigned(radians: number): number {
-    let result = normalizeAngle(radians);
-    if (result >= PI) {
-        result -= TAU;
-    }
-    return result;
+    let r = ((radians + PI) % TAU + TAU) % TAU - PI;
+    if (r === -PI) r = PI;
+    return r;
 }
 
 /**
  * Normalizza un angolo in gradi nell'intervallo [0, 360)
  */
 export function normalizeAngleDeg(degrees: number): number {
-    const result = degrees % 360;
-    return result < 0 ? result + 360 : result;
+    let d = degrees % 360;
+    if (d < 0) d += 360;
+    return d;
 }
 
 /**
  * Normalizza un angolo in gradi nell'intervallo [-180, 180)
+ * (angolo principale)
  */
 export function normalizeAngleDegSigned(degrees: number): number {
-    let result = normalizeAngleDeg(degrees);
-    if (result >= 180) {
-        result -= 360;
+    let d = ((degrees + 180) % 360 + 360) % 360 - 180;
+    if (d === -180) d = 180;
+    return d;
+}
+
+/**
+ * Formatta un angolo in radianti come multiplo di π
+ * Es: π/2, 2π/3, 3π/4, etc.
+ */
+export function formatRadiansPi(radians: number): string {
+    const k = radians / PI;
+    const denominators = [1, 2, 3, 4, 6, 8, 12, 16];
+
+    for (const d of denominators) {
+        const n = Math.round(k * d);
+        if (Math.abs(k - n / d) < 1e-3) {
+            if (n === 0) return "0";
+            if (d === 1) {
+                if (n === 1) return "π";
+                if (n === -1) return "-π";
+                return `${n}π`;
+            }
+            if (n === 1) return `π/${d}`;
+            if (n === -1) return `-π/${d}`;
+            return `${n}π/${d}`;
+        }
     }
-    return result;
-}
-
-// ============ ARROTONDAMENTO ============
-
-/**
- * Arrotonda a un numero specifico di decimali
- */
-export function roundToDecimals(value: number, decimals: number): number {
-    const factor = Math.pow(10, decimals);
-    return Math.round(value * factor) / factor;
+    return radians.toFixed(3);
 }
 
 /**
- * Arrotonda a cifre significative
+ * Formatta un angolo in radianti come multiplo di π in LaTeX
  */
-export function roundToSignificant(value: number, significantDigits: number): number {
-    if (value === 0) return 0;
-    const magnitude = Math.floor(Math.log10(Math.abs(value)));
-    const factor = Math.pow(10, significantDigits - magnitude - 1);
-    return Math.round(value * factor) / factor;
-}
+export function formatRadiansPiLatex(radians: number): string {
+    const k = radians / PI;
+    const denominators = [1, 2, 3, 4, 6, 8, 12, 16];
 
-/**
- * Tronca a un numero specifico di decimali (senza arrotondare)
- */
-export function truncateDecimals(value: number, decimals: number): number {
-    const factor = Math.pow(10, decimals);
-    return Math.trunc(value * factor) / factor;
-}
-
-/**
- * Arrotonda al multiplo più vicino
- */
-export function roundToNearest(value: number, nearest: number): number {
-    return Math.round(value / nearest) * nearest;
-}
-
-/**
- * Arrotonda per eccesso al multiplo più vicino
- */
-export function ceilToNearest(value: number, nearest: number): number {
-    return Math.ceil(value / nearest) * nearest;
-}
-
-/**
- * Arrotonda per difetto al multiplo più vicino
- */
-export function floorToNearest(value: number, nearest: number): number {
-    return Math.floor(value / nearest) * nearest;
-}
-
-// ============ NOTAZIONE SCIENTIFICA ============
-
-export interface ScientificNotation {
-    coefficient: number;
-    exponent: number;
-}
-
-/**
- * Converte un numero in notazione scientifica
- */
-export function toScientificNotation(value: number, significantDigits: number = 3): ScientificNotation {
-    if (value === 0) {
-        return { coefficient: 0, exponent: 0 };
+    for (const d of denominators) {
+        const n = Math.round(k * d);
+        if (Math.abs(k - n / d) < 1e-3) {
+            if (n === 0) return "0";
+            if (d === 1) {
+                if (n === 1) return "\\pi";
+                if (n === -1) return "-\\pi";
+                return `${n}\\pi`;
+            }
+            if (n === 1) return `\\frac{\\pi}{${d}}`;
+            if (n === -1) return `-\\frac{\\pi}{${d}}`;
+            return `\\frac{${n}\\pi}{${d}}`;
+        }
     }
-
-    const exponent = Math.floor(Math.log10(Math.abs(value)));
-    const coefficient = roundToDecimals(value / Math.pow(10, exponent), significantDigits - 1);
-
-    return { coefficient, exponent };
+    return radians.toFixed(3);
 }
 
 /**
- * Formatta un numero in notazione scientifica come stringa
+ * Angoli notevoli in gradi (0°, 30°, 45°, 60°, 90°, ...)
  */
-export function formatScientific(value: number, significantDigits: number = 3): string {
-    const { coefficient, exponent } = toScientificNotation(value, significantDigits);
-
-    if (exponent === 0) {
-        return coefficient.toString();
-    }
-
-    return `${coefficient} × 10^${exponent}`;
-}
+export const NOTABLE_ANGLES_DEG = [0, 30, 45, 60, 90, 120, 135, 150, 180, 210, 225, 240, 270, 300, 315, 330, 360];
 
 /**
- * Formatta un numero in notazione scientifica per LaTeX
+ * Snap a un angolo notevole se vicino entro una tolleranza
  */
-export function formatScientificLatex(value: number, significantDigits: number = 3): string {
-    const { coefficient, exponent } = toScientificNotation(value, significantDigits);
+export function snapToNotableAngle(degrees: number, tolerance: number = 3): number {
+    const d = degrees === 360 ? 0 : degrees;
+    let best = d;
+    let bestErr = Infinity;
 
-    if (exponent === 0) {
-        return coefficient.toString();
-    }
-
-    return `${coefficient} \\times 10^{${exponent}}`;
-}
-
-/**
- * Formatta un numero in notazione scientifica per HTML
- */
-export function formatScientificHTML(value: number, significantDigits: number = 3): string {
-    const { coefficient, exponent } = toScientificNotation(value, significantDigits);
-
-    if (exponent === 0) {
-        return coefficient.toString();
-    }
-
-    return `${coefficient} × 10<sup>${exponent}</sup>`;
-}
-
-/**
- * Converte dalla notazione scientifica a numero
- */
-export function fromScientificNotation(coefficient: number, exponent: number): number {
-    return coefficient * Math.pow(10, exponent);
-}
-
-// ============ FRAZIONI ============
-
-export interface Fraction {
-    numerator: number;
-    denominator: number;
-    sign: 1 | -1;
-}
-
-/**
- * Calcola il massimo comun divisore
- */
-export function gcd(a: number, b: number): number {
-    a = Math.abs(Math.round(a));
-    b = Math.abs(Math.round(b));
-    while (b !== 0) {
-        const t = b;
-        b = a % b;
-        a = t;
-    }
-    return a;
-}
-
-/**
- * Calcola il minimo comune multiplo
- */
-export function lcm(a: number, b: number): number {
-    return Math.abs(a * b) / gcd(a, b);
-}
-
-/**
- * Converte un decimale in frazione approssimata
- */
-export function toFraction(value: number, maxDenominator: number = 1000): Fraction {
-    const sign = value < 0 ? -1 : 1;
-    value = Math.abs(value);
-
-    if (Number.isInteger(value)) {
-        return { numerator: value, denominator: 1, sign };
-    }
-
-    let bestNumerator = Math.round(value);
-    let bestDenominator = 1;
-    let bestError = Math.abs(value - bestNumerator);
-
-    for (let den = 2; den <= maxDenominator; den++) {
-        const num = Math.round(value * den);
-        const error = Math.abs(value - num / den);
-
-        if (error < bestError) {
-            bestError = error;
-            bestNumerator = num;
-            bestDenominator = den;
-
-            if (error < 1e-10) break;
+    for (const v of NOTABLE_ANGLES_DEG) {
+        const t = v === 360 ? 0 : v;
+        const err = Math.abs(((d - t + 540) % 360) - 180);
+        if (err < bestErr) {
+            bestErr = err;
+            best = t;
         }
     }
 
-    // Semplifica
-    const divisor = gcd(bestNumerator, bestDenominator);
-
-    return {
-        numerator: bestNumerator / divisor,
-        denominator: bestDenominator / divisor,
-        sign,
-    };
-}
-
-/**
- * Formatta una frazione come stringa
- */
-export function formatFraction(fraction: Fraction): string {
-    const { numerator, denominator, sign } = fraction;
-    const signStr = sign < 0 ? "-" : "";
-
-    if (denominator === 1) {
-        return `${signStr}${numerator}`;
+    if (bestErr <= tolerance) {
+        return best === 0 && degrees > 359 ? 360 : best;
     }
-
-    return `${signStr}${numerator}/${denominator}`;
+    return degrees;
 }
 
-/**
- * Formatta una frazione per LaTeX
- */
-export function formatFractionLatex(fraction: Fraction): string {
-    const { numerator, denominator, sign } = fraction;
-    const signStr = sign < 0 ? "-" : "";
-
-    if (denominator === 1) {
-        return `${signStr}${numerator}`;
-    }
-
-    return `${signStr}\\frac{${numerator}}{${denominator}}`;
-}
+// ============ CLAMP E RANGE ============
 
 /**
- * Formatta un numero come frazione LaTeX (utility combinata)
- */
-export function numberToFractionLatex(value: number, maxDenominator: number = 100): string {
-    if (Number.isInteger(value)) {
-        return value.toString();
-    }
-
-    const fraction = toFraction(value, maxDenominator);
-
-    // Se la frazione non è precisa, usa il decimale
-    const reconstructed = (fraction.sign * fraction.numerator) / fraction.denominator;
-    if (Math.abs(reconstructed - value) > 0.001) {
-        return roundToDecimals(value, 3).toString();
-    }
-
-    return formatFractionLatex(fraction);
-}
-
-// ============ FORMATTAZIONE NUMERI ============
-
-/**
- * Formatta un numero con separatore delle migliaia
- */
-export function formatWithThousands(value: number, locale: string = "it-IT"): string {
-    return value.toLocaleString(locale);
-}
-
-/**
- * Formatta un numero con un numero fisso di decimali
- */
-export function formatFixed(value: number, decimals: number): string {
-    return value.toFixed(decimals);
-}
-
-/**
- * Formatta un numero rimuovendo zeri finali non significativi
- */
-export function formatClean(value: number, maxDecimals: number = 10): string {
-    return parseFloat(value.toFixed(maxDecimals)).toString();
-}
-
-/**
- * Formatta un numero con prefisso SI (k, M, G, etc.)
- */
-export function formatSI(value: number, decimals: number = 2): string {
-    const prefixes = [
-        { value: 1e24, symbol: "Y" },
-        { value: 1e21, symbol: "Z" },
-        { value: 1e18, symbol: "E" },
-        { value: 1e15, symbol: "P" },
-        { value: 1e12, symbol: "T" },
-        { value: 1e9, symbol: "G" },
-        { value: 1e6, symbol: "M" },
-        { value: 1e3, symbol: "k" },
-        { value: 1, symbol: "" },
-        { value: 1e-3, symbol: "m" },
-        { value: 1e-6, symbol: "μ" },
-        { value: 1e-9, symbol: "n" },
-        { value: 1e-12, symbol: "p" },
-        { value: 1e-15, symbol: "f" },
-        { value: 1e-18, symbol: "a" },
-        { value: 1e-21, symbol: "z" },
-        { value: 1e-24, symbol: "y" },
-    ];
-
-    const absValue = Math.abs(value);
-
-    for (const prefix of prefixes) {
-        if (absValue >= prefix.value) {
-            return (value / prefix.value).toFixed(decimals) + " " + prefix.symbol;
-        }
-    }
-
-    return value.toFixed(decimals);
-}
-
-/**
- * Formatta un numero con unità di misura
- */
-export function formatWithUnit(value: number, unit: string, decimals: number = 2): string {
-    return `${roundToDecimals(value, decimals)} ${unit}`;
-}
-
-// ============ CONVERSIONI UNITÀ ============
-
-export type LengthUnit = "m" | "km" | "cm" | "mm" | "μm" | "nm" | "mi" | "ft" | "in";
-export type TimeUnit = "s" | "ms" | "μs" | "ns" | "min" | "h" | "d";
-export type MassUnit = "kg" | "g" | "mg" | "μg" | "t" | "lb" | "oz";
-
-const lengthFactors: Record<LengthUnit, number> = {
-    m: 1,
-    km: 1000,
-    cm: 0.01,
-    mm: 0.001,
-    μm: 1e-6,
-    nm: 1e-9,
-    mi: 1609.344,
-    ft: 0.3048,
-    in: 0.0254,
-};
-
-const timeFactors: Record<TimeUnit, number> = {
-    s: 1,
-    ms: 0.001,
-    μs: 1e-6,
-    ns: 1e-9,
-    min: 60,
-    h: 3600,
-    d: 86400,
-};
-
-const massFactors: Record<MassUnit, number> = {
-    kg: 1,
-    g: 0.001,
-    mg: 1e-6,
-    μg: 1e-9,
-    t: 1000,
-    lb: 0.453592,
-    oz: 0.0283495,
-};
-
-/**
- * Converte una lunghezza tra unità
- */
-export function convertLength(value: number, from: LengthUnit, to: LengthUnit): number {
-    const inMeters = value * lengthFactors[from];
-    return inMeters / lengthFactors[to];
-}
-
-/**
- * Converte un tempo tra unità
- */
-export function convertTime(value: number, from: TimeUnit, to: TimeUnit): number {
-    const inSeconds = value * timeFactors[from];
-    return inSeconds / timeFactors[to];
-}
-
-/**
- * Converte una massa tra unità
- */
-export function convertMass(value: number, from: MassUnit, to: MassUnit): number {
-    const inKg = value * massFactors[from];
-    return inKg / massFactors[to];
-}
-
-// ============ RANGE E CLAMP ============
-
-/**
- * Limita un valore in un intervallo
+ * Limita un valore in un range [min, max]
  */
 export function clamp(value: number, min: number, max: number): number {
     return Math.max(min, Math.min(max, value));
@@ -434,32 +153,12 @@ export function clamp(value: number, min: number, max: number): number {
 /**
  * Mappa un valore da un range a un altro
  */
-export function mapRange(
-    value: number,
-    inMin: number,
-    inMax: number,
-    outMin: number,
-    outMax: number
-): number {
-    return ((value - inMin) / (inMax - inMin)) * (outMax - outMin) + outMin;
+export function mapRange(value: number, inMin: number, inMax: number, outMin: number, outMax: number): number {
+    return outMin + ((value - inMin) / (inMax - inMin)) * (outMax - outMin);
 }
 
 /**
- * Mappa un valore da un range a un altro con clamping
- */
-export function mapRangeClamped(
-    value: number,
-    inMin: number,
-    inMax: number,
-    outMin: number,
-    outMax: number
-): number {
-    const clamped = clamp(value, inMin, inMax);
-    return mapRange(clamped, inMin, inMax, outMin, outMax);
-}
-
-/**
- * Interpolazione lineare
+ * Interpolazione lineare tra due valori
  */
 export function lerp(a: number, b: number, t: number): number {
     return a + (b - a) * t;
@@ -469,99 +168,134 @@ export function lerp(a: number, b: number, t: number): number {
  * Interpolazione lineare inversa (trova t dato il valore)
  */
 export function inverseLerp(a: number, b: number, value: number): number {
-    if (a === b) return 0;
     return (value - a) / (b - a);
 }
 
-// ============ VALIDAZIONE ============
+// ============ FORMATTAZIONE NUMERI ============
 
 /**
- * Verifica se un numero è valido (non NaN e finito)
+ * Formatta un numero con separatore migliaia
  */
-export function isValidNumber(value: unknown): value is number {
-    return typeof value === "number" && !isNaN(value) && isFinite(value);
+export function formatWithThousands(n: number, separator: string = "."): string {
+    const parts = n.toString().split(".");
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, separator);
+    return parts.join(",");
 }
 
 /**
- * Verifica se due numeri sono approssimativamente uguali
+ * Formatta un numero con un numero fisso di decimali
  */
-export function approximately(a: number, b: number, epsilon: number = 1e-10): boolean {
-    return Math.abs(a - b) < epsilon;
+export function formatFixed(n: number, decimals: number = 2): string {
+    return n.toFixed(decimals);
 }
 
 /**
- * Verifica se un numero è approssimativamente zero
+ * Formatta un numero rimuovendo zeri finali inutili
  */
-export function isZero(value: number, epsilon: number = 1e-10): boolean {
-    return Math.abs(value) < epsilon;
+export function formatClean(n: number, maxDecimals: number = 4): string {
+    return parseFloat(n.toFixed(maxDecimals)).toString();
 }
 
 /**
- * Verifica se un numero è positivo
+ * Arrotonda a un numero specifico di cifre significative
  */
-export function isPositive(value: number): boolean {
-    return value > 0;
+export function roundToSignificant(n: number, digits: number): number {
+    if (n === 0) return 0;
+    const d = Math.ceil(Math.log10(Math.abs(n)));
+    const power = digits - d;
+    const magnitude = Math.pow(10, power);
+    return Math.round(n * magnitude) / magnitude;
 }
 
 /**
- * Verifica se un numero è negativo
+ * Arrotonda a un numero specifico di decimali
  */
-export function isNegative(value: number): boolean {
-    return value < 0;
+export function roundToDecimals(n: number, decimals: number): number {
+    const factor = Math.pow(10, decimals);
+    return Math.round(n * factor) / factor;
+}
+
+// ============ COORDINATE ============
+
+/**
+ * Converte coordinate polari in cartesiane
+ */
+export function polarToCartesian(r: number, angleRad: number, cx: number = 0, cy: number = 0): { x: number; y: number } {
+    return {
+        x: cx + r * Math.cos(angleRad),
+        y: cy + r * Math.sin(angleRad)
+    };
 }
 
 /**
- * Restituisce il segno del numero (-1, 0, 1)
+ * Converte coordinate polari in cartesiane (SVG: Y invertita)
  */
-export function sign(value: number): -1 | 0 | 1 {
-    if (value > 0) return 1;
-    if (value < 0) return -1;
-    return 0;
-}
-
-// ============ FORMATTAZIONE COORDINATE ============
-
-/**
- * Formatta le coordinate di un punto
- */
-export function formatPoint(x: number, y: number, decimals: number = 2): string {
-    return `(${roundToDecimals(x, decimals)}, ${roundToDecimals(y, decimals)})`;
+export function polarToCartesianSVG(r: number, angleRad: number, cx: number, cy: number): { x: number; y: number } {
+    return {
+        x: cx + r * Math.cos(angleRad),
+        y: cy - r * Math.sin(angleRad)  // Y invertita per SVG
+    };
 }
 
 /**
- * Formatta le coordinate per LaTeX
+ * Converte coordinate cartesiane in polari
  */
-export function formatPointLatex(x: number, y: number, decimals: number = 2): string {
-    return `\\left(${roundToDecimals(x, decimals)}, ${roundToDecimals(y, decimals)}\\right)`;
+export function cartesianToPolar(x: number, y: number, cx: number = 0, cy: number = 0): { r: number; angle: number } {
+    const dx = x - cx;
+    const dy = y - cy;
+    return {
+        r: Math.sqrt(dx * dx + dy * dy),
+        angle: Math.atan2(dy, dx)
+    };
 }
 
 /**
- * Formatta un vettore in notazione con cappello
+ * Calcola la distanza tra due punti
  */
-export function formatVectorLatex(
-    x: number,
-    y: number,
-    decimals: number = 2,
-    unitVectors: { i: string; j: string } = { i: "\\hat{i}", j: "\\hat{j}" }
+export function distance(x1: number, y1: number, x2: number, y2: number): number {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    return Math.sqrt(dx * dx + dy * dy);
+}
+
+// ============ SVG HELPERS ============
+
+/**
+ * Crea un path SVG per un arco
+ */
+export function svgArcPath(
+    cx: number,
+    cy: number,
+    r: number,
+    startAngleRad: number,
+    endAngleRad: number,
+    counterClockwise: boolean = false
 ): string {
-    const xRound = roundToDecimals(x, decimals);
-    const yRound = roundToDecimals(y, decimals);
+    const start = polarToCartesianSVG(r, startAngleRad, cx, cy);
+    const end = polarToCartesianSVG(r, endAngleRad, cx, cy);
 
-    let result = "";
+    let angleDiff = endAngleRad - startAngleRad;
+    if (counterClockwise) angleDiff = -angleDiff;
+    angleDiff = normalizeAngle(angleDiff);
 
-    if (xRound !== 0) {
-        result += `${xRound}${unitVectors.i}`;
-    }
+    const largeArc = angleDiff > PI ? 1 : 0;
+    const sweep = counterClockwise ? 1 : 0;
 
-    if (yRound !== 0) {
-        if (result && yRound > 0) result += " + ";
-        else if (result && yRound < 0) result += " - ";
+    return `M ${start.x} ${start.y} A ${r} ${r} 0 ${largeArc} ${sweep} ${end.x} ${end.y}`;
+}
 
-        const yAbs = yRound < 0 && result ? Math.abs(yRound) : yRound;
-        result += `${yAbs}${unitVectors.j}`;
-    }
-
-    if (!result) result = "\\vec{0}";
-
-    return result;
+/**
+ * Crea un path SVG per un settore circolare
+ */
+export function svgSectorPath(
+    cx: number,
+    cy: number,
+    r: number,
+    startAngleRad: number,
+    endAngleRad: number,
+    counterClockwise: boolean = false
+): string {
+    const arcPath = svgArcPath(cx, cy, r, startAngleRad, endAngleRad, counterClockwise);
+    const start = polarToCartesianSVG(r, startAngleRad, cx, cy);
+    return `M ${cx} ${cy} L ${start.x} ${start.y} ${arcPath.substring(arcPath.indexOf('A'))} Z`;
 }
