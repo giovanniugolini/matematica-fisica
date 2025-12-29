@@ -330,7 +330,7 @@ export default function NotazioneScientificaDemo() {
                                 <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
                                     <span style={{ background: "#3b82f6", color: "#fff", borderRadius: "50%", width: 24, height: 24, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, flexShrink: 0 }}>1</span>
                                     <div>
-                                        <strong>Isola la prima cifra (deversa da 0):</strong> sposta la virgola finché il numero è tra 1 e 9
+                                        <strong>Isola la prima cifra (deversa da 0):</strong> sposta la virgola finché il numero è tra 1 e 10 (questo numero si chiama mantissa)
                                         <div style={{ fontFamily: "monospace", background: "#f3f4f6", padding: "6px 10px", borderRadius: 6, marginTop: 4, display: "inline-block" }}>
                                             {formatNormal(value)} → <strong>{scientific.mantissaStr}</strong>
                                         </div>
@@ -348,7 +348,7 @@ export default function NotazioneScientificaDemo() {
                                 <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
                                     <span style={{ background: "#f59e0b", color: "#fff", borderRadius: "50%", width: 24, height: 24, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, flexShrink: 0 }}>3</span>
                                     <div>
-                                        <strong>Scrivi il risultato:</strong> mantissa × 10 elevato all'esponente.
+                                        <strong>Scrivi il risultatoi</strong> mantissa × 10 elevato all'esponente.
                                     </div>
                                 </div>
                             </div>
