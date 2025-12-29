@@ -118,6 +118,20 @@ export const demos: DemoInfo[] = [
             () => import("./demos/disequazioni/DisequazioniSecondoGradoDemo")
         ),
     },
+    {
+        slug: "equazioni-secondo-grado",
+        title: "Equazioni di secondo grado (step-by-step)",
+        Component: React.lazy(
+            () => import("./demos/equazioni/EquazioniSecondoGrado")
+        ),
+    },
+    {
+        slug: "equazioni-frazionarie",
+        title: "Equazioni Frazionarie (step-by-step)",
+        Component: React.lazy(
+            () => import("./demos/equazioni/EquazioniFrazionarie")
+        ),
+    },
 
 
 
