@@ -1,16 +1,16 @@
 /**
  * LimiteFinitoPuntoFinito - Versione refactorizzata
- * Limite finito per x → x₀ finito
+ * Limite finito per x → x₀ finito (3 layout: mobile/tablet/desktop)
  */
 
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import {
-    SVG_WIDTH, SVG_HEIGHT, PAD_L, PAD_R, PAD_T, PAD_B,
+    SVG_WIDTH, SVG_HEIGHT,
     clamp, createTransform, sampleFunction, calculateYRange, generatePath,
     GridPattern, Axes, FunctionCurve, VerticalLine, HorizontalLine,
     ApproachPoints, AnimatedPoint, LimitPoint,
     ControlButton, FunctionSelector, ApproachTable, ResultBox, NoteBox, ConceptBox,
-    cardStyle, Point, ApproachPoint
+    cardStyle, ApproachPoint
 } from "./components";
 
 // ============ FUNZIONI PREDEFINITE ============
@@ -27,22 +27,8 @@ type FunctionDef = {
 };
 
 const FUNCTIONS: FunctionDef[] = [
-    {
-        id: "quad",
-        name: "f(x) = x²",
-        expr: "x²",
-        f: (x) => x * x,
-        x0Default: 2,
-        limitValue: (x0) => x0 * x0,
-    },
-    {
-        id: "sin",
-        name: "f(x) = sin(x)",
-        expr: "sin(x)",
-        f: (x) => Math.sin(x),
-        x0Default: Math.PI / 2,
-        limitValue: (x0) => Math.sin(x0),
-    },
+    { id: "quad", name: "f(x) = x²", expr: "x²", f: (x) => x * x, x0Default: 2, limitValue: (x0) => x0 * x0 },
+    { id: "sin", name: "f(x) = sin(x)", expr: "sin(x)", f: (x) => Math.sin(x), x0Default: Math.PI / 2, limitValue: (x0) => Math.sin(x0) },
     {
         id: "removable",
         name: "f(x) = (x²-4)/(x-2)",
@@ -61,28 +47,30 @@ const FUNCTIONS: FunctionDef[] = [
         limitValue: (x0) => (x0 === 0 ? 1 : Math.sin(x0) / x0),
         note: "Limite notevole: lim(x→0) sin(x)/x = 1",
     },
-    {
-        id: "cubic",
-        name: "f(x) = x³ - 2x",
-        expr: "x³ - 2x",
-        f: (x) => x * x * x - 2 * x,
-        x0Default: 1,
-        limitValue: (x0) => x0 * x0 * x0 - 2 * x0,
-    },
-    {
-        id: "exp",
-        name: "f(x) = eˣ",
-        expr: "eˣ",
-        f: (x) => Math.exp(x),
-        domain: { min: -3, max: 3 },
-        x0Default: 0,
-        limitValue: (x0) => Math.exp(x0),
-    },
+    { id: "cubic", name: "f(x) = x³ - 2x", expr: "x³ - 2x", f: (x) => x * x * x - 2 * x, x0Default: 1, limitValue: (x0) => x0 * x0 * x0 - 2 * x0 },
+    { id: "exp", name: "f(x) = eˣ", expr: "eˣ", f: (x) => Math.exp(x), domain: { min: -3, max: 3 }, x0Default: 0, limitValue: (x0) => Math.exp(x0) },
 ];
+
+// ============ HOOK viewport (3 layout) ============
+
+function useViewportWidth() {
+    const [w, setW] = useState<number>(() => (typeof window !== "undefined" ? window.innerWidth : 1200));
+    useEffect(() => {
+        const onResize = () => setW(window.innerWidth);
+        window.addEventListener("resize", onResize);
+        return () => window.removeEventListener("resize", onResize);
+    }, []);
+    return w;
+}
 
 // ============ COMPONENTE PRINCIPALE ============
 
 export default function LimiteFinitoPuntoFinito() {
+    const vw = useViewportWidth();
+    const isMobile = vw < 640;
+    const isTablet = vw >= 640 && vw < 1024;
+    const isDesktop = vw >= 1024;
+
     const [selectedFunc, setSelectedFunc] = useState<FunctionDef>(FUNCTIONS[0]);
     const [x0, setX0] = useState(selectedFunc.x0Default);
     const [showLeftRight, setShowLeftRight] = useState(true);
@@ -183,6 +171,43 @@ export default function LimiteFinitoPuntoFinito() {
         }
     };
 
+    const toggleManual = () => {
+        setManualMode((m) => {
+            const next = !m;
+            if (next) {
+                setManualX(x0Clamped - 1);
+                setAnimating(false);
+            }
+            return next;
+        });
+    };
+
+    // ============ STILI RESPONSIVE ============
+
+    const headerControlsStyle: React.CSSProperties = {
+        display: "flex",
+        gap: 8,
+        flexWrap: "wrap",
+        alignItems: "center",
+        ...(isMobile ? { width: "100%", flexDirection: "column", alignItems: "stretch" } : {}),
+    };
+
+    const btnFull: React.CSSProperties | undefined = isMobile ? { width: "100%", justifyContent: "center" } : undefined;
+
+    const bottomGridStyle: React.CSSProperties = {
+        display: "grid",
+        gap: 12,
+        marginTop: 12,
+        ...(isDesktop
+            ? { gridTemplateColumns: "200px 1fr 1fr" }
+            : isTablet
+                ? { gridTemplateColumns: "1fr 1fr" }
+                : { gridTemplateColumns: "1fr" }),
+    };
+
+    const functionPanelStyle: React.CSSProperties =
+        isTablet ? { gridColumn: "1 / -1" } : {};
+
     return (
         <div style={{ maxWidth: 1100, margin: "0 auto", padding: 16 }}>
             <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 6 }}>
@@ -193,25 +218,36 @@ export default function LimiteFinitoPuntoFinito() {
                 Il limite è <strong>finito</strong> quando f(x) tende a un valore L finito.
             </p>
 
-            {/* Layout principale: canvas grande sopra */}
+            {/* Canvas grande sopra */}
             <div style={cardStyle}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
                     <div style={{ fontWeight: 600, fontSize: 16 }}>Grafico di {selectedFunc.name}</div>
-                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-                        <ControlButton onClick={() => setAnimating(true)} disabled={animating}>
+
+                    <div style={headerControlsStyle}>
+                        <ControlButton
+                            onClick={() => setAnimating(true)}
+                            disabled={animating}
+                            style={btnFull}
+                        >
                             {animating ? "Animazione..." : "▶ Anima"}
                         </ControlButton>
-                        <ControlButton onClick={() => { setManualMode(!manualMode); if (!manualMode) { setManualX(x0Clamped - 1); setAnimating(false); } }} active={manualMode}>
+
+                        <ControlButton
+                            onClick={toggleManual}
+                            active={manualMode}
+                            style={btnFull}
+                        >
                             {manualMode ? "Manuale ON" : "Manuale"}
                         </ControlButton>
-                        <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13 }}>
+
+                        <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, ...(isMobile ? { width: "100%", justifyContent: "flex-start" } : {}) }}>
                             <input type="checkbox" checked={showLeftRight} onChange={(e) => setShowLeftRight(e.target.checked)} />
                             Limiti dx/sx
                         </label>
                     </div>
                 </div>
 
-                <svg viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`} style={{ width: "100%", height: "auto", maxHeight: "60vh" }}>
+                <svg viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`} style={{ width: "100%", height: "auto", maxHeight: isMobile ? "55vh" : "60vh" }}>
                     <GridPattern id="gridLimite" />
                     <rect x={0} y={0} width={SVG_WIDTH} height={SVG_HEIGHT} fill="url(#gridLimite)" />
 
@@ -255,12 +291,27 @@ export default function LimiteFinitoPuntoFinito() {
                                 style={{ width: "100%", marginTop: 4 }}
                             />
                         </label>
-                        <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
-                            {[-0.5, -0.1, -0.01, 0.01, 0.1, 0.5].map(delta => (
+
+                        <div
+                            style={{
+                                display: "grid",
+                                gridTemplateColumns: isMobile ? "repeat(3, 1fr)" : "repeat(6, 1fr)",
+                                gap: 6,
+                                marginTop: 8,
+                            }}
+                        >
+                            {[-0.5, -0.1, -0.01, 0.01, 0.1, 0.5].map((delta) => (
                                 <button
                                     key={delta}
                                     onClick={() => setManualX(x0Clamped + delta)}
-                                    style={{ flex: 1, padding: 4, borderRadius: 4, border: "1px solid #3b82f6", background: "#fff", fontSize: 11, cursor: "pointer" }}
+                                    style={{
+                                        padding: 6,
+                                        borderRadius: 6,
+                                        border: "1px solid #3b82f6",
+                                        background: "#fff",
+                                        fontSize: 11,
+                                        cursor: "pointer",
+                                    }}
                                 >
                                     {delta > 0 ? "+" : ""}{delta}
                                 </button>
@@ -270,10 +321,10 @@ export default function LimiteFinitoPuntoFinito() {
                 )}
             </div>
 
-            {/* Controlli in basso */}
-            <div style={{ display: "grid", gridTemplateColumns: "200px 1fr 1fr", gap: 12, marginTop: 12 }}>
+            {/* Sotto: 3 layout */}
+            <div style={bottomGridStyle}>
                 {/* Selezione funzione */}
-                <div style={cardStyle}>
+                <div style={{ ...cardStyle, ...(functionPanelStyle as any) }}>
                     <div style={{ fontWeight: 600, marginBottom: 8 }}>Funzione</div>
                     <FunctionSelector functions={FUNCTIONS} selected={selectedFunc.id} onSelect={handleFuncSelect} />
 
@@ -301,6 +352,7 @@ export default function LimiteFinitoPuntoFinito() {
                             {Number.isFinite(limitValue) ? limitValue.toFixed(4) : "non definito"}
                         </strong>
                     </div>
+
                     {showLeftRight && (
                         <>
                             <div style={{ fontSize: 12, color: "#f97316" }}>
@@ -332,7 +384,18 @@ export default function LimiteFinitoPuntoFinito() {
                     />
                 ) : (
                     <div style={cardStyle}>
-                        <button onClick={() => setShowTable(true)} style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid #cbd5e1", background: "#fff", cursor: "pointer" }}>
+                        <button
+                            onClick={() => setShowTable(true)}
+                            style={{
+                                width: "100%",
+                                padding: "10px 12px",
+                                borderRadius: 10,
+                                border: "1px solid #cbd5e1",
+                                background: "#fff",
+                                cursor: "pointer",
+                                fontWeight: 600,
+                            }}
+                        >
                             Mostra tabella
                         </button>
                     </div>

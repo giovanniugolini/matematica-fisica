@@ -1,11 +1,12 @@
 /**
  * LimiteInfinitoPuntoFinito - Versione refactorizzata
  * Limite infinito per x → x₀ finito (asintoti verticali)
+ * 3 layout: mobile / tablet / desktop
  */
 
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import {
-    SVG_WIDTH, SVG_HEIGHT, PAD_L, PAD_R, PAD_T, PAD_B,
+    SVG_WIDTH, SVG_HEIGHT, PAD_T,
     clamp, createTransform, sampleFunction, generatePath,
     GridPattern, Axes, FunctionCurve, VerticalLine,
     ApproachPoints, AnimatedPoint,
@@ -27,71 +28,34 @@ type FunctionDef = {
 };
 
 const FUNCTIONS: FunctionDef[] = [
-    {
-        id: "inv",
-        name: "f(x) = 1/x",
-        expr: "1/x",
-        f: (x) => 1 / x,
-        x0Default: 0,
-        leftLimit: "-∞",
-        rightLimit: "+∞",
-        note: "Asintoto verticale in x=0",
-    },
-    {
-        id: "inv-square",
-        name: "f(x) = 1/x²",
-        expr: "1/x²",
-        f: (x) => 1 / (x * x),
-        x0Default: 0,
-        leftLimit: "+∞",
-        rightLimit: "+∞",
-        note: "Entrambi i limiti tendono a +∞",
-    },
-    {
-        id: "inv-shifted",
-        name: "f(x) = 1/(x-2)",
-        expr: "1/(x-2)",
-        f: (x) => 1 / (x - 2),
-        x0Default: 2,
-        leftLimit: "-∞",
-        rightLimit: "+∞",
-        note: "Asintoto verticale in x=2",
-    },
-    {
-        id: "inv-square-shifted",
-        name: "f(x) = 1/(x-1)²",
-        expr: "1/(x-1)²",
-        f: (x) => 1 / ((x - 1) * (x - 1)),
-        x0Default: 1,
-        leftLimit: "+∞",
-        rightLimit: "+∞",
-        note: "Asintoto verticale in x=1, sempre positivo",
-    },
-    {
-        id: "neg-inv-square",
-        name: "f(x) = -1/(x+1)²",
-        expr: "-1/(x+1)²",
-        f: (x) => -1 / ((x + 1) * (x + 1)),
-        x0Default: -1,
-        leftLimit: "-∞",
-        rightLimit: "-∞",
-        note: "Asintoto verticale in x=-1, sempre negativo",
-    },
-    {
-        id: "tan",
-        name: "f(x) = tan(x)",
-        expr: "tan(x)",
-        f: (x) => Math.tan(x),
-        x0Default: Math.PI / 2,
-        leftLimit: "+∞",
-        rightLimit: "-∞",
-        note: "Asintoti verticali in x = π/2 + kπ",
-    },
+    { id: "inv", name: "f(x) = 1/x", expr: "1/x", f: (x) => 1 / x, x0Default: 0, leftLimit: "-∞", rightLimit: "+∞", note: "Asintoto verticale in x=0" },
+    { id: "inv-square", name: "f(x) = 1/x²", expr: "1/x²", f: (x) => 1 / (x * x), x0Default: 0, leftLimit: "+∞", rightLimit: "+∞", note: "Entrambi i limiti tendono a +∞" },
+    { id: "inv-shifted", name: "f(x) = 1/(x-2)", expr: "1/(x-2)", f: (x) => 1 / (x - 2), x0Default: 2, leftLimit: "-∞", rightLimit: "+∞", note: "Asintoto verticale in x=2" },
+    { id: "inv-square-shifted", name: "f(x) = 1/(x-1)²", expr: "1/(x-1)²", f: (x) => 1 / ((x - 1) * (x - 1)), x0Default: 1, leftLimit: "+∞", rightLimit: "+∞", note: "Asintoto verticale in x=1, sempre positivo" },
+    { id: "neg-inv-square", name: "f(x) = -1/(x+1)²", expr: "-1/(x+1)²", f: (x) => -1 / ((x + 1) * (x + 1)), x0Default: -1, leftLimit: "-∞", rightLimit: "-∞", note: "Asintoto verticale in x=-1, sempre negativo" },
+    { id: "tan", name: "f(x) = tan(x)", expr: "tan(x)", f: (x) => Math.tan(x), x0Default: Math.PI / 2, leftLimit: "+∞", rightLimit: "-∞", note: "Asintoti verticali in x = π/2 + kπ" },
 ];
+
+// ============ HOOK viewport (3 layout) ============
+
+function useViewportWidth() {
+    const [w, setW] = useState<number>(() => (typeof window !== "undefined" ? window.innerWidth : 1200));
+    useEffect(() => {
+        const onResize = () => setW(window.innerWidth);
+        window.addEventListener("resize", onResize);
+        return () => window.removeEventListener("resize", onResize);
+    }, []);
+    return w;
+}
 
 // ============ COMPONENTE PRINCIPALE ============
 
 export default function LimiteInfinitoPuntoFinito() {
+    const vw = useViewportWidth();
+    const isMobile = vw < 640;
+    const isTablet = vw >= 640 && vw < 1024;
+    const isDesktop = vw >= 1024;
+
     const [selectedFunc, setSelectedFunc] = useState<FunctionDef>(FUNCTIONS[0]);
     const [x0, setX0] = useState(selectedFunc.x0Default);
     const [showLeftRight, setShowLeftRight] = useState(true);
@@ -113,7 +77,10 @@ export default function LimiteInfinitoPuntoFinito() {
     }, [selectedFunc, xMin, xMax]);
 
     const yMin = -10, yMax = 10;
-    const { toX, toY } = useMemo(() => createTransform(xMin, xMax, yMin, yMax), [xMin, xMax, yMin, yMax]);
+    const { toX, toY } = useMemo(
+        () => createTransform(xMin, xMax, yMin, yMax),
+        [xMin, xMax, yMin, yMax]
+    );
 
     // Avvicinamenti
     const leftApproach = useMemo(() => {
@@ -159,11 +126,8 @@ export default function LimiteInfinitoPuntoFinito() {
             // Avvicinamento esponenziale per effetto "rallentamento"
             const delta = 2 * Math.pow(1 - t, 2) + 0.01;
 
-            if (approachDir === "left") {
-                setAnimX(x0Clamped - delta);
-            } else {
-                setAnimX(x0Clamped + delta);
-            }
+            if (approachDir === "left") setAnimX(x0Clamped - delta);
+            else setAnimX(x0Clamped + delta);
 
             if (t >= 1) {
                 setAnimating(false);
@@ -191,6 +155,33 @@ export default function LimiteInfinitoPuntoFinito() {
         }
     };
 
+    // ===== layout styles =====
+
+    const headerControlsStyle: React.CSSProperties = {
+        display: "flex",
+        gap: 8,
+        flexWrap: "wrap",
+        alignItems: "center",
+        ...(isMobile ? { width: "100%", flexDirection: "column", alignItems: "stretch" } : {}),
+    };
+
+    const btnFull: React.CSSProperties | undefined =
+        isMobile ? { width: "100%", justifyContent: "center" } : undefined;
+
+    const bottomGridStyle: React.CSSProperties = {
+        display: "grid",
+        gap: 12,
+        marginTop: 12,
+        ...(isDesktop
+            ? { gridTemplateColumns: "220px 1fr 1fr" }
+            : isTablet
+                ? { gridTemplateColumns: "1fr 1fr" }
+                : { gridTemplateColumns: "1fr" }),
+    };
+
+    const functionPanelStyle: React.CSSProperties =
+        isTablet ? { gridColumn: "1 / -1" } : {};
+
     return (
         <div style={{ maxWidth: 1100, margin: "0 auto", padding: 16 }}>
             <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 6 }}>
@@ -205,29 +196,54 @@ export default function LimiteInfinitoPuntoFinito() {
             <div style={cardStyle}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
                     <div style={{ fontWeight: 600, fontSize: 16 }}>Grafico di {selectedFunc.name}</div>
-                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+
+                    <div style={headerControlsStyle}>
                         <select
                             value={approachDir}
                             onChange={(e) => setApproachDir(e.target.value as "left" | "right")}
-                            style={{ padding: "6px 10px", borderRadius: 8, border: "1px solid #cbd5e1" }}
+                            style={{
+                                padding: "6px 10px",
+                                borderRadius: 8,
+                                border: "1px solid #cbd5e1",
+                                ...(isMobile ? { width: "100%" } : {})
+                            }}
                         >
                             <option value="left">Da sinistra (x⁻)</option>
                             <option value="right">Da destra (x⁺)</option>
                         </select>
-                        <ControlButton onClick={() => setAnimating(true)} disabled={animating}>
+
+                        <ControlButton
+                            onClick={() => setAnimating(true)}
+                            disabled={animating}
+                            style={btnFull}
+                        >
                             {animating ? "Animazione..." : "▶ Anima"}
                         </ControlButton>
-                        <ControlButton onClick={() => { setManualMode(!manualMode); if (!manualMode) setManualX(x0Clamped - 0.5); }} active={manualMode}>
+
+                        <ControlButton
+                            onClick={() => {
+                                setManualMode(!manualMode);
+                                if (!manualMode) setManualX(x0Clamped - 0.5);
+                                if (!manualMode) setAnimating(false);
+                            }}
+                            active={manualMode}
+                            style={btnFull}
+                        >
                             Manuale
                         </ControlButton>
-                        <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13 }}>
-                            <input type="checkbox" checked={showLeftRight} onChange={(e) => setShowLeftRight(e.target.checked)} />
+
+                        <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, ...(isMobile ? { width: "100%" } : {}) }}>
+                            <input
+                                type="checkbox"
+                                checked={showLeftRight}
+                                onChange={(e) => setShowLeftRight(e.target.checked)}
+                            />
                             Punti
                         </label>
                     </div>
                 </div>
 
-                <svg viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`} style={{ width: "100%", height: "auto", maxHeight: "60vh" }}>
+                <svg viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`} style={{ width: "100%", height: "auto", maxHeight: isMobile ? "55vh" : "60vh" }}>
                     <GridPattern id="gridLimiteInf" />
                     <rect x={0} y={0} width={SVG_WIDTH} height={SVG_HEIGHT} fill="url(#gridLimiteInf)" />
 
@@ -248,8 +264,8 @@ export default function LimiteInfinitoPuntoFinito() {
                         <AnimatedPoint x={activeX} y={activeY} toX={toX} toY={toY} />
                     )}
 
-                    {/* Frecce indicanti ±∞ */}
-                    <text x={toX(x0Clamped) - 20} y={PAD_T + 20} fontSize={14} fill="#f97316" fontWeight={600}>
+                    {/* Etichette ±∞ vicino all'asintoto */}
+                    <text x={toX(x0Clamped) - 22} y={PAD_T + 20} fontSize={14} fill="#f97316" fontWeight={600}>
                         {selectedFunc.leftLimit}
                     </text>
                     <text x={toX(x0Clamped) + 10} y={PAD_T + 20} fontSize={14} fill="#8b5cf6" fontWeight={600}>
@@ -274,12 +290,21 @@ export default function LimiteInfinitoPuntoFinito() {
                                 style={{ width: "100%", marginTop: 4 }}
                             />
                         </label>
+
                         <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
                             {[-0.5, -0.1, -0.01, 0.01, 0.1, 0.5].map(delta => (
                                 <button
                                     key={delta}
                                     onClick={() => setManualX(x0Clamped + delta)}
-                                    style={{ flex: 1, padding: 4, borderRadius: 4, border: "1px solid #3b82f6", background: "#fff", fontSize: 11, cursor: "pointer" }}
+                                    style={{
+                                        flex: 1,
+                                        padding: 4,
+                                        borderRadius: 4,
+                                        border: "1px solid #3b82f6",
+                                        background: "#fff",
+                                        fontSize: 11,
+                                        cursor: "pointer"
+                                    }}
                                 >
                                     x₀{delta > 0 ? "+" : ""}{delta}
                                 </button>
@@ -289,10 +314,10 @@ export default function LimiteInfinitoPuntoFinito() {
                 )}
             </div>
 
-            {/* Controlli in basso */}
-            <div style={{ display: "grid", gridTemplateColumns: "220px 1fr 1fr", gap: 12, marginTop: 12 }}>
+            {/* Sotto: 3 layout */}
+            <div style={bottomGridStyle}>
                 {/* Selezione funzione */}
-                <div style={cardStyle}>
+                <div style={{ ...cardStyle, ...(functionPanelStyle as any) }}>
                     <div style={{ fontWeight: 600, marginBottom: 8 }}>Funzione</div>
                     <FunctionSelector functions={FUNCTIONS} selected={selectedFunc.id} onSelect={handleFuncSelect} />
                 </div>
@@ -306,6 +331,7 @@ export default function LimiteInfinitoPuntoFinito() {
                                 lim = {selectedFunc.leftLimit}
                             </div>
                         </div>
+
                         <div style={{ padding: 8, background: "#f5f3ff", borderRadius: 8 }}>
                             <div style={{ fontSize: 12, color: "#5b21b6" }}>Da destra (x → x₀⁺)</div>
                             <div style={{ fontSize: 18, fontWeight: 700, color: "#8b5cf6" }}>
@@ -323,7 +349,7 @@ export default function LimiteInfinitoPuntoFinito() {
                     )}
                 </ResultBox>
 
-                {/* Tabella avvicinamento */}
+                {/* Valori */}
                 <div style={cardStyle}>
                     <div style={{ fontWeight: 600, marginBottom: 8 }}>Valori di avvicinamento</div>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontSize: 11 }}>
@@ -336,6 +362,7 @@ export default function LimiteInfinitoPuntoFinito() {
                                 </div>
                             ))}
                         </div>
+
                         <div>
                             <div style={{ fontWeight: 600, color: "#8b5cf6", marginBottom: 4 }}>Da destra</div>
                             {rightApproach.map((p, i) => (

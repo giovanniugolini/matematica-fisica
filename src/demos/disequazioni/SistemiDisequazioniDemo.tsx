@@ -1,733 +1,658 @@
-import React, { useState, useCallback } from "react";
+/**
+ * SistemiDisequazioniDemo - Versione Responsive con Step-by-Step
+ * Risoluzione guidata di sistemi di disequazioni lineari
+ * Ottimizzato per mobile, tablet e desktop
+ */
+
+import React, { useState, useCallback, useMemo } from "react";
+
+// Componenti UI
 import {
-    Latex,
     DemoContainer,
-    ProblemCard,
-    NavigationButtons,
-    StepCard,
     InfoBox,
     GenerateButton,
+    useBreakpoint,
+    ResponsiveGrid,
+    ResponsiveCard,
+    TouchButton,
+    CollapsiblePanel,
+    SwipeableTabs,
+    NavigationButtons,
+    StepCard,
     useStepNavigation,
-    GraphContainer,
 } from "../../components/ui";
+
+// Utility matematiche
 import {
     randomInt,
-    randomNonZero,
-    formatFractionLatex,
-    formatNumberLatex,
-    formatLinearLatex,
-    intervalLatex,
-    setLatex,
-    emptySetLatex,
-    realSetLatex,
+    randomChoice,
+    gcd,
+    InequalitySign,
+    signToSymbol,
 } from "../../utils/math";
 
 // ============ TIPI ============
-type FunctionType =
-    | "razionale"
-    | "radice"
-    | "logaritmo"
-    | "esponenziale"
-    | "razionale-radice"
-    | "logaritmo-radice"
-    | "razionale-logaritmo";
 
-type Difficulty = "base" | "intermedio" | "avanzato";
+interface Inequality {
+    a: number;
+    b: number;
+    sign: InequalitySign;
+}
 
-type Condition = {
-    type: "diverso" | "maggiore" | "maggioreuguale" | "minore" | "minoreuguale";
-    expression: string;
-    solutions: Solution[];
-};
-
-type ConditionDef = {
-    description: string;
-    condition: string;
-    conditionLatex?: string;
-    resolution: string[];
-    solution: Solution;
-};
-
-type Solution = {
-    type: "interval" | "point-excluded" | "all" | "none";
+interface Solution {
+    type: "all" | "none" | "interval";
     left?: number;
     right?: number;
     leftOpen?: boolean;
     rightOpen?: boolean;
-    excludedPoints?: number[];
-};
+}
 
-type FunctionDef = {
-    expression: string;
-    latex: string;
-    type: FunctionType;
-    conditions: ConditionDef[];
-    domain: Solution;
-    domainText: string;
-    domainInterval: string;
-};
+// ============ COSTANTI ============
 
-// ============ GENERATORI DI FUNZIONI ============
-function generateRazionale(difficulty: Difficulty): FunctionDef {
-    const a = randomNonZero(-5, 5);
-    const b = randomInt(-10, 10);
-    const root = -b / a;
-    const rootLatex = formatFractionLatex(-b, a);
+const COLORS = ["#ef4444", "#3b82f6", "#22c55e", "#a855f7", "#f97316", "#14b8a6"];
+const SIGNS: InequalitySign[] = ["<", ">", "<=", ">="];
 
-    let numerator = "1";
-    let numeratorLatex = "1";
-    if (difficulty !== "base") {
-        const c = randomNonZero(-3, 3);
-        const d = randomInt(-5, 5);
-        numerator = formatLinearLatex(c, d);
-        numeratorLatex = formatLinearLatex(c, d);
+// ============ HELPERS ============
+
+function formatFraction(num: number, den: number): string {
+    if (den === 0) return "indefinito";
+    if (num === 0) return "0";
+
+    const sign = (num < 0) !== (den < 0) ? "−" : "";
+    const n = Math.abs(num);
+    const d = Math.abs(den);
+    const g = gcd(n, d);
+
+    if (d / g === 1) return `${sign}${n / g}`;
+    return `${sign}${n / g}/${d / g}`;
+}
+
+function formatInequality(ineq: Inequality): string {
+    const { a, b, sign } = ineq;
+    let lhs = a === 1 ? "x" : a === -1 ? "−x" : a > 0 ? `${a}x` : `−${Math.abs(a)}x`;
+    let rhs = b > 0 ? ` + ${b}` : b < 0 ? ` − ${Math.abs(b)}` : "";
+    return `${lhs}${rhs} ${signToSymbol(sign)} 0`;
+}
+
+function solveInequality(ineq: Inequality): Solution {
+    const { a, b, sign } = ineq;
+
+    if (a === 0) {
+        const satisfied =
+            (sign === "<" && b < 0) || (sign === "<=" && b <= 0) ||
+            (sign === ">" && b > 0) || (sign === ">=" && b >= 0);
+        return { type: satisfied ? "all" : "none" };
     }
 
-    const denominator = formatLinearLatex(a, b);
-    const denominatorLatex = formatLinearLatex(a, b);
+    const boundary = -b / a;
+    const isStrict = sign === "<" || sign === ">";
+    const isGreater = sign === ">" || sign === ">=";
+    const solutionIsGreater = a > 0 ? isGreater : !isGreater;
 
-    return {
-        expression: `(${numerator}) / (${denominator})`,
-        latex: `\\frac{${numeratorLatex}}{${denominatorLatex}}`,
-        type: "razionale",
-        conditions: [
-            {
-                description: "Funzione razionale fratta: il denominatore deve essere diverso da zero",
-                condition: `${denominator} ≠ 0`,
-                conditionLatex: `${denominatorLatex} \\neq 0`,
-                resolution: [
-                    `${denominatorLatex} \\neq 0`,
-                    `${a}x \\neq ${-b}`,
-                    `x \\neq ${rootLatex}`,
-                ],
-                solution: {
-                    type: "point-excluded",
-                    excludedPoints: [root],
-                },
-            },
-        ],
-        domain: {
-            type: "point-excluded",
-            excludedPoints: [root],
-        },
-        domainText: `\\left\\{ x \\in \\mathbb{R} : x \\neq ${rootLatex} \\right\\}`,
-        domainInterval: `\\mathbb{R} \\setminus \\left\\{${rootLatex}\\right\\}`,
-    };
-}
-
-function generateRadice(difficulty: Difficulty): FunctionDef {
-    const a = randomNonZero(-5, 5);
-    const b = randomInt(-10, 10);
-    const root = -b / a;
-    const rootLatex = formatFractionLatex(-b, a);
-
-    const radicando = formatLinearLatex(a, b);
-    const radicandoLatex = formatLinearLatex(a, b);
-
-    const solution: Solution =
-        a > 0
-            ? { type: "interval", left: root, right: Infinity, leftOpen: false, rightOpen: true }
-            : { type: "interval", left: -Infinity, right: root, leftOpen: true, rightOpen: false };
-
-    const domainCondition = a > 0 ? `x \\geq ${rootLatex}` : `x \\leq ${rootLatex}`;
-    const domainText = `\\left\\{ x \\in \\mathbb{R} : ${domainCondition} \\right\\}`;
-    const domainInterval =
-        a > 0 ? `\\left[${rootLatex}, +\\infty\\right)` : `\\left(-\\infty, ${rootLatex}\\right]`;
-
-    return {
-        expression: `√(${radicando})`,
-        latex: `\\sqrt{${radicandoLatex}}`,
-        type: "radice",
-        conditions: [
-            {
-                description: "Radice quadrata (indice pari): il radicando deve essere maggiore o uguale a zero",
-                condition: `${radicando} ≥ 0`,
-                conditionLatex: `${radicandoLatex} \\geq 0`,
-                resolution: [
-                    `${radicandoLatex} \\geq 0`,
-                    `${a}x \\geq ${-b}`,
-                    a > 0 ? `x \\geq ${rootLatex}` : `x \\leq ${rootLatex} \\text{ (cambio verso)}`,
-                ],
-                solution,
-            },
-        ],
-        domain: solution,
-        domainText,
-        domainInterval,
-    };
-}
-
-function generateLogaritmo(difficulty: Difficulty): FunctionDef {
-    const a = randomNonZero(-5, 5);
-    const b = randomInt(-10, 10);
-    const root = -b / a;
-    const rootLatex = formatFractionLatex(-b, a);
-
-    const argomento = formatLinearLatex(a, b);
-    const argomentoLatex = formatLinearLatex(a, b);
-
-    const solution: Solution =
-        a > 0
-            ? { type: "interval", left: root, right: Infinity, leftOpen: true, rightOpen: true }
-            : { type: "interval", left: -Infinity, right: root, leftOpen: true, rightOpen: true };
-
-    const base = difficulty === "base" ? 0 : randomInt(2, 5);
-    const logSymbol = base ? `\\log_{${base}}` : `\\ln`;
-
-    const domainCondition = a > 0 ? `x > ${rootLatex}` : `x < ${rootLatex}`;
-    const domainText = `\\left\\{ x \\in \\mathbb{R} : ${domainCondition} \\right\\}`;
-    const domainInterval =
-        a > 0 ? `\\left(${rootLatex}, +\\infty\\right)` : `\\left(-\\infty, ${rootLatex}\\right)`;
-
-    return {
-        expression: `log${base || ""}(${argomento})`,
-        latex: `${logSymbol}\\left(${argomentoLatex}\\right)`,
-        type: "logaritmo",
-        conditions: [
-            {
-                description: "Funzione logaritmica: l'argomento deve essere strettamente maggiore di zero",
-                condition: `${argomento} > 0`,
-                conditionLatex: `${argomentoLatex} > 0`,
-                resolution: [
-                    `${argomentoLatex} > 0`,
-                    `${a}x > ${-b}`,
-                    a > 0 ? `x > ${rootLatex}` : `x < ${rootLatex} \\text{ (cambio verso)}`,
-                ],
-                solution,
-            },
-        ],
-        domain: solution,
-        domainText,
-        domainInterval,
-    };
-}
-
-function generateEsponenziale(difficulty: Difficulty): FunctionDef {
-    const a = randomNonZero(-3, 3);
-    const b = randomInt(-5, 5);
-    const base = randomInt(2, 5);
-
-    const esponente = formatLinearLatex(a, b);
-    const esponenteLatex = formatLinearLatex(a, b);
-
-    return {
-        expression: `${base}^(${esponente})`,
-        latex: `${base}^{${esponenteLatex}}`,
-        type: "esponenziale",
-        conditions: [
-            {
-                description: "Funzione esponenziale con base positiva: è definita per ogni valore reale di x",
-                condition: "Nessuna restrizione",
-                conditionLatex: "\\text{Nessuna restrizione}",
-                resolution: [
-                    `\\text{La base } ${base} \\text{ è positiva}`,
-                    `\\text{L'esponente può assumere qualsiasi valore reale}`,
-                    `x \\in \\mathbb{R}`,
-                ],
-                solution: { type: "all" },
-            },
-        ],
-        domain: { type: "all" },
-        domainText: "\\left\\{ x \\in \\mathbb{R} \\right\\}",
-        domainInterval: "\\mathbb{R}",
-    };
-}
-
-function generateRazionaleRadice(difficulty: Difficulty): FunctionDef {
-    const a = randomNonZero(1, 5);
-    const b = randomInt(-10, 10);
-    const root = -b / a;
-    const rootLatex = formatFractionLatex(-b, a);
-
-    const radicando = formatLinearLatex(a, b);
-    const radicandoLatex = formatLinearLatex(a, b);
-
-    const solution: Solution = { type: "interval", left: root, right: Infinity, leftOpen: true, rightOpen: true };
-
-    return {
-        expression: `1 / √(${radicando})`,
-        latex: `\\frac{1}{\\sqrt{${radicandoLatex}}}`,
-        type: "razionale-radice",
-        conditions: [
-            {
-                description: "Radice quadrata al denominatore: il radicando deve essere ≥ 0",
-                condition: `${radicando} ≥ 0`,
-                conditionLatex: `${radicandoLatex} \\geq 0`,
-                resolution: [`${radicandoLatex} \\geq 0`, `x \\geq ${rootLatex}`],
-                solution: { type: "interval", left: root, right: Infinity, leftOpen: false, rightOpen: true },
-            },
-            {
-                description: "Denominatore diverso da zero: la radice deve essere ≠ 0",
-                condition: `√(${radicando}) ≠ 0`,
-                conditionLatex: `\\sqrt{${radicandoLatex}} \\neq 0`,
-                resolution: [`${radicandoLatex} \\neq 0`, `x \\neq ${rootLatex}`],
-                solution: { type: "point-excluded", excludedPoints: [root] },
-            },
-        ],
-        domain: solution,
-        domainText: `\\left\\{ x \\in \\mathbb{R} : x > ${rootLatex} \\right\\}`,
-        domainInterval: `\\left(${rootLatex}, +\\infty\\right)`,
-    };
-}
-
-function generateLogaritmoRadice(difficulty: Difficulty): FunctionDef {
-    const a = randomNonZero(1, 5);
-    const b = randomInt(-10, 10);
-    const root = -b / a;
-    const rootLatex = formatFractionLatex(-b, a);
-
-    const argomento = formatLinearLatex(a, b);
-    const argomentoLatex = formatLinearLatex(a, b);
-
-    const solution: Solution = { type: "interval", left: root, right: Infinity, leftOpen: true, rightOpen: true };
-
-    return {
-        expression: `log(√(${argomento}))`,
-        latex: `\\ln\\left(\\sqrt{${argomentoLatex}}\\right)`,
-        type: "logaritmo-radice",
-        conditions: [
-            {
-                description: "Radice quadrata: il radicando deve essere ≥ 0",
-                condition: `${argomento} ≥ 0`,
-                conditionLatex: `${argomentoLatex} \\geq 0`,
-                resolution: [`${argomentoLatex} \\geq 0`, `x \\geq ${rootLatex}`],
-                solution: { type: "interval", left: root, right: Infinity, leftOpen: false, rightOpen: true },
-            },
-            {
-                description: "Logaritmo: l'argomento deve essere > 0",
-                condition: `√(${argomento}) > 0`,
-                conditionLatex: `\\sqrt{${argomentoLatex}} > 0`,
-                resolution: [`${argomentoLatex} > 0`, `x > ${rootLatex}`],
-                solution: { type: "interval", left: root, right: Infinity, leftOpen: true, rightOpen: true },
-            },
-        ],
-        domain: solution,
-        domainText: `\\left\\{ x \\in \\mathbb{R} : x > ${rootLatex} \\right\\}`,
-        domainInterval: `\\left(${rootLatex}, +\\infty\\right)`,
-    };
-}
-
-function generateRazionaleLogaritmo(difficulty: Difficulty): FunctionDef {
-    const a = randomNonZero(1, 5);
-    const b = randomInt(-10, 10);
-    const root = -b / a;
-    const rootLatex = formatFractionLatex(-b, a);
-
-    const argomento = formatLinearLatex(a, b);
-    const argomentoLatex = formatLinearLatex(a, b);
-
-    const excludePoint = (1 - b) / a;
-    const excludePointLatex = formatFractionLatex(1 - b, a);
-
-    return {
-        expression: `1 / log(${argomento})`,
-        latex: `\\frac{1}{\\ln\\left(${argomentoLatex}\\right)}`,
-        type: "razionale-logaritmo",
-        conditions: [
-            {
-                description: "Logaritmo: l'argomento deve essere > 0",
-                condition: `${argomento} > 0`,
-                conditionLatex: `${argomentoLatex} > 0`,
-                resolution: [`${argomentoLatex} > 0`, `x > ${rootLatex}`],
-                solution: { type: "interval", left: root, right: Infinity, leftOpen: true, rightOpen: true },
-            },
-            {
-                description: "Denominatore ≠ 0: il logaritmo deve essere ≠ 0",
-                condition: `log(${argomento}) ≠ 0`,
-                conditionLatex: `\\ln\\left(${argomentoLatex}\\right) \\neq 0`,
-                resolution: [`${argomentoLatex} \\neq 1`, `${a}x \\neq ${1 - b}`, `x \\neq ${excludePointLatex}`],
-                solution: { type: "point-excluded", excludedPoints: [excludePoint] },
-            },
-        ],
-        domain: {
-            type: "interval",
-            left: root,
-            right: Infinity,
-            leftOpen: true,
-            rightOpen: true,
-        },
-        domainText: `\\left\\{ x \\in \\mathbb{R} : x > ${rootLatex} \\land x \\neq ${excludePointLatex} \\right\\}`,
-        domainInterval: `\\left(${rootLatex}, ${excludePointLatex}\\right) \\cup \\left(${excludePointLatex}, +\\infty\\right)`,
-    };
-}
-
-function generateFunction(difficulty: Difficulty): FunctionDef {
-    const types: FunctionType[] =
-        difficulty === "base"
-            ? ["razionale", "radice", "logaritmo", "esponenziale"]
-            : difficulty === "intermedio"
-                ? ["razionale", "radice", "logaritmo", "esponenziale", "razionale-radice"]
-                : [
-                    "razionale",
-                    "radice",
-                    "logaritmo",
-                    "esponenziale",
-                    "razionale-radice",
-                    "logaritmo-radice",
-                    "razionale-logaritmo",
-                ];
-
-    const type = types[randomInt(0, types.length - 1)];
-
-    switch (type) {
-        case "razionale":
-            return generateRazionale(difficulty);
-        case "radice":
-            return generateRadice(difficulty);
-        case "logaritmo":
-            return generateLogaritmo(difficulty);
-        case "esponenziale":
-            return generateEsponenziale(difficulty);
-        case "razionale-radice":
-            return generateRazionaleRadice(difficulty);
-        case "logaritmo-radice":
-            return generateLogaritmoRadice(difficulty);
-        case "razionale-logaritmo":
-            return generateRazionaleLogaritmo(difficulty);
-        default:
-            return generateRazionale(difficulty);
+    if (solutionIsGreater) {
+        return { type: "interval", left: boundary, leftOpen: isStrict, right: Infinity, rightOpen: true };
     }
+    return { type: "interval", left: -Infinity, leftOpen: true, right: boundary, rightOpen: isStrict };
+}
+
+function intersectSolutions(solutions: Solution[]): Solution {
+    let left = -Infinity, right = Infinity;
+    let leftOpen = true, rightOpen = true;
+
+    for (const sol of solutions) {
+        if (sol.type === "none") return { type: "none" };
+        if (sol.type === "all") continue;
+
+        if (sol.left !== undefined && sol.left !== -Infinity) {
+            if (sol.left > left) { left = sol.left; leftOpen = sol.leftOpen ?? true; }
+            else if (sol.left === left) leftOpen = leftOpen || (sol.leftOpen ?? true);
+        }
+        if (sol.right !== undefined && sol.right !== Infinity) {
+            if (sol.right < right) { right = sol.right; rightOpen = sol.rightOpen ?? true; }
+            else if (sol.right === right) rightOpen = rightOpen || (sol.rightOpen ?? true);
+        }
+    }
+
+    if (left > right || (left === right && (leftOpen || rightOpen))) return { type: "none" };
+    if (left === -Infinity && right === Infinity) return { type: "all" };
+
+    return { type: "interval", left, right, leftOpen, rightOpen };
+}
+
+function formatSolutionAlgebraic(sol: Solution, inequalities: Inequality[]): { inequality: string; interval: string } {
+    if (sol.type === "none") return { inequality: "∅", interval: "∅ (nessuna soluzione)" };
+    if (sol.type === "all") return { inequality: "∀x ∈ ℝ", interval: "ℝ (tutti i numeri reali)" };
+
+    const { left, right, leftOpen, rightOpen } = sol;
+
+    let leftFrac = "", rightFrac = "";
+    for (const ineq of inequalities) {
+        if (ineq.a !== 0) {
+            const boundary = -ineq.b / ineq.a;
+            if (left !== -Infinity && Math.abs(boundary - left!) < 0.0001) leftFrac = formatFraction(-ineq.b, ineq.a);
+            if (right !== Infinity && Math.abs(boundary - right!) < 0.0001) rightFrac = formatFraction(-ineq.b, ineq.a);
+        }
+    }
+
+    if (!leftFrac && left !== -Infinity) leftFrac = left!.toString();
+    if (!rightFrac && right !== Infinity) rightFrac = right!.toString();
+
+    if (left === -Infinity) {
+        return {
+            inequality: `x ${rightOpen ? "<" : "≤"} ${rightFrac}`,
+            interval: `(−∞, ${rightFrac}${rightOpen ? ")" : "]"}`
+        };
+    }
+    if (right === Infinity) {
+        return {
+            inequality: `x ${leftOpen ? ">" : "≥"} ${leftFrac}`,
+            interval: `${leftOpen ? "(" : "["}${leftFrac}, +∞)`
+        };
+    }
+
+    return {
+        inequality: `${leftFrac} ${leftOpen ? "<" : "≤"} x ${rightOpen ? "<" : "≤"} ${rightFrac}`,
+        interval: `${leftOpen ? "(" : "["}${leftFrac}, ${rightFrac}${rightOpen ? ")" : "]"}`
+    };
+}
+
+function generateRandomInequality(): Inequality {
+    let a = 0;
+    while (a === 0) a = randomInt(-5, 5);
+    return { a, b: randomInt(-10, 10), sign: randomChoice(SIGNS) };
 }
 
 // ============ COMPONENTE GRAFICO ============
-const SVG_WIDTH = 500;
-const SVG_HEIGHT = 400;
-const X_MIN = -8;
-const X_MAX = 8;
-const Y_MIN = -6;
-const Y_MAX = 6;
-const PADDING = 40;
 
-function scaleX(x: number): number {
-    const t = (x - X_MIN) / (X_MAX - X_MIN);
-    return PADDING + t * (SVG_WIDTH - 2 * PADDING);
+const SVG_WIDTH = 700;
+const ROW_HEIGHT = 50;
+const PAD_LEFT = 50;
+const PAD_RIGHT = 50;
+
+interface SolutionRowProps {
+    sol: Solution;
+    y: number;
+    color: string;
+    label: string;
+    ineq?: Inequality;
+    toX: (v: number) => number;
+    viewRange: { min: number; max: number };
+    isMobile?: boolean;
 }
 
-function scaleY(y: number): number {
-    const t = (y - Y_MIN) / (Y_MAX - Y_MIN);
-    return SVG_HEIGHT - PADDING - t * (SVG_HEIGHT - 2 * PADDING);
-}
+function SolutionRow({ sol, y, color, label, ineq, toX, viewRange, isMobile }: SolutionRowProps) {
+    const { min, max } = viewRange;
+    const circleR = isMobile ? 8 : 6;
 
-function DomainGraph({ solution, showGraph }: { solution: Solution; showGraph: boolean }) {
-    const originX = scaleX(0);
-    const originY = scaleY(0);
-
-    const excludedRegions: { x1: number; x2: number }[] = [];
-    const excludedPoints: number[] = [];
-
-    if (solution.type === "none") {
-        excludedRegions.push({ x1: X_MIN, x2: X_MAX });
-    } else if (solution.type === "interval") {
-        const left = solution.left ?? -Infinity;
-        const right = solution.right ?? Infinity;
-
-        if (left > X_MIN) {
-            excludedRegions.push({ x1: X_MIN, x2: Math.min(left, X_MAX) });
-        }
-        if (right < X_MAX) {
-            excludedRegions.push({ x1: Math.max(right, X_MIN), x2: X_MAX });
-        }
-    } else if (solution.type === "point-excluded" && solution.excludedPoints) {
-        excludedPoints.push(...solution.excludedPoints);
-    }
-
-    if (!showGraph) {
+    if (sol.type === "none") {
         return (
-            <svg width={SVG_WIDTH} height={SVG_HEIGHT} style={{ maxWidth: "100%", display: "block", margin: "0 auto" }}>
-                <rect x={0} y={0} width={SVG_WIDTH} height={SVG_HEIGHT} fill="#fafafa" stroke="#ddd" rx={8} />
-                <line x1={PADDING} y1={originY} x2={SVG_WIDTH - PADDING} y2={originY} stroke="#ccc" strokeWidth={1} />
-                <line x1={originX} y1={PADDING} x2={originX} y2={SVG_HEIGHT - PADDING} stroke="#ccc" strokeWidth={1} />
-                <text x={SVG_WIDTH / 2} y={SVG_HEIGHT / 2} textAnchor="middle" fill="#94a3b8" fontSize={14} fontStyle="italic">
-                    Completa i passaggi per vedere il grafico
-                </text>
-            </svg>
+            <g>
+                <text x={PAD_LEFT - 10} y={y + 5} fontSize={isMobile ? 14 : 12} textAnchor="end" fill={color} fontWeight={600}>{label}</text>
+                <text x={SVG_WIDTH / 2} y={y + 5} fontSize={isMobile ? 13 : 12} textAnchor="middle" fill="#94a3b8">(nessuna soluzione)</text>
+            </g>
         );
     }
 
+    if (sol.type === "all") {
+        return (
+            <g>
+                <text x={PAD_LEFT - 10} y={y + 5} fontSize={isMobile ? 14 : 12} textAnchor="end" fill={color} fontWeight={600}>{label}</text>
+                <line x1={toX(min)} y1={y} x2={toX(max)} y2={y} stroke={color} strokeWidth={4} />
+                <polygon points={`${toX(min)},${y} ${toX(min) + 10},${y - 5} ${toX(min) + 10},${y + 5}`} fill={color} />
+                <polygon points={`${toX(max)},${y} ${toX(max) - 10},${y - 5} ${toX(max) - 10},${y + 5}`} fill={color} />
+            </g>
+        );
+    }
+
+    const { left, right, leftOpen, rightOpen } = sol;
+    const leftX = left === -Infinity ? toX(min) : toX(left!);
+    const rightX = right === Infinity ? toX(max) : toX(right!);
+    const boundaryLabel = ineq && ineq.a !== 0 ? formatFraction(-ineq.b, ineq.a) : "";
+
     return (
-        <svg width={SVG_WIDTH} height={SVG_HEIGHT} style={{ maxWidth: "100%", display: "block", margin: "0 auto" }}>
-            {/* Sfondo e griglia */}
-            <rect x={0} y={0} width={SVG_WIDTH} height={SVG_HEIGHT} fill="#fafafa" stroke="#ddd" rx={8} />
-            {Array.from({ length: X_MAX - X_MIN + 1 }, (_, i) => {
-                const x = X_MIN + i;
-                if (x === 0) return null;
-                return (
-                    <line
-                        key={`vgrid-${x}`}
-                        x1={scaleX(x)}
-                        y1={PADDING}
-                        x2={scaleX(x)}
-                        y2={SVG_HEIGHT - PADDING}
-                        stroke="#e5e7eb"
-                        strokeWidth={1}
-                    />
-                );
-            })}
-            {Array.from({ length: Y_MAX - Y_MIN + 1 }, (_, i) => {
-                const y = Y_MIN + i;
-                if (y === 0) return null;
-                return (
-                    <line
-                        key={`hgrid-${y}`}
-                        x1={PADDING}
-                        y1={scaleY(y)}
-                        x2={SVG_WIDTH - PADDING}
-                        y2={scaleY(y)}
-                        stroke="#e5e7eb"
-                        strokeWidth={1}
-                    />
-                );
-            })}
+        <g>
+            <text x={PAD_LEFT - 10} y={y + 5} fontSize={isMobile ? 14 : 12} textAnchor="end" fill={color} fontWeight={600}>{label}</text>
+            <line x1={leftX} y1={y} x2={rightX} y2={y} stroke={color} strokeWidth={4} />
 
-            {/* Zone escluse */}
-            {excludedRegions.map((region, idx) => (
-                <rect
-                    key={`excluded-${idx}`}
-                    x={scaleX(region.x1)}
-                    y={PADDING}
-                    width={scaleX(region.x2) - scaleX(region.x1)}
-                    height={SVG_HEIGHT - 2 * PADDING}
-                    fill="rgba(239, 68, 68, 0.15)"
-                    stroke="rgba(239, 68, 68, 0.3)"
-                    strokeWidth={1}
-                />
-            ))}
+            {left === -Infinity && <polygon points={`${toX(min)},${y} ${toX(min) + 10},${y - 5} ${toX(min) + 10},${y + 5}`} fill={color} />}
+            {right === Infinity && <polygon points={`${toX(max)},${y} ${toX(max) - 10},${y - 5} ${toX(max) - 10},${y + 5}`} fill={color} />}
 
-            {/* Linee verticali per punti esclusi */}
-            {excludedPoints.map((point, idx) => {
-                const x = scaleX(point);
-                if (x < PADDING || x > SVG_WIDTH - PADDING) return null;
-                return (
-                    <g key={`excl-line-${idx}`}>
-                        <line
-                            x1={x}
-                            y1={PADDING}
-                            x2={x}
-                            y2={SVG_HEIGHT - PADDING}
-                            stroke="#ef4444"
-                            strokeWidth={2}
-                            strokeDasharray="8,4"
-                        />
-                    </g>
-                );
-            })}
-
-            {/* Assi */}
-            <line x1={PADDING} y1={originY} x2={SVG_WIDTH - PADDING} y2={originY} stroke="#374151" strokeWidth={2} />
-            <line x1={originX} y1={SVG_HEIGHT - PADDING} x2={originX} y2={PADDING} stroke="#374151" strokeWidth={2} />
-
-            {/* Frecce e etichette assi */}
-            <polygon
-                points={`${SVG_WIDTH - PADDING},${originY} ${SVG_WIDTH - PADDING - 8},${originY - 4} ${SVG_WIDTH - PADDING - 8},${originY + 4}`}
-                fill="#374151"
-            />
-            <text x={SVG_WIDTH - PADDING + 5} y={originY + 5} fontSize={14} fill="#374151" fontStyle="italic">
-                x
-            </text>
-            <polygon
-                points={`${originX},${PADDING} ${originX - 4},${PADDING + 8} ${originX + 4},${PADDING + 8}`}
-                fill="#374151"
-            />
-            <text x={originX + 8} y={PADDING + 5} fontSize={14} fill="#374151" fontStyle="italic">
-                y
-            </text>
-
-            {/* Tacche assi */}
-            {Array.from({ length: X_MAX - X_MIN + 1 }, (_, i) => {
-                const x = X_MIN + i;
-                if (x === 0) return null;
-                const xPos = scaleX(x);
-                return (
-                    <g key={`xtick-${x}`}>
-                        <line x1={xPos} y1={originY - 4} x2={xPos} y2={originY + 4} stroke="#374151" strokeWidth={1} />
-                        {x % 2 === 0 && (
-                            <text x={xPos} y={originY + 18} fontSize={11} textAnchor="middle" fill="#6b7280">
-                                {x}
-                            </text>
-                        )}
-                    </g>
-                );
-            })}
-            {Array.from({ length: Y_MAX - Y_MIN + 1 }, (_, i) => {
-                const y = Y_MIN + i;
-                if (y === 0) return null;
-                const yPos = scaleY(y);
-                return (
-                    <g key={`ytick-${y}`}>
-                        <line x1={originX - 4} y1={yPos} x2={originX + 4} y2={yPos} stroke="#374151" strokeWidth={1} />
-                        {y % 2 === 0 && (
-                            <text x={originX - 12} y={yPos + 4} fontSize={11} textAnchor="end" fill="#6b7280">
-                                {y}
-                            </text>
-                        )}
-                    </g>
-                );
-            })}
-
-            {/* Origine */}
-            <text x={originX - 12} y={originY + 16} fontSize={11} fill="#6b7280">
-                O
-            </text>
-
-            {/* Etichette per punti esclusi */}
-            {excludedPoints.map((point, idx) => {
-                const x = scaleX(point);
-                if (x < PADDING || x > SVG_WIDTH - PADDING) return null;
-                return (
-                    <g key={`excl-label-${idx}`}>
-                        <circle cx={x} cy={originY} r={6} fill="#fff" stroke="#ef4444" strokeWidth={2.5} />
-                        <line x1={x - 4} y1={originY - 4} x2={x + 4} y2={originY + 4} stroke="#ef4444" strokeWidth={2} />
-                        <line x1={x - 4} y1={originY + 4} x2={x + 4} y2={originY - 4} stroke="#ef4444" strokeWidth={2} />
-                        <text x={x} y={originY - 15} fontSize={12} textAnchor="middle" fill="#ef4444" fontWeight={600}>
-                            {formatNumberLatex(point).replace(/\\frac\{([^}]+)\}\{([^}]+)\}/, "$1/$2")}
-                        </text>
-                    </g>
-                );
-            })}
-
-            {/* Etichette per i bordi del dominio */}
-            {solution.type === "interval" && (
+            {left !== -Infinity && (
                 <>
-                    {solution.left !== undefined &&
-                        solution.left !== -Infinity &&
-                        solution.left >= X_MIN &&
-                        solution.left <= X_MAX && (
-                            <g>
-                                <circle
-                                    cx={scaleX(solution.left)}
-                                    cy={originY}
-                                    r={6}
-                                    fill={solution.leftOpen ? "#fff" : "#3b82f6"}
-                                    stroke="#3b82f6"
-                                    strokeWidth={2.5}
-                                />
-                                <text
-                                    x={scaleX(solution.left)}
-                                    y={originY + 25}
-                                    fontSize={12}
-                                    textAnchor="middle"
-                                    fill="#3b82f6"
-                                    fontWeight={600}
-                                >
-                                    {formatNumberLatex(solution.left).replace(/\\frac\{([^}]+)\}\{([^}]+)\}/, "$1/$2")}
-                                </text>
-                            </g>
-                        )}
-                    {solution.right !== undefined &&
-                        solution.right !== Infinity &&
-                        solution.right >= X_MIN &&
-                        solution.right <= X_MAX && (
-                            <g>
-                                <circle
-                                    cx={scaleX(solution.right)}
-                                    cy={originY}
-                                    r={6}
-                                    fill={solution.rightOpen ? "#fff" : "#3b82f6"}
-                                    stroke="#3b82f6"
-                                    strokeWidth={2.5}
-                                />
-                                <text
-                                    x={scaleX(solution.right)}
-                                    y={originY + 25}
-                                    fontSize={12}
-                                    textAnchor="middle"
-                                    fill="#3b82f6"
-                                    fontWeight={600}
-                                >
-                                    {formatNumberLatex(solution.right).replace(/\\frac\{([^}]+)\}\{([^}]+)\}/, "$1/$2")}
-                                </text>
-                            </g>
-                        )}
+                    <circle cx={leftX} cy={y} r={circleR} fill={leftOpen ? "#fff" : color} stroke={color} strokeWidth={2.5} />
+                    {boundaryLabel && <text x={leftX} y={y - 14} fontSize={isMobile ? 11 : 10} textAnchor="middle" fill={color}>{boundaryLabel}</text>}
                 </>
             )}
-
-            {/* Legenda */}
-            <g transform={`translate(${SVG_WIDTH - 150}, ${SVG_HEIGHT - 60})`}>
-                <rect x={0} y={0} width={140} height={50} fill="#fff" stroke="#e5e7eb" rx={6} />
-                <rect x={10} y={10} width={20} height={12} fill="rgba(239, 68, 68, 0.15)" stroke="rgba(239, 68, 68, 0.3)" />
-                <text x={35} y={20} fontSize={11} fill="#6b7280">
-                    Zona esclusa
-                </text>
-                <line x1={10} y1={35} x2={30} y2={35} stroke="#ef4444" strokeWidth={2} strokeDasharray="4,2" />
-                <text x={35} y={38} fontSize={11} fill="#6b7280">
-                    Punto escluso
-                </text>
-            </g>
-        </svg>
+            {right !== Infinity && (
+                <>
+                    <circle cx={rightX} cy={y} r={circleR} fill={rightOpen ? "#fff" : color} stroke={color} strokeWidth={2.5} />
+                    {boundaryLabel && <text x={rightX} y={y - 14} fontSize={isMobile ? 11 : 10} textAnchor="middle" fill={color}>{boundaryLabel}</text>}
+                </>
+            )}
+        </g>
     );
 }
 
 // ============ COMPONENTE PRINCIPALE ============
-export default function DominiFunzioniDemo() {
-    const [difficulty, setDifficulty] = useState<Difficulty>("base");
-    const [func, setFunc] = useState<FunctionDef>(() => generateFunction("base"));
 
-    const totalSteps = 2 + func.conditions.length + 1;
+export default function SistemiDisequazioniDemo() {
+    const { isMobile, isTablet } = useBreakpoint();
+
+    const [numInequalities, setNumInequalities] = useState(2);
+    const [inequalities, setInequalities] = useState<Inequality[]>(() =>
+        Array.from({ length: 2 }, generateRandomInequality)
+    );
+
+    // Step navigation: 1 per ogni disequazione + 1 per intersezione + 1 per soluzione finale
+    const totalSteps = inequalities.length + 2;
     const { currentStep, nextStep, prevStep, showAll, reset } = useStepNavigation(totalSteps);
 
+    // isStepActive: step è 1-indexed, currentStep è 0-indexed
+    const isStepActive = (step: number) => currentStep >= step - 1;
+
     const handleGenerate = useCallback(() => {
-        setFunc(generateFunction(difficulty));
-        reset(); // Resetta lo step corrente a 0
-    }, [difficulty, reset]);
+        setInequalities(Array.from({ length: numInequalities }, generateRandomInequality));
+        reset();
+    }, [numInequalities, reset]);
 
-    const handleDifficultyChange = (newDiff: Difficulty) => {
-        setDifficulty(newDiff);
-        setFunc(generateFunction(newDiff));
-        reset(); // Resetta anche quando cambia la difficoltà
+    const handleNumChange = (newNum: number) => {
+        setNumInequalities(newNum);
+        if (newNum > inequalities.length) {
+            setInequalities([...inequalities, ...Array.from({ length: newNum - inequalities.length }, generateRandomInequality)]);
+        } else {
+            setInequalities(inequalities.slice(0, newNum));
+        }
+        reset();
     };
 
-    const getTypeName = (type: FunctionType): string => {
-        const names: { [key in FunctionType]: string } = {
-            razionale: "Funzione razionale fratta",
-            radice: "Funzione irrazionale (radice)",
-            logaritmo: "Funzione logaritmica",
-            esponenziale: "Funzione esponenziale",
-            "razionale-radice": "Funzione razionale con radice",
-            "logaritmo-radice": "Funzione logaritmo di radice",
-            "razionale-logaritmo": "Funzione razionale con logaritmo",
+    const updateInequality = (index: number, field: keyof Inequality, value: number | InequalitySign) => {
+        const newIneqs = [...inequalities];
+        newIneqs[index] = { ...newIneqs[index], [field]: value };
+        setInequalities(newIneqs);
+    };
+
+    const solutions = useMemo(() => inequalities.map(solveInequality), [inequalities]);
+    const intersection = useMemo(() => intersectSolutions(solutions), [solutions]);
+    const solutionFormatted = useMemo(() => formatSolutionAlgebraic(intersection, inequalities), [intersection, inequalities]);
+
+    const viewRange = useMemo(() => {
+        let min = -10, max = 10;
+        for (const sol of solutions) {
+            if (sol.type === "interval") {
+                if (sol.left !== undefined && sol.left !== -Infinity) { min = Math.min(min, sol.left - 3); max = Math.max(max, sol.left + 3); }
+                if (sol.right !== undefined && sol.right !== Infinity) { min = Math.min(min, sol.right - 3); max = Math.max(max, sol.right + 3); }
+            }
+        }
+        return { min: Math.floor(min), max: Math.ceil(max) };
+    }, [solutions]);
+
+    const toX = (value: number) => PAD_LEFT + ((value - viewRange.min) / (viewRange.max - viewRange.min)) * (SVG_WIDTH - PAD_LEFT - PAD_RIGHT);
+
+    const SVG_HEIGHT = (inequalities.length + 2) * ROW_HEIGHT + 40;
+
+    const ticks = useMemo(() => {
+        const result: number[] = [];
+        const step = Math.max(1, Math.floor((viewRange.max - viewRange.min) / (isMobile ? 6 : 10)));
+        for (let v = Math.ceil(viewRange.min); v <= Math.floor(viewRange.max); v += step) result.push(v);
+        return result;
+    }, [viewRange, isMobile]);
+
+    const intersectionBounds = useMemo(() => {
+        if (intersection.type === "none") return null;
+        if (intersection.type === "all") return { left: viewRange.min, right: viewRange.max };
+        return {
+            left: intersection.left === -Infinity ? viewRange.min : intersection.left!,
+            right: intersection.right === Infinity ? viewRange.max : intersection.right!
         };
-        return names[type];
-    };
+    }, [intersection, viewRange]);
 
-    return (
-        <DemoContainer
-            title="Dominio delle Funzioni"
-            description="Impara a determinare il dominio di una funzione passo dopo passo."
-        >
-            {/* Controlli */}
-            <div style={{ display: "flex", gap: 16, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
-                <div style={{ background: "#fff", borderRadius: 12, padding: "12px 16px", boxShadow: "0 1px 4px rgba(0,0,0,0.1)" }}>
-                    <span style={{ fontWeight: 500, fontSize: 14 }}>Difficoltà:</span>
-                    {(["base", "intermedio", "avanzato"] as Difficulty[]).map((d) => (
-                        <button
-                            key={d}
-                            onClick={() => handleDifficultyChange(d)}
-                            style={{
-                                padding: "6px 12px",
-                                borderRadius: 6,
-                                border: difficulty === d ? "2px solid #3b82f6" : "1px solid #cbd5e1",
-                                background: difficulty === d ? "#eff6ff" : "#fff",
-                                color: difficulty === d ? "#1d4ed8" : "#334155",
-                                fontWeight: 500,
-                                fontSize: 13,
-                                cursor: "pointer",
-                                textTransform: "capitalize",
-                            }}
-                        >
-                            {d}
-                        </button>
+    // ============ COMPONENTI PANNELLI ============
+
+    // Sistema input
+    const SystemInputPanel = (
+        <ResponsiveCard>
+            <div style={{ fontWeight: 600, marginBottom: 12 }}>📝 Sistema di disequazioni</div>
+            <div style={{ display: "flex", alignItems: "stretch", gap: 8 }}>
+                {/* Parentesi graffa */}
+                <svg width="20" height={inequalities.length * 52 + 10} style={{ flexShrink: 0 }}>
+                    <path
+                        d={`M 18 5 Q 10 5, 10 15 L 10 ${(inequalities.length * 52) / 2 - 10} Q 10 ${(inequalities.length * 52) / 2}, 2 ${(inequalities.length * 52) / 2 + 5} Q 10 ${(inequalities.length * 52) / 2 + 10}, 10 ${(inequalities.length * 52) / 2 + 20} L 10 ${inequalities.length * 52 - 5} Q 10 ${inequalities.length * 52 + 5}, 18 ${inequalities.length * 52 + 5}`}
+                        fill="none" stroke="#334155" strokeWidth="2" strokeLinecap="round"
+                    />
+                </svg>
+                <div style={{ flex: 1 }}>
+                    {inequalities.map((ineq, index) => (
+                        <div key={index} style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 6,
+                            marginBottom: 8,
+                            padding: isMobile ? 12 : 10,
+                            background: "#f8fafc",
+                            borderRadius: 8,
+                            borderLeft: `4px solid ${COLORS[index % COLORS.length]}`,
+                            flexWrap: isMobile ? "wrap" : "nowrap"
+                        }}>
+                            <input
+                                type="number"
+                                value={ineq.a}
+                                onChange={(e) => updateInequality(index, "a", parseInt(e.target.value) || 0)}
+                                style={{
+                                    width: isMobile ? 50 : 45,
+                                    padding: isMobile ? "8px 6px" : "4px 6px",
+                                    borderRadius: 4,
+                                    border: "1px solid #cbd5e1",
+                                    fontSize: 16,
+                                    textAlign: "center"
+                                }}
+                            />
+                            <span style={{ fontSize: 14, fontWeight: 500 }}>x +</span>
+                            <input
+                                type="number"
+                                value={ineq.b}
+                                onChange={(e) => updateInequality(index, "b", parseInt(e.target.value) || 0)}
+                                style={{
+                                    width: isMobile ? 50 : 45,
+                                    padding: isMobile ? "8px 6px" : "4px 6px",
+                                    borderRadius: 4,
+                                    border: "1px solid #cbd5e1",
+                                    fontSize: 16,
+                                    textAlign: "center"
+                                }}
+                            />
+                            <select
+                                value={ineq.sign}
+                                onChange={(e) => updateInequality(index, "sign", e.target.value as InequalitySign)}
+                                style={{
+                                    padding: isMobile ? "8px 10px" : "4px 6px",
+                                    borderRadius: 4,
+                                    border: "1px solid #cbd5e1",
+                                    fontSize: 16,
+                                    background: "#fff"
+                                }}
+                            >
+                                <option value="<">&lt;</option>
+                                <option value=">">&gt;</option>
+                                <option value="<=">≤</option>
+                                <option value=">=">≥</option>
+                            </select>
+                            <span style={{ fontSize: 14 }}>0</span>
+                        </div>
                     ))}
                 </div>
-                <GenerateButton onClick={handleGenerate} text="Nuova funzione" emoji="🎲" />
             </div>
+        </ResponsiveCard>
+    );
 
-            {/* Funzione */}
-            <ProblemCard label="Determina il dominio della funzione">
-                <Latex display>{`f(x) = ${func.latex}`}</Latex>
-            </ProblemCard>
+    // Controlli generazione
+    const ControlsPanel = (
+        <ResponsiveCard>
+            <div style={{ fontWeight: 600, marginBottom: 12 }}>🎲 Genera sistema</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12, flexWrap: "wrap" }}>
+                <label style={{ fontSize: 14 }}>Disequazioni:</label>
+                <div style={{ display: "flex", gap: 4 }}>
+                    {[2, 3, 4, 5].map(n => (
+                        <TouchButton
+                            key={n}
+                            variant={numInequalities === n ? "primary" : "outline"}
+                            onClick={() => handleNumChange(n)}
+                            size="sm"
+                        >
+                            {n}
+                        </TouchButton>
+                    ))}
+                </div>
+            </div>
+            <GenerateButton text="Nuovo sistema" onClick={handleGenerate} />
+        </ResponsiveCard>
+    );
 
-            {/* Passaggi */}
-            <div style={{ background: "#fff", borderRadius: 12, padding: 20, marginBottom: 16, boxShadow: "0 1px 4px rgba(0,0,0,0.1)" }}>
+    // Step cards per ogni disequazione
+    const StepCards = inequalities.map((ineq, index) => {
+        const sol = solutions[index];
+        const boundaryFrac = ineq.a !== 0 ? formatFraction(-ineq.b, ineq.a) : "";
+        const color = COLORS[index % COLORS.length];
+
+        return (
+            <StepCard
+                key={index}
+                stepNumber={index + 1}
+                title={`Disequazione ${index + 1}`}
+                color={index === 0 ? "red" : index === 1 ? "blue" : index === 2 ? "green" : "purple"}
+                isActive={isStepActive(index + 1)}
+            >
+                <div style={{
+                    fontSize: isMobile ? 16 : 18,
+                    fontWeight: 600,
+                    color: color,
+                    marginBottom: 8,
+                    padding: "8px 12px",
+                    background: "#f8fafc",
+                    borderRadius: 6,
+                    display: "inline-block"
+                }}>
+                    {formatInequality(ineq)}
+                </div>
+
+                {ineq.a === 0 ? (
+                    <div style={{ fontSize: 14, color: "#64748b", marginTop: 8 }}>
+                        {sol.type === "all" ? "✓ Sempre vera (coefficiente di x = 0)" : "✗ Mai vera (coefficiente di x = 0)"}
+                    </div>
+                ) : (
+                    <div style={{ fontSize: 14, color: "#475569", marginTop: 8 }}>
+                        <div style={{ marginBottom: 4 }}>
+                            <strong>Risoluzione:</strong> Isolando x:
+                        </div>
+                        <div style={{
+                            padding: "6px 12px",
+                            background: "#fff",
+                            borderRadius: 6,
+                            borderLeft: `3px solid ${color}`,
+                            marginBottom: 4
+                        }}>
+                            x {(ineq.a > 0) === (ineq.sign === ">" || ineq.sign === ">=") ? (sol.leftOpen ? ">" : "≥") : (sol.rightOpen ? "<" : "≤")} {boundaryFrac}
+                            {ineq.a < 0 && <span style={{ color: "#94a3b8", marginLeft: 8 }}>(cambio verso)</span>}
+                        </div>
+                        <div style={{ fontSize: 13, color: "#64748b" }}>
+                            Soluzione: {sol.type === "interval" && sol.left === -Infinity
+                            ? `(−∞, ${boundaryFrac}${sol.rightOpen ? ")" : "]"}`
+                            : `${sol.leftOpen ? "(" : "["}${boundaryFrac}, +∞)`
+                        }
+                        </div>
+                    </div>
+                )}
+            </StepCard>
+        );
+    });
+
+    // Step intersezione
+    const IntersectionStep = (
+        <StepCard
+            stepNumber={inequalities.length + 1}
+            title="Intersezione delle soluzioni"
+            color="amber"
+            isActive={isStepActive(inequalities.length + 1)}
+        >
+            <div style={{ fontSize: 14, color: "#64748b", marginBottom: 8 }}>
+                La soluzione del sistema è l'intersezione (∩) di tutte le singole soluzioni:
+            </div>
+            <div style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                flexWrap: "wrap",
+                padding: "8px 12px",
+                background: "#fff",
+                borderRadius: 6
+            }}>
+                {solutions.map((sol, i) => (
+                    <React.Fragment key={i}>
+                        <span style={{
+                            color: COLORS[i % COLORS.length],
+                            fontWeight: 600,
+                            fontSize: isMobile ? 14 : 16
+                        }}>
+                            S{i + 1}
+                        </span>
+                        {i < solutions.length - 1 && <span style={{ color: "#94a3b8" }}>∩</span>}
+                    </React.Fragment>
+                ))}
+                <span style={{ color: "#94a3b8" }}>=</span>
+                <span style={{ fontWeight: 600, color: "#166534" }}>S</span>
+            </div>
+        </StepCard>
+    );
+
+    // Step soluzione finale
+    const SolutionStep = (
+        <StepCard
+            stepNumber={inequalities.length + 2}
+            title="Soluzione del sistema"
+            color={intersection.type === "none" ? "red" : "green"}
+            isActive={isStepActive(inequalities.length + 2)}
+        >
+            <div style={{
+                background: intersection.type === "none" ? "#fef2f2" : "#f0fdf4",
+                borderRadius: 8,
+                padding: 12
+            }}>
+                <div style={{
+                    fontWeight: 600,
+                    marginBottom: 8,
+                    color: intersection.type === "none" ? "#991b1b" : "#166534",
+                    fontSize: isMobile ? 16 : 18
+                }}>
+                    {intersection.type === "none" ? "✗ Sistema impossibile" : "✓ Soluzione"}
+                </div>
+                <div style={{
+                    fontSize: isMobile ? 20 : 22,
+                    fontFamily: "Georgia, serif",
+                    color: intersection.type === "none" ? "#991b1b" : "#166534",
+                    fontWeight: 500,
+                    marginBottom: 4
+                }}>
+                    {solutionFormatted.inequality}
+                </div>
+                <div style={{ fontSize: 14, color: intersection.type === "none" ? "#b91c1c" : "#15803d" }}>
+                    Intervallo: {solutionFormatted.interval}
+                </div>
+            </div>
+        </StepCard>
+    );
+
+    // Grafico
+    const GraphPanel = (
+        <ResponsiveCard>
+            <div style={{ fontWeight: 600, marginBottom: 12 }}>📊 Rappresentazione grafica</div>
+            <svg viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`} style={{ width: "100%", height: "auto" }}>
+                <rect x={0} y={0} width={SVG_WIDTH} height={SVG_HEIGHT} fill="#fafafa" rx={8} />
+
+                {/* Intersezione - mostrata solo all'ultimo step */}
+                {isStepActive(inequalities.length + 2) && intersectionBounds && (
+                    <rect
+                        x={toX(intersectionBounds.left)}
+                        y={ROW_HEIGHT}
+                        width={toX(intersectionBounds.right) - toX(intersectionBounds.left)}
+                        height={(inequalities.length + 1) * ROW_HEIGHT}
+                        fill="rgba(34, 197, 94, 0.2)"
+                    />
+                )}
+
+                {/* Righe singole disequazioni - mostrate progressivamente */}
+                {inequalities.map((ineq, index) => (
+                    isStepActive(index + 1) && (
+                        <SolutionRow
+                            key={index}
+                            sol={solutions[index]}
+                            y={ROW_HEIGHT * (index + 1) + 25}
+                            color={COLORS[index % COLORS.length]}
+                            label={`D${index + 1}`}
+                            ineq={ineq}
+                            toX={toX}
+                            viewRange={viewRange}
+                            isMobile={isMobile}
+                        />
+                    )
+                ))}
+
+                {/* Asse x */}
+                <line x1={PAD_LEFT} y1={SVG_HEIGHT - 50} x2={SVG_WIDTH - PAD_RIGHT} y2={SVG_HEIGHT - 50} stroke="#374151" strokeWidth={2} />
+                {ticks.map((v) => (
+                    <g key={v}>
+                        <line x1={toX(v)} y1={SVG_HEIGHT - 54} x2={toX(v)} y2={SVG_HEIGHT - 46} stroke="#374151" strokeWidth={1} />
+                        <text x={toX(v)} y={SVG_HEIGHT - 32} fontSize={isMobile ? 12 : 11} textAnchor="middle" fill="#64748b">{v}</text>
+                    </g>
+                ))}
+
+                {/* Riga intersezione - mostrata solo all'ultimo step */}
+                {isStepActive(inequalities.length + 2) && (
+                    <SolutionRow
+                        sol={intersection}
+                        y={SVG_HEIGHT - 80}
+                        color="#166534"
+                        label="∩"
+                        toX={toX}
+                        viewRange={viewRange}
+                        isMobile={isMobile}
+                    />
+                )}
+            </svg>
+        </ResponsiveCard>
+    );
+
+    // Legenda
+    const LegendPanel = (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: isMobile ? 12 : 16, fontSize: isMobile ? 12 : 13 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <svg width={24} height={16}><circle cx={12} cy={8} r={5} fill="#fff" stroke="#334155" strokeWidth={2} /></svg>
+                <span>Escluso</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <svg width={24} height={16}><circle cx={12} cy={8} r={5} fill="#334155" /></svg>
+                <span>Incluso</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <svg width={24} height={16}><polygon points="5,8 15,4 15,12" fill="#334155" /></svg>
+                <span>Infinito</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <svg width={24} height={16}><rect x={2} y={2} width={20} height={12} fill="rgba(34, 197, 94, 0.3)" rx={2} /></svg>
+                <span>Intersezione</span>
+            </div>
+        </div>
+    );
+
+    // ============ LAYOUT MOBILE ============
+
+    if (isMobile) {
+        return (
+            <DemoContainer
+                title="Sistemi disequazioni"
+                description="Risoluzione guidata step-by-step"
+            >
+                {/* Controlli */}
+                <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+                    <TouchButton variant="primary" onClick={handleGenerate} fullWidth>
+                        🎲 Nuovo sistema
+                    </TouchButton>
+                    <div style={{ display: "flex", gap: 4 }}>
+                        {[2, 3, 4].map(n => (
+                            <TouchButton
+                                key={n}
+                                variant={numInequalities === n ? "primary" : "outline"}
+                                onClick={() => handleNumChange(n)}
+                                size="sm"
+                            >
+                                {n}
+                            </TouchButton>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Sistema input */}
+                {SystemInputPanel}
+
+                {/* Navigazione step */}
                 <NavigationButtons
                     currentStep={currentStep}
                     totalSteps={totalSteps}
@@ -736,87 +661,135 @@ export default function DominiFunzioniDemo() {
                     onShowAll={showAll}
                 />
 
-                {/* Step 1: Tipologia */}
-                <StepCard
-                    title="Riconosci la tipologia"
-                    stepNumber={1}
-                    color="green"
-                    isActive={currentStep >= 1}
-                >
-                    {getTypeName(func.type)}
-                </StepCard>
-
-                {/* Step 2+: Condizioni */}
-                {func.conditions.map((cond, idx) => (
-                    <StepCard
-                        key={idx}
-                        title={cond.description}
-                        stepNumber={2 + idx}
-                        color="blue"
-                        isActive={currentStep >= 2 + idx}
-                    >
-                        <div style={{ fontSize: 18, color: "#334155", marginBottom: 8, padding: "8px 12px", background: "#fff", borderRadius: 6, display: "inline-block" }}>
-                            <Latex>{cond.conditionLatex || cond.condition}</Latex>
-                        </div>
-                        <div style={{ marginTop: 8 }}>
-                            <div style={{ fontSize: 13, color: "#64748b", marginBottom: 4 }}>Risoluzione:</div>
-                            {cond.resolution.map((step, i) => (
-                                <div key={i} style={{ fontSize: 15, color: "#475569", padding: "6px 0", paddingLeft: 12, borderLeft: "2px solid #cbd5e1" }}>
-                                    <Latex>{step}</Latex>
+                {/* Tabs per steps e grafico */}
+                <SwipeableTabs
+                    tabs={[
+                        {
+                            id: "steps",
+                            label: "📝 Steps",
+                            content: (
+                                <div style={{ display: "grid", gap: 12 }}>
+                                    {StepCards}
+                                    {IntersectionStep}
+                                    {SolutionStep}
                                 </div>
-                            ))}
-                        </div>
-                    </StepCard>
-                ))}
+                            )
+                        },
+                        { id: "graph", label: "📊 Grafico", content: GraphPanel },
+                    ]}
+                    defaultTab="steps"
+                />
 
-                {/* Step finale: Dominio */}
-                <StepCard
-                    title="Scrivi il dominio"
-                    stepNumber={totalSteps}
-                    color="amber"
-                    isActive={currentStep >= totalSteps - 1}
-                >
-                    <div style={{ display: "flex", gap: 20, flexWrap: "wrap", alignItems: "center" }}>
-                        <div>
-                            <div style={{ fontSize: 12, color: "#64748b", marginBottom: 4 }}>Forma algebrica:</div>
-                            <div style={{ fontSize: 20, color: "#92400e", fontWeight: 500 }}>
-                                <Latex>{`D = ${func.domainText}`}</Latex>
-                            </div>
-                        </div>
-                        <div>
-                            <div style={{ fontSize: 12, color: "#64748b", marginBottom: 4 }}>Notazione intervalli:</div>
-                            <div style={{ fontSize: 20, color: "#92400e", fontWeight: 500 }}>
-                                <Latex>{`D = ${func.domainInterval}`}</Latex>
-                            </div>
-                        </div>
-                    </div>
-                </StepCard>
+                {/* Legenda collapsible */}
+                <CollapsiblePanel title="📖 Legenda" defaultOpen={false}>
+                    {LegendPanel}
+                </CollapsiblePanel>
+            </DemoContainer>
+        );
+    }
+
+    // ============ LAYOUT TABLET ============
+
+    if (isTablet) {
+        return (
+            <DemoContainer
+                title="Sistemi di Disequazioni Lineari"
+                description="Risoluzione guidata step-by-step"
+            >
+                <ResponsiveGrid columns={{ tablet: 2 }} gap={12}>
+                    {ControlsPanel}
+                    {SystemInputPanel}
+                </ResponsiveGrid>
+
+                {/* Navigazione step */}
+                <div style={{ marginTop: 16 }}>
+                    <NavigationButtons
+                        currentStep={currentStep}
+                        totalSteps={totalSteps}
+                        onNext={nextStep}
+                        onPrev={prevStep}
+                        onShowAll={showAll}
+                    />
+                </div>
+
+                {/* Steps */}
+                <ResponsiveGrid columns={{ tablet: 2 }} gap={12}>
+                    {StepCards}
+                </ResponsiveGrid>
+
+                {IntersectionStep}
+                {SolutionStep}
+
+                {/* Grafico */}
+                <div style={{ marginTop: 16 }}>
+                    {GraphPanel}
+                </div>
+
+                <CollapsiblePanel title="📖 Legenda" defaultOpen={false}>
+                    {LegendPanel}
+                </CollapsiblePanel>
+
+                <InfoBox title="Come funziona:">
+                    <ol style={{ margin: "8px 0 0 0", paddingLeft: 20 }}>
+                        <li>Ogni disequazione viene risolta singolarmente</li>
+                        <li>Le soluzioni vengono rappresentate su una retta numerica</li>
+                        <li>La soluzione del sistema è l'<strong>intersezione</strong> di tutte le soluzioni</li>
+                    </ol>
+                </InfoBox>
+            </DemoContainer>
+        );
+    }
+
+    // ============ LAYOUT DESKTOP ============
+
+    return (
+        <DemoContainer
+            title="Sistemi di Disequazioni Lineari"
+            description="Risoluzione guidata step-by-step con rappresentazione grafica"
+            maxWidth={1200}
+        >
+            <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
+                {/* Colonna sinistra: controlli e sistema */}
+                <div style={{ flex: "0 0 380px", display: "flex", flexDirection: "column", gap: 12 }}>
+                    {ControlsPanel}
+                    {SystemInputPanel}
+
+                    {/* Legenda */}
+                    <ResponsiveCard>
+                        <div style={{ fontWeight: 600, marginBottom: 10 }}>📖 Legenda</div>
+                        {LegendPanel}
+                    </ResponsiveCard>
+                </div>
+
+                {/* Colonna destra: steps e grafico */}
+                <div style={{ flex: 1, minWidth: 500, display: "flex", flexDirection: "column", gap: 12 }}>
+                    {/* Navigazione step */}
+                    <NavigationButtons
+                        currentStep={currentStep}
+                        totalSteps={totalSteps}
+                        onNext={nextStep}
+                        onPrev={prevStep}
+                        onShowAll={showAll}
+                    />
+
+                    {/* Steps in grid */}
+                    <ResponsiveGrid columns={{ desktop: 2 }} gap={12}>
+                        {StepCards}
+                    </ResponsiveGrid>
+
+                    {IntersectionStep}
+                    {SolutionStep}
+
+                    {/* Grafico */}
+                    {GraphPanel}
+                </div>
             </div>
 
-            {/* Grafico */}
-            <GraphContainer
-                title="Rappresentazione grafica del dominio"
-                footer={
-                    currentStep >= totalSteps - 1 ? (
-                        <>
-                            Le <strong>zone rosse</strong> indicano i valori di x dove la funzione <strong>non è definita</strong>.
-                        </>
-                    ) : (
-                        <span style={{ fontStyle: "italic" }}>Completa tutti i passaggi per vedere il grafico</span>
-                    )
-                }
-            >
-                <DomainGraph solution={func.domain} showGraph={currentStep >= totalSteps - 1} />
-            </GraphContainer>
-
-            {/* Spiegazione */}
-            <InfoBox title="Come determinare il dominio:" variant="blue">
+            <InfoBox title="Come funziona:">
                 <ol style={{ margin: "8px 0 0 0", paddingLeft: 20 }}>
-                    <li><strong>Riconosci la tipologia</strong> della funzione (razionale, irrazionale, logaritmica, ecc.)</li>
-                    <li><strong>Scrivi le condizioni</strong> di esistenza (denominatore ≠ 0, radicando ≥ 0, argomento log {">"} 0, ecc.)</li>
-                    <li><strong>Risolvi</strong> le disequazioni o equazioni associate</li>
-                    <li><strong>Interseca</strong> le soluzioni se ci sono più condizioni</li>
-                    <li><strong>Scrivi</strong> il dominio in forma algebrica e come intervallo</li>
+                    <li>Ogni disequazione viene risolta singolarmente</li>
+                    <li>Le soluzioni vengono rappresentate su una retta numerica</li>
+                    <li>La soluzione del sistema è l'<strong>intersezione</strong> di tutte le soluzioni</li>
                 </ol>
             </InfoBox>
         </DemoContainer>

@@ -1,9 +1,10 @@
 /**
  * MediaVelocitaSecanteDemo - Versione refactorizzata
  * Velocità media come coefficiente angolare della secante
+ * 3 layout: mobile / tablet / desktop
  */
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { DemoContainer } from "../../components/ui";
 
 // ============ COSTANTI ============
@@ -74,9 +75,26 @@ function findExtrema(tArr: number[], sArr: number[]) {
     };
 }
 
+// ============ HOOK viewport (3 layout) ============
+
+function useViewportWidth() {
+    const [w, setW] = useState<number>(() => (typeof window !== "undefined" ? window.innerWidth : 1200));
+    useEffect(() => {
+        const onResize = () => setW(window.innerWidth);
+        window.addEventListener("resize", onResize);
+        return () => window.removeEventListener("resize", onResize);
+    }, []);
+    return w;
+}
+
 // ============ COMPONENTE PRINCIPALE ============
 
 export default function MediaVelocitaSecanteDemo() {
+    const vw = useViewportWidth();
+    const isMobile = vw < 640;
+    const isTablet = vw >= 640 && vw < 1024;
+    const isDesktop = vw >= 1024;
+
     // Dataset
     const [seed, setSeed] = useState(() => Math.floor(Math.random() * 1e9));
     const tArr = useMemo(() => linspace(N_SAMPLES, 0, T_MAX), []);
@@ -90,11 +108,34 @@ export default function MediaVelocitaSecanteDemo() {
     const vMin = useMemo(() => Math.min(...vArr) - 1, [vArr]);
     const vMax = useMemo(() => Math.max(...vArr) + 1, [vArr]);
 
-    // Trasformazioni
-    const toX = (t: number) => PAD.L + (t / T_MAX) * (WIDTH - PAD.L - PAD.R);
-    const toY = (s: number) => HEIGHT - PAD.B - ((s - sMin) / (sMax - sMin)) * (HEIGHT - PAD.T - PAD.B);
-    const toYv = (v: number) => HEIGHT_V - 40 - ((v - vMin) / (vMax - vMin)) * (HEIGHT_V - 60);
-    const fromX = (px: number) => clamp(((px - PAD.L) / (WIDTH - PAD.L - PAD.R)) * T_MAX, 0, T_MAX);
+    // Trasformazioni (stabili per i useMemo)
+    const toX = useCallback(
+        (t: number) => PAD.L + (t / T_MAX) * (WIDTH - PAD.L - PAD.R),
+        []
+    );
+
+    const toY = useCallback(
+        (s: number) =>
+            HEIGHT -
+            PAD.B -
+            ((s - sMin) / (sMax - sMin)) * (HEIGHT - PAD.T - PAD.B),
+        [sMin, sMax]
+    );
+
+    const toYv = useCallback(
+        (v: number) =>
+            HEIGHT_V -
+            40 -
+            ((v - vMin) / (vMax - vMin)) * (HEIGHT_V - 60),
+        [vMin, vMax]
+    );
+
+    const fromX = useCallback(
+        (px: number) =>
+            clamp(((px - PAD.L) / (WIDTH - PAD.L - PAD.R)) * T_MAX, 0, T_MAX),
+        []
+    );
+
 
     // Punti mobili
     const [t1, setT1] = useState(2);
@@ -160,7 +201,52 @@ export default function MediaVelocitaSecanteDemo() {
     const tTicks = Array.from({ length: T_MAX + 1 }, (_, i) => i);
 
     // Stili
-    const cardStyle: React.CSSProperties = { background: "#fff", borderRadius: 16, padding: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.08)" };
+    const cardStyleLocal: React.CSSProperties = {
+        background: "#fff",
+        borderRadius: 16,
+        padding: 12,
+        boxShadow: "0 2px 8px rgba(0,0,0,0.08)"
+    };
+
+    const actionBtnBase: React.CSSProperties = {
+        padding: "6px 12px",
+        borderRadius: 8,
+        border: "1px solid #d1d5db",
+        background: "#fff",
+        cursor: "pointer",
+        fontSize: 13
+    };
+
+    const actionBtnDisabled: React.CSSProperties = {
+        ...actionBtnBase,
+        background: "#e5e7eb",
+        cursor: "default"
+    };
+
+    const headerControlsStyle: React.CSSProperties = {
+        display: "flex",
+        gap: 8,
+        flexWrap: "wrap",
+        alignItems: "center",
+        ...(isMobile ? { width: "100%", flexDirection: "column", alignItems: "stretch" } : {})
+    };
+
+    const fullWidthIfMobile: React.CSSProperties | undefined = isMobile ? { width: "100%" } : undefined;
+
+    // Griglia “tre box sotto”
+    const tripleGridStyle: React.CSSProperties = {
+        display: "grid",
+        gap: 12,
+        marginTop: 12,
+        ...(isDesktop
+            ? { gridTemplateColumns: "1fr 1fr 1fr" }
+            : isTablet
+                ? { gridTemplateColumns: "1fr 1fr" }
+                : { gridTemplateColumns: "1fr" })
+    };
+
+    // Su tablet: primo box (Controlli) a tutta larghezza sopra
+    const controlsBoxStyle: React.CSSProperties = isTablet ? { gridColumn: "1 / -1" } : {};
 
     return (
         <DemoContainer
@@ -168,20 +254,39 @@ export default function MediaVelocitaSecanteDemo() {
             description="La velocità media tra due istanti è il coefficiente angolare della retta secante sul grafico s(t). Trascina i marcatori o usa l'animazione per vedere come la secante tende alla tangente."
         >
             {/* Grafico principale */}
-            <div style={cardStyle}>
+            <div style={cardStyleLocal}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
                     <div style={{ fontWeight: 600, fontSize: 16 }}>Diagramma spazio-tempo s(t)</div>
-                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-                        <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13 }}>
-                            <input type="checkbox" checked={showSecant} onChange={e => setShowSecant(e.target.checked)} /> Secante
+
+                    <div style={headerControlsStyle}>
+                        <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, ...(isMobile ? { width: "100%" } : {}) }}>
+                            <input type="checkbox" checked={showSecant} onChange={e => setShowSecant(e.target.checked)} />
+                            Secante
                         </label>
-                        <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13 }}>
-                            <input type="checkbox" checked={showTangent} onChange={e => setShowTangent(e.target.checked)} /> Tangente
+
+                        <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, ...(isMobile ? { width: "100%" } : {}) }}>
+                            <input type="checkbox" checked={showTangent} onChange={e => setShowTangent(e.target.checked)} />
+                            Tangente
                         </label>
-                        <button onClick={() => setAnimating(true)} disabled={animating} style={{ padding: "6px 12px", borderRadius: 8, border: "1px solid #d1d5db", background: animating ? "#e5e7eb" : "#fff", cursor: animating ? "default" : "pointer", fontSize: 13 }}>
+
+                        <button
+                            onClick={() => setAnimating(true)}
+                            disabled={animating}
+                            style={{
+                                ...(animating ? actionBtnDisabled : actionBtnBase),
+                                ...(fullWidthIfMobile || {})
+                            }}
+                        >
                             ▶ Anima t₂→t₁
                         </button>
-                        <button onClick={() => setSeed(Math.floor(Math.random() * 1e9))} style={{ padding: "6px 12px", borderRadius: 8, border: "1px solid #d1d5db", background: "#fff", cursor: "pointer", fontSize: 13 }}>
+
+                        <button
+                            onClick={() => setSeed(Math.floor(Math.random() * 1e9))}
+                            style={{
+                                ...actionBtnBase,
+                                ...(fullWidthIfMobile || {})
+                            }}
+                        >
                             🎲 Nuovo
                         </button>
                     </div>
@@ -189,7 +294,7 @@ export default function MediaVelocitaSecanteDemo() {
 
                 <svg
                     viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
-                    style={{ width: "100%", height: "auto", maxHeight: "55vh", cursor: drag ? "grabbing" : "crosshair" }}
+                    style={{ width: "100%", height: "auto", maxHeight: isMobile ? "52vh" : "55vh", cursor: drag ? "grabbing" : "crosshair" }}
                     onMouseDown={handleMouseDown}
                     onMouseMove={handleMouseMove}
                     onMouseUp={() => setDrag(null)}
@@ -263,28 +368,57 @@ export default function MediaVelocitaSecanteDemo() {
                 </svg>
             </div>
 
-            {/* Controlli e risultati */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginTop: 12 }}>
+            {/* Controlli e risultati (3 layout) */}
+            <div style={tripleGridStyle}>
                 {/* Slider */}
-                <div style={cardStyle}>
+                <div style={{ ...cardStyleLocal, ...controlsBoxStyle }}>
                     <div style={{ fontWeight: 600, marginBottom: 8 }}>Controlli</div>
                     <div style={{ display: "grid", gap: 8 }}>
                         <label style={{ fontSize: 13 }}>
                             <span style={{ color: "#ef4444", fontWeight: 600 }}>t₁</span> = {t1.toFixed(2)} s
-                            <input type="range" min={0} max={T_MAX - 0.1} step={0.05} value={t1} onChange={e => setT1(Math.min(+e.target.value, t2 - 0.1))} style={{ width: "100%", accentColor: "#ef4444" }} />
+                            <input
+                                type="range"
+                                min={0}
+                                max={T_MAX - 0.1}
+                                step={0.05}
+                                value={t1}
+                                onChange={e => setT1(Math.min(+e.target.value, t2 - 0.1))}
+                                style={{ width: "100%", accentColor: "#ef4444" }}
+                            />
                         </label>
+
                         <label style={{ fontSize: 13 }}>
                             <span style={{ color: "#f59e0b", fontWeight: 600 }}>t₂</span> = {t2.toFixed(2)} s
-                            <input type="range" min={0.1} max={T_MAX} step={0.05} value={t2} onChange={e => setT2(Math.max(+e.target.value, t1 + 0.1))} style={{ width: "100%", accentColor: "#f59e0b" }} />
+                            <input
+                                type="range"
+                                min={0.1}
+                                max={T_MAX}
+                                step={0.05}
+                                value={t2}
+                                onChange={e => setT2(Math.max(+e.target.value, t1 + 0.1))}
+                                style={{ width: "100%", accentColor: "#f59e0b" }}
+                            />
                         </label>
-                        <button onClick={() => { setT1(2); setT2(7); }} style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #d1d5db", background: "#fff", cursor: "pointer", fontSize: 12 }}>
+
+                        <button
+                            onClick={() => { setT1(2); setT2(7); }}
+                            style={{
+                                padding: "6px 12px",
+                                borderRadius: 6,
+                                border: "1px solid #d1d5db",
+                                background: "#fff",
+                                cursor: "pointer",
+                                fontSize: 12,
+                                ...(isMobile ? { width: "100%" } : {})
+                            }}
+                        >
                             Reset posizioni
                         </button>
                     </div>
                 </div>
 
                 {/* Valori */}
-                <div style={{ ...cardStyle, background: "#f0fdf4" }}>
+                <div style={{ ...cardStyleLocal, background: "#f0fdf4" }}>
                     <div style={{ fontWeight: 600, marginBottom: 8, color: "#166534" }}>📊 Valori</div>
                     <div style={{ fontSize: 13, display: "grid", gap: 6 }}>
                         <div>s(t₁) = <strong>{s1.toFixed(2)}</strong> m</div>
@@ -297,7 +431,7 @@ export default function MediaVelocitaSecanteDemo() {
                 </div>
 
                 {/* Risultato */}
-                <div style={{ ...cardStyle, background: "linear-gradient(135deg, #dbeafe 0%, #ede9fe 100%)" }}>
+                <div style={{ ...cardStyleLocal, background: "linear-gradient(135deg, #dbeafe 0%, #ede9fe 100%)" }}>
                     <div style={{ fontWeight: 600, marginBottom: 8, color: "#4338ca" }}>🎯 Velocità media</div>
                     <div style={{ fontSize: 24, fontWeight: 700, color: "#10b981" }}>
                         v̄ = {vMedia.toFixed(3)} m/s
@@ -314,11 +448,12 @@ export default function MediaVelocitaSecanteDemo() {
             </div>
 
             {/* Grafico v(t) */}
-            <div style={{ ...cardStyle, marginTop: 12 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+            <div style={{ ...cardStyleLocal, marginTop: 12 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, gap: 8, flexWrap: "wrap" }}>
                     <div style={{ fontWeight: 600 }}>Velocità istantanea v(t)</div>
-                    <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13 }}>
-                        <input type="checkbox" checked={showVGraph} onChange={e => setShowVGraph(e.target.checked)} /> Mostra grafico
+                    <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13 }}>
+                        <input type="checkbox" checked={showVGraph} onChange={e => setShowVGraph(e.target.checked)} />
+                        Mostra grafico
                     </label>
                 </div>
 
