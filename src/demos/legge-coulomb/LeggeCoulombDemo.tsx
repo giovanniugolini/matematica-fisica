@@ -7,10 +7,8 @@ import React, { useMemo, useRef, useState } from "react";
 import { DemoContainer } from "../../components/ui";
 import {
     clamp,
-    K_COULOMB,
     Vec2,
     vecNormalize,
-    vecDistance,
     coulombForce,
     formatScientific,
     RAD_TO_DEG,
@@ -121,12 +119,15 @@ export default function LeggeCoulombDemo() {
     }
 
     function startDrag(which: "q1" | "q2", e: React.PointerEvent<Element>) {
+        e.preventDefault(); // Previene scroll su mobile
+        e.stopPropagation();
         (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
         setDrag({ which, id: e.pointerId });
     }
 
     function moveDrag(e: React.PointerEvent<SVGSVGElement>) {
         if (!drag) return;
+        e.preventDefault(); // Previene scroll durante drag
         const m = ptrToLocal(e);
         const nx = clamp(m.x, PAD, WIDTH - PAD);
         const ny = clamp(m.y, PAD, HEIGHT - PAD);
@@ -205,7 +206,7 @@ export default function LeggeCoulombDemo() {
                 <svg
                     ref={svgRef}
                     viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
-                    style={{ width: "100%", height: "auto", maxHeight: "65vh", display: "block", margin: "0 auto" }}
+                    style={{ width: "100%", height: "auto", maxHeight: "65vh", display: "block", margin: "0 auto", touchAction: "none" }}
                     onPointerMove={moveDrag}
                     onPointerUp={endDrag}
                     onPointerCancel={endDrag}
@@ -235,13 +236,23 @@ export default function LeggeCoulombDemo() {
 
                     {/* Cariche */}
                     <g style={{ cursor }}>
-                        {/* q1 */}
-                        <circle cx={p1.x} cy={p1.y} r={26} fill="transparent" onPointerDown={(e) => startDrag("q1", e)} />
+                        {/* q1 - area touch più grande per mobile */}
+                        <circle
+                            cx={p1.x} cy={p1.y} r={35}
+                            fill="transparent"
+                            style={{ touchAction: "none" }}
+                            onPointerDown={(e) => startDrag("q1", e)}
+                        />
                         <circle cx={p1.x} cy={p1.y} r={20} fill={q1 >= 0 ? "#0ea5e9" : "#0284c7"} stroke="#0c4a6e" strokeWidth={2} pointerEvents="none" />
                         <text x={p1.x} y={p1.y + 5} fontSize={14} textAnchor="middle" fill="#ffffff" fontWeight={600} pointerEvents="none">q₁</text>
 
-                        {/* q2 */}
-                        <circle cx={p2.x} cy={p2.y} r={26} fill="transparent" onPointerDown={(e) => startDrag("q2", e)} />
+                        {/* q2 - area touch più grande per mobile */}
+                        <circle
+                            cx={p2.x} cy={p2.y} r={35}
+                            fill="transparent"
+                            style={{ touchAction: "none" }}
+                            onPointerDown={(e) => startDrag("q2", e)}
+                        />
                         <circle cx={p2.x} cy={p2.y} r={20} fill={q2 >= 0 ? "#ef4444" : "#dc2626"} stroke="#7f1d1d" strokeWidth={2} pointerEvents="none" />
                         <text x={p2.x} y={p2.y + 5} fontSize={14} textAnchor="middle" fill="#ffffff" fontWeight={600} pointerEvents="none">q₂</text>
                     </g>

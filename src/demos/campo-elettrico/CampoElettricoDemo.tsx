@@ -150,11 +150,14 @@ export default function CampoElettricoDemo() {
     }
 
     function onPointerDown(e: React.PointerEvent<SVGSVGElement>) {
+        e.preventDefault(); // Previene scroll su mobile
         const px = getLocalPx(e.clientX, e.clientY);
+        // Area touch più grande su mobile (35px invece di 22px)
+        const touchRadius = e.pointerType === "touch" ? 35 : 22;
         let target: null | "source" | "test" = null;
 
-        if (nearCharge(px, source)) target = "source";
-        else if (showTest && nearCharge(px, test)) target = "test";
+        if (nearCharge(px, source, touchRadius)) target = "source";
+        else if (showTest && nearCharge(px, test, touchRadius)) target = "test";
 
         if (target) {
             setDragging(target);
@@ -166,12 +169,16 @@ export default function CampoElettricoDemo() {
         const px = getLocalPx(e.clientX, e.clientY);
 
         if (!dragging) {
-            const h = nearCharge(px, source, 14)
+            const hoverRadius = e.pointerType === "touch" ? 25 : 14;
+            const h = nearCharge(px, source, hoverRadius)
                 ? "source"
-                : (showTest && nearCharge(px, test, 14) ? "test" : null);
+                : (showTest && nearCharge(px, test, hoverRadius) ? "test" : null);
             setHoverTarget(h);
             return;
         }
+
+        // Previene scroll durante il drag
+        e.preventDefault();
 
         let p = getWorldPoint(e.clientX, e.clientY);
         p.x = clamp(p.x, WORLD.xmin, WORLD.xmax);
@@ -269,12 +276,15 @@ export default function CampoElettricoDemo() {
                     {/* Carica sorgente */}
                     <g
                         onPointerDown={(e) => {
+                            e.preventDefault();
                             e.stopPropagation();
                             setDragging("source");
                             svgRef.current?.setPointerCapture?.(e.pointerId);
                         }}
-                        style={{ cursor: dragging === "source" ? "grabbing" : "grab" }}
+                        style={{ cursor: dragging === "source" ? "grabbing" : "grab", touchAction: "none" }}
                     >
+                        {/* Area touch invisibile più grande per mobile */}
+                        <circle cx={toX(source.x)} cy={toY(source.y)} r={30} fill="transparent" />
                         <circle cx={toX(source.x)} cy={toY(source.y)} r={18} fill={qSourceC >= 0 ? "#ef4444" : "#3b82f6"} stroke="#0f172a" strokeWidth={2} />
                         <text x={toX(source.x)} y={toY(source.y) + 6} fontSize={22} textAnchor="middle" fill="#fff" fontWeight={700}>
                             {qSourceC >= 0 ? "+" : "−"}
@@ -288,11 +298,12 @@ export default function CampoElettricoDemo() {
                     {showTest && (
                         <g
                             onPointerDown={(e) => {
+                                e.preventDefault();
                                 e.stopPropagation();
                                 setDragging("test");
                                 svgRef.current?.setPointerCapture?.(e.pointerId);
                             }}
-                            style={{ cursor: dragging === "test" ? "grabbing" : "grab" }}
+                            style={{ cursor: dragging === "test" ? "grabbing" : "grab", touchAction: "none" }}
                         >
                             {/* Vettore forza */}
                             <Arrow
@@ -305,6 +316,8 @@ export default function CampoElettricoDemo() {
                                 toY={toY}
                                 color="#10b981"
                             />
+                            {/* Area touch invisibile più grande per mobile */}
+                            <circle cx={toX(test.x)} cy={toY(test.y)} r={26} fill="transparent" />
                             <circle cx={toX(test.x)} cy={toY(test.y)} r={14} fill="#f59e0b" stroke="#0f172a" strokeWidth={2} />
                             <text x={toX(test.x) + 18} y={toY(test.y) - 16} fontSize={14} fill="#0f172a" fontWeight={500}>
                                 q_t = {qTestNano.toFixed(1)} nC
