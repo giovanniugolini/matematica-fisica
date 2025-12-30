@@ -128,6 +128,9 @@ export default function CampoElettricoDemo() {
 
     // ============ DRAG HANDLERS ============
 
+    // Ref per tracciare il touch attivo (più affidabile su iOS)
+    const activeTouchRef = useRef<{ id: number; target: "source" | "test" } | null>(null);
+
     function getWorldPoint(clientX: number, clientY: number): Vec2 {
         const svg = svgRef.current;
         if (!svg) return { x: 0, y: 0 };
@@ -149,15 +152,65 @@ export default function CampoElettricoDemo() {
         return Math.hypot(dx, dy) <= radiusPx;
     }
 
+    function updatePosition(clientX: number, clientY: number, target: "source" | "test") {
+        let p = getWorldPoint(clientX, clientY);
+        p.x = clamp(p.x, WORLD.xmin, WORLD.xmax);
+        p.y = clamp(p.y, WORLD.ymin, WORLD.ymax);
+
+        if (target === "source") {
+            p = constrainWithinRadius(p, test, MAX_DIST);
+            setSource(p);
+        } else {
+            p = constrainWithinRadius(p, source, MAX_DIST);
+            setTest(p);
+        }
+    }
+
+    // ===== TOUCH EVENTS (iOS/Android) =====
+    function onTouchStart(target: "source" | "test") {
+        return (e: React.TouchEvent) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const touch = e.touches[0];
+            activeTouchRef.current = { id: touch.identifier, target };
+            setDragging(target);
+        };
+    }
+
+    function onTouchMove(e: React.TouchEvent<SVGSVGElement>) {
+        if (!activeTouchRef.current) return;
+        e.preventDefault();
+
+        const touch = Array.from(e.touches).find(t => t.identifier === activeTouchRef.current!.id);
+        if (!touch) return;
+
+        updatePosition(touch.clientX, touch.clientY, activeTouchRef.current.target);
+    }
+
+    function onTouchEnd(e: React.TouchEvent<SVGSVGElement>) {
+        if (!activeTouchRef.current) return;
+
+        const stillTouching = Array.from(e.touches).some(
+            t => t.identifier === activeTouchRef.current!.id
+        );
+
+        if (!stillTouching) {
+            activeTouchRef.current = null;
+            setDragging(null);
+        }
+    }
+
+    // ===== POINTER/MOUSE EVENTS (Desktop) =====
     function onPointerDown(e: React.PointerEvent<SVGSVGElement>) {
-        e.preventDefault(); // Previene scroll su mobile
+        // Su touch, lascia gestire a onTouchStart
+        if (e.pointerType === "touch") return;
+
+        e.preventDefault();
         const px = getLocalPx(e.clientX, e.clientY);
-        // Area touch più grande su mobile (35px invece di 22px)
-        const touchRadius = e.pointerType === "touch" ? 35 : 22;
         let target: null | "source" | "test" = null;
 
-        if (nearCharge(px, source, touchRadius)) target = "source";
-        else if (showTest && nearCharge(px, test, touchRadius)) target = "test";
+        if (nearCharge(px, source, 22)) target = "source";
+        else if (showTest && nearCharge(px, test, 22)) target = "test";
 
         if (target) {
             setDragging(target);
@@ -166,39 +219,31 @@ export default function CampoElettricoDemo() {
     }
 
     function onPointerMove(e: React.PointerEvent<SVGSVGElement>) {
+        // Su touch, lascia gestire a onTouchMove
+        if (e.pointerType === "touch") return;
+
         const px = getLocalPx(e.clientX, e.clientY);
 
         if (!dragging) {
-            const hoverRadius = e.pointerType === "touch" ? 25 : 14;
-            const h = nearCharge(px, source, hoverRadius)
+            const h = nearCharge(px, source, 14)
                 ? "source"
-                : (showTest && nearCharge(px, test, hoverRadius) ? "test" : null);
+                : (showTest && nearCharge(px, test, 14) ? "test" : null);
             setHoverTarget(h);
             return;
         }
 
-        // Previene scroll durante il drag
         e.preventDefault();
-
-        let p = getWorldPoint(e.clientX, e.clientY);
-        p.x = clamp(p.x, WORLD.xmin, WORLD.xmax);
-        p.y = clamp(p.y, WORLD.ymin, WORLD.ymax);
-
-        if (dragging === "source") {
-            p = constrainWithinRadius(p, test, MAX_DIST);
-            setSource(p);
-        } else if (dragging === "test") {
-            p = constrainWithinRadius(p, source, MAX_DIST);
-            setTest(p);
-        }
+        updatePosition(e.clientX, e.clientY, dragging);
     }
 
     function onPointerUp(e: React.PointerEvent<SVGSVGElement>) {
+        if (e.pointerType === "touch") return;
         try { svgRef.current?.releasePointerCapture?.(e.pointerId); } catch {}
         setDragging(null);
     }
 
-    function onPointerLeave() {
+    function onPointerLeave(e: React.PointerEvent<SVGSVGElement>) {
+        if (e.pointerType === "touch") return;
         setDragging(null);
     }
 
@@ -249,6 +294,9 @@ export default function CampoElettricoDemo() {
                     onPointerMove={onPointerMove}
                     onPointerUp={onPointerUp}
                     onPointerLeave={onPointerLeave}
+                    onTouchMove={onTouchMove}
+                    onTouchEnd={onTouchEnd}
+                    onTouchCancel={onTouchEnd}
                 >
                     {/* Sfondo */}
                     <rect x={0} y={0} width={WIDTH} height={HEIGHT} fill="#fff" rx={16} />
@@ -273,38 +321,36 @@ export default function CampoElettricoDemo() {
                         return <Arrow key={idx} x={p.x} y={p.y} vx={E.Ex} vy={E.Ey} lenWorld={L} toX={toX} toY={toY} color={color} />;
                     })}
 
-                    {/* Carica sorgente */}
-                    <g
-                        onPointerDown={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            setDragging("source");
-                            svgRef.current?.setPointerCapture?.(e.pointerId);
-                        }}
-                        style={{ cursor: dragging === "source" ? "grabbing" : "grab", touchAction: "none" }}
-                    >
-                        {/* Area touch invisibile più grande per mobile */}
-                        <circle cx={toX(source.x)} cy={toY(source.y)} r={30} fill="transparent" />
-                        <circle cx={toX(source.x)} cy={toY(source.y)} r={18} fill={qSourceC >= 0 ? "#ef4444" : "#3b82f6"} stroke="#0f172a" strokeWidth={2} />
-                        <text x={toX(source.x)} y={toY(source.y) + 6} fontSize={22} textAnchor="middle" fill="#fff" fontWeight={700}>
+                    {/* Carica sorgente - con touch events per iOS */}
+                    <g style={{ cursor: dragging === "source" ? "grabbing" : "grab" }}>
+                        {/* Area touch invisibile più grande (40px) */}
+                        <circle
+                            cx={toX(source.x)}
+                            cy={toY(source.y)}
+                            r={40}
+                            fill="transparent"
+                            style={{ touchAction: "none" }}
+                            onTouchStart={onTouchStart("source")}
+                            onPointerDown={(e) => {
+                                if (e.pointerType === "touch") return;
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setDragging("source");
+                                svgRef.current?.setPointerCapture?.(e.pointerId);
+                            }}
+                        />
+                        <circle cx={toX(source.x)} cy={toY(source.y)} r={18} fill={qSourceC >= 0 ? "#ef4444" : "#3b82f6"} stroke="#0f172a" strokeWidth={2} pointerEvents="none" />
+                        <text x={toX(source.x)} y={toY(source.y) + 6} fontSize={22} textAnchor="middle" fill="#fff" fontWeight={700} pointerEvents="none">
                             {qSourceC >= 0 ? "+" : "−"}
                         </text>
-                        <text x={toX(source.x) + 24} y={toY(source.y) - 22} fontSize={14} fill="#0f172a" fontWeight={500}>
+                        <text x={toX(source.x) + 24} y={toY(source.y) - 22} fontSize={14} fill="#0f172a" fontWeight={500} pointerEvents="none">
                             q = {qMicro.toFixed(1)} μC
                         </text>
                     </g>
 
-                    {/* Carica di prova */}
+                    {/* Carica di prova - con touch events per iOS */}
                     {showTest && (
-                        <g
-                            onPointerDown={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                setDragging("test");
-                                svgRef.current?.setPointerCapture?.(e.pointerId);
-                            }}
-                            style={{ cursor: dragging === "test" ? "grabbing" : "grab", touchAction: "none" }}
-                        >
+                        <g style={{ cursor: dragging === "test" ? "grabbing" : "grab" }}>
                             {/* Vettore forza */}
                             <Arrow
                                 x={test.x}
@@ -316,10 +362,24 @@ export default function CampoElettricoDemo() {
                                 toY={toY}
                                 color="#10b981"
                             />
-                            {/* Area touch invisibile più grande per mobile */}
-                            <circle cx={toX(test.x)} cy={toY(test.y)} r={26} fill="transparent" />
-                            <circle cx={toX(test.x)} cy={toY(test.y)} r={14} fill="#f59e0b" stroke="#0f172a" strokeWidth={2} />
-                            <text x={toX(test.x) + 18} y={toY(test.y) - 16} fontSize={14} fill="#0f172a" fontWeight={500}>
+                            {/* Area touch invisibile più grande (35px) */}
+                            <circle
+                                cx={toX(test.x)}
+                                cy={toY(test.y)}
+                                r={35}
+                                fill="transparent"
+                                style={{ touchAction: "none" }}
+                                onTouchStart={onTouchStart("test")}
+                                onPointerDown={(e) => {
+                                    if (e.pointerType === "touch") return;
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setDragging("test");
+                                    svgRef.current?.setPointerCapture?.(e.pointerId);
+                                }}
+                            />
+                            <circle cx={toX(test.x)} cy={toY(test.y)} r={14} fill="#f59e0b" stroke="#0f172a" strokeWidth={2} pointerEvents="none" />
+                            <text x={toX(test.x) + 18} y={toY(test.y) - 16} fontSize={14} fill="#0f172a" fontWeight={500} pointerEvents="none">
                                 q_t = {qTestNano.toFixed(1)} nC
                             </text>
                         </g>

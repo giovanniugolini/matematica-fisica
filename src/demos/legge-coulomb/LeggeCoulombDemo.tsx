@@ -113,29 +113,84 @@ export default function LeggeCoulombDemo() {
 
     // ============ DRAG HANDLERS ============
 
-    function ptrToLocal(e: React.PointerEvent<Element>) {
+    // Ref per tracciare il touch attivo (più affidabile su iOS)
+    const activeTouchRef = useRef<{ id: number; which: "q1" | "q2" } | null>(null);
+
+    function ptrToLocal(clientX: number, clientY: number) {
         const rect = svgRef.current!.getBoundingClientRect();
-        return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        // Calcola la scala del viewBox rispetto al rect
+        const scaleX = WIDTH / rect.width;
+        const scaleY = HEIGHT / rect.height;
+        return {
+            x: (clientX - rect.left) * scaleX,
+            y: (clientY - rect.top) * scaleY
+        };
     }
 
+    function updatePosition(clientX: number, clientY: number, which: "q1" | "q2") {
+        const m = ptrToLocal(clientX, clientY);
+        const nx = clamp(m.x, PAD, WIDTH - PAD);
+        const ny = clamp(m.y, PAD, HEIGHT - PAD);
+        if (which === "q1") setP1({ x: nx, y: ny });
+        else setP2({ x: nx, y: ny });
+    }
+
+    // ===== TOUCH EVENTS (iOS/Android) =====
+    function onTouchStart(which: "q1" | "q2") {
+        return (e: React.TouchEvent) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const touch = e.touches[0];
+            activeTouchRef.current = { id: touch.identifier, which };
+            setDrag({ which, id: touch.identifier });
+        };
+    }
+
+    function onTouchMove(e: React.TouchEvent<SVGSVGElement>) {
+        if (!activeTouchRef.current) return;
+        e.preventDefault();
+
+        const touch = Array.from(e.touches).find(t => t.identifier === activeTouchRef.current!.id);
+        if (!touch) return;
+
+        updatePosition(touch.clientX, touch.clientY, activeTouchRef.current.which);
+    }
+
+    function onTouchEnd(e: React.TouchEvent<SVGSVGElement>) {
+        if (!activeTouchRef.current) return;
+
+        const stillTouching = Array.from(e.touches).some(
+            t => t.identifier === activeTouchRef.current!.id
+        );
+
+        if (!stillTouching) {
+            activeTouchRef.current = null;
+            setDrag(null);
+        }
+    }
+
+    // ===== POINTER/MOUSE EVENTS (Desktop) =====
     function startDrag(which: "q1" | "q2", e: React.PointerEvent<Element>) {
-        e.preventDefault(); // Previene scroll su mobile
+        // Su touch, lascia gestire a onTouchStart
+        if (e.pointerType === "touch") return;
+
+        e.preventDefault();
         e.stopPropagation();
         (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
         setDrag({ which, id: e.pointerId });
     }
 
     function moveDrag(e: React.PointerEvent<SVGSVGElement>) {
+        // Su touch, lascia gestire a onTouchMove
+        if (e.pointerType === "touch") return;
         if (!drag) return;
-        e.preventDefault(); // Previene scroll durante drag
-        const m = ptrToLocal(e);
-        const nx = clamp(m.x, PAD, WIDTH - PAD);
-        const ny = clamp(m.y, PAD, HEIGHT - PAD);
-        if (drag.which === "q1") setP1({ x: nx, y: ny });
-        else setP2({ x: nx, y: ny });
+
+        e.preventDefault();
+        updatePosition(e.clientX, e.clientY, drag.which);
     }
 
     function endDrag(e: React.PointerEvent<SVGSVGElement>) {
+        if (e.pointerType === "touch") return;
         if (drag && e.pointerId === drag.id) setDrag(null);
     }
 
@@ -211,6 +266,9 @@ export default function LeggeCoulombDemo() {
                     onPointerUp={endDrag}
                     onPointerCancel={endDrag}
                     onPointerLeave={endDrag}
+                    onTouchMove={onTouchMove}
+                    onTouchEnd={onTouchEnd}
+                    onTouchCancel={onTouchEnd}
                 >
                     {/* Sfondo */}
                     <rect x={0} y={0} width={WIDTH} height={HEIGHT} rx={16} fill="#ffffff" />
@@ -236,21 +294,23 @@ export default function LeggeCoulombDemo() {
 
                     {/* Cariche */}
                     <g style={{ cursor }}>
-                        {/* q1 - area touch più grande per mobile */}
+                        {/* q1 - area touch più grande per mobile (40px) */}
                         <circle
-                            cx={p1.x} cy={p1.y} r={35}
+                            cx={p1.x} cy={p1.y} r={40}
                             fill="transparent"
                             style={{ touchAction: "none" }}
+                            onTouchStart={onTouchStart("q1")}
                             onPointerDown={(e) => startDrag("q1", e)}
                         />
                         <circle cx={p1.x} cy={p1.y} r={20} fill={q1 >= 0 ? "#0ea5e9" : "#0284c7"} stroke="#0c4a6e" strokeWidth={2} pointerEvents="none" />
                         <text x={p1.x} y={p1.y + 5} fontSize={14} textAnchor="middle" fill="#ffffff" fontWeight={600} pointerEvents="none">q₁</text>
 
-                        {/* q2 - area touch più grande per mobile */}
+                        {/* q2 - area touch più grande per mobile (40px) */}
                         <circle
-                            cx={p2.x} cy={p2.y} r={35}
+                            cx={p2.x} cy={p2.y} r={40}
                             fill="transparent"
                             style={{ touchAction: "none" }}
+                            onTouchStart={onTouchStart("q2")}
                             onPointerDown={(e) => startDrag("q2", e)}
                         />
                         <circle cx={p2.x} cy={p2.y} r={20} fill={q2 >= 0 ? "#ef4444" : "#dc2626"} stroke="#7f1d1d" strokeWidth={2} pointerEvents="none" />
