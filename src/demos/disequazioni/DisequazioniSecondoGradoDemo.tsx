@@ -1,5 +1,7 @@
 /**
- * DisequazioniSecondoGradoDemo - Versione refactorizzata con helpers
+ * DisequazioniSecondoGradoDemo - Versione Responsive
+ * Risoluzione step-by-step di disequazioni quadratiche
+ * Ottimizzato per mobile, tablet e desktop
  */
 
 import React, { useState, useCallback } from "react";
@@ -11,11 +13,15 @@ import {
     ProblemCard,
     NavigationButtons,
     StepCard,
-    StepGrid,
     GraphContainer,
     InfoBox,
     GenerateButton,
     useStepNavigation,
+    useBreakpoint,
+    ResponsiveGrid,
+    ResponsiveCard,
+    SwipeableTabs,
+    CollapsiblePanel,
 } from "../../components/ui";
 
 // Utility matematiche
@@ -26,7 +32,6 @@ import {
     formatNumberLatex,
     formatQuadraticLatex,
     signToLatex,
-    signToText,
     isStrictInequality,
     isPositiveInequality,
     InequalitySign,
@@ -171,9 +176,10 @@ interface ParabolaGraphProps {
     showIntersections: boolean;
     showConcavity: boolean;
     showSolution: boolean;
+    isMobile?: boolean;
 }
 
-function ParabolaGraph({ diseq, showIntersections, showConcavity, showSolution }: ParabolaGraphProps) {
+function ParabolaGraph({ diseq, showIntersections, showConcavity, showSolution, isMobile }: ParabolaGraphProps) {
     const { a, b, c, x1, x2, solutionType } = diseq;
 
     // Range X
@@ -248,8 +254,11 @@ function ParabolaGraph({ diseq, showIntersections, showConcavity, showSolution }
     const formatRootLabel = (n: number) =>
         formatNumberLatex(n).replace(/\\frac\{([^}]+)\}\{([^}]+)\}/, '$1/$2');
 
+    const fontSize = isMobile ? 12 : 14;
+    const labelFontSize = isMobile ? 11 : 13;
+
     return (
-        <svg width={SVG_WIDTH} height={SVG_HEIGHT} style={{ maxWidth: "100%", display: "block", margin: "0 auto" }}>
+        <svg viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`} style={{ width: "100%", height: "auto" }}>
             <rect x={0} y={0} width={SVG_WIDTH} height={SVG_HEIGHT} fill="#fafafa" stroke="#ddd" rx={8} />
 
             {/* Zone +/- */}
@@ -290,16 +299,17 @@ function ParabolaGraph({ diseq, showIntersections, showConcavity, showSolution }
             {/* Assi */}
             <line x1={PADDING} y1={originY} x2={SVG_WIDTH - PADDING} y2={originY} stroke="#374151" strokeWidth={2} />
             <polygon points={`${SVG_WIDTH - PADDING},${originY} ${SVG_WIDTH - PADDING - 8},${originY - 4} ${SVG_WIDTH - PADDING - 8},${originY + 4}`} fill="#374151" />
-            <text x={SVG_WIDTH - PADDING + 5} y={originY + 5} fontSize={14} fill="#374151" fontStyle="italic">x</text>
+            <text x={SVG_WIDTH - PADDING + 5} y={originY + 5} fontSize={fontSize} fill="#374151" fontStyle="italic">x</text>
 
             <line x1={originX} y1={SVG_HEIGHT - PADDING} x2={originX} y2={PADDING} stroke="#374151" strokeWidth={2} />
             <polygon points={`${originX},${PADDING} ${originX - 4},${PADDING + 8} ${originX + 4},${PADDING + 8}`} fill="#374151" />
-            <text x={originX + 8} y={PADDING + 5} fontSize={14} fill="#374151" fontStyle="italic">y</text>
+            <text x={originX + 8} y={PADDING + 5} fontSize={fontSize} fill="#374151" fontStyle="italic">y</text>
 
-            {/* Tacche X */}
+            {/* Tacche X (meno su mobile) */}
             {Array.from({ length: Math.ceil(xMax - xMin) + 1 }, (_, i) => {
                 const x = Math.floor(xMin) + i;
                 if (x === 0 || x < xMin || x > xMax) return null;
+                if (isMobile && x % 2 !== 0) return null;
                 return (
                     <g key={`xt-${x}`}>
                         <line x1={scaleX(x)} y1={originY - 4} x2={scaleX(x)} y2={originY + 4} stroke="#374151" />
@@ -344,32 +354,32 @@ function ParabolaGraph({ diseq, showIntersections, showConcavity, showSolution }
             {/* Intersezioni */}
             {showIntersections && solutionType === "two-roots" && (
                 <>
-                    <circle cx={scaleX(x1!)} cy={originY} r={8} fill="#ef4444" stroke="#fff" strokeWidth={2} />
-                    <text x={scaleX(x1!)} y={originY + 28} fontSize={13} textAnchor="middle" fill="#ef4444" fontWeight={600}>
+                    <circle cx={scaleX(x1!)} cy={originY} r={isMobile ? 10 : 8} fill="#ef4444" stroke="#fff" strokeWidth={2} />
+                    <text x={scaleX(x1!)} y={originY + 28} fontSize={labelFontSize} textAnchor="middle" fill="#ef4444" fontWeight={600}>
                         x₁={formatRootLabel(x1!)}
                     </text>
-                    <circle cx={scaleX(x2!)} cy={originY} r={8} fill="#ef4444" stroke="#fff" strokeWidth={2} />
-                    <text x={scaleX(x2!)} y={originY + 28} fontSize={13} textAnchor="middle" fill="#ef4444" fontWeight={600}>
+                    <circle cx={scaleX(x2!)} cy={originY} r={isMobile ? 10 : 8} fill="#ef4444" stroke="#fff" strokeWidth={2} />
+                    <text x={scaleX(x2!)} y={originY + 28} fontSize={labelFontSize} textAnchor="middle" fill="#ef4444" fontWeight={600}>
                         x₂={formatRootLabel(x2!)}
                     </text>
                 </>
             )}
             {showIntersections && solutionType === "one-root" && (
                 <>
-                    <circle cx={scaleX(x1!)} cy={originY} r={8} fill="#f59e0b" stroke="#fff" strokeWidth={2} />
-                    <text x={scaleX(x1!)} y={originY + 28} fontSize={13} textAnchor="middle" fill="#f59e0b" fontWeight={600}>
+                    <circle cx={scaleX(x1!)} cy={originY} r={isMobile ? 10 : 8} fill="#f59e0b" stroke="#fff" strokeWidth={2} />
+                    <text x={scaleX(x1!)} y={originY + 28} fontSize={labelFontSize} textAnchor="middle" fill="#f59e0b" fontWeight={600}>
                         x₁=x₂={formatRootLabel(x1!)}
                     </text>
                 </>
             )}
             {showIntersections && solutionType === "no-roots" && (
-                <text x={SVG_WIDTH / 2} y={PADDING + 25} fontSize={13} textAnchor="middle" fill="#6b7280" fontStyle="italic">
+                <text x={SVG_WIDTH / 2} y={PADDING + 25} fontSize={labelFontSize} textAnchor="middle" fill="#6b7280" fontStyle="italic">
                     Δ &lt; 0: nessuna intersezione
                 </text>
             )}
 
-            {/* Legenda */}
-            {showSolution && (
+            {/* Legenda (solo desktop) */}
+            {showSolution && !isMobile && (
                 <g transform={`translate(${SVG_WIDTH - 160}, ${SVG_HEIGHT - PADDING - 55})`}>
                     <rect x={0} y={0} width={150} height={50} fill="#fff" stroke="#e5e7eb" rx={6} />
                     <rect x={10} y={10} width={18} height={12} fill="rgba(34, 197, 94, 0.3)" stroke="rgba(34, 197, 94, 0.5)" />
@@ -385,6 +395,7 @@ function ParabolaGraph({ diseq, showIntersections, showConcavity, showSolution }
 // ============ COMPONENTE PRINCIPALE ============
 
 export default function DisequazioniSecondoGradoDemo() {
+    const { isMobile, isTablet } = useBreakpoint();
     const [diseq, setDiseq] = useState<DisequazioneDef>(() => generateDisequazione());
     const { currentStep, nextStep, prevStep, showAll, reset, isStepActive } = useStepNavigation(5);
 
@@ -397,6 +408,214 @@ export default function DisequazioniSecondoGradoDemo() {
     const rightSide = formatQuadraticLatex(diseq.originalRight.a, diseq.originalRight.b, diseq.originalRight.c);
     const originalEquation = `${leftSide} ${signToLatex(diseq.sign)} ${rightSide}`;
     const normalForm = `${formatQuadraticLatex(diseq.a, diseq.b, diseq.c)} ${signToLatex(diseq.sign)} 0`;
+
+    // ============ STEP CARDS ============
+
+    const Step1 = (
+        <StepCard stepNumber={1} title="Forma normale" color="green" isActive={isStepActive(1)}>
+            <div style={{ fontSize: 13, color: "#64748b", marginBottom: 8 }}>
+                Porta tutti i termini a sinistra:
+            </div>
+            <div style={{ fontSize: isMobile ? 16 : 18, padding: "8px 12px", background: "#fff", borderRadius: 6, display: "inline-block" }}>
+                <Latex>{normalForm}</Latex>
+            </div>
+            <div style={{ marginTop: 8, fontSize: 12, color: "#64748b" }}>
+                <Latex>{`a = ${diseq.a}, \\; b = ${diseq.b}, \\; c = ${diseq.c}`}</Latex>
+            </div>
+        </StepCard>
+    );
+
+    const Step2 = (
+        <StepCard stepNumber={2} title="Equazione associata" color="blue" isActive={isStepActive(2)}>
+            <div style={{ fontSize: 13, color: "#64748b", marginBottom: 6 }}>
+                <Latex>{`\\Delta = ${diseq.b}^2 - 4 \\cdot ${diseq.a} \\cdot ${diseq.c} = ${diseq.delta}`}</Latex>
+            </div>
+            {diseq.solutionType === "two-roots" && (
+                <div style={{ padding: "6px 10px", background: "#fef2f2", borderRadius: 6, color: "#991b1b", fontSize: isMobile ? 13 : 14 }}>
+                    <Latex>{`\\Delta > 0 \\Rightarrow x_1 = ${formatNumberLatex(diseq.x1!)}, \\; x_2 = ${formatNumberLatex(diseq.x2!)}`}</Latex>
+                </div>
+            )}
+            {diseq.solutionType === "one-root" && (
+                <div style={{ padding: "6px 10px", background: "#fef3c7", borderRadius: 6, color: "#92400e", fontSize: isMobile ? 13 : 14 }}>
+                    <Latex>{`\\Delta = 0 \\Rightarrow x_1 = x_2 = ${formatNumberLatex(diseq.x1!)}`}</Latex>
+                </div>
+            )}
+            {diseq.solutionType === "no-roots" && (
+                <div style={{ padding: "6px 10px", background: "#f3f4f6", borderRadius: 6, color: "#374151", fontSize: isMobile ? 13 : 14 }}>
+                    <Latex>{"\\Delta < 0 \\Rightarrow \\text{nessuna radice reale}"}</Latex>
+                </div>
+            )}
+        </StepCard>
+    );
+
+    const Step3 = (
+        <StepCard stepNumber={3} title="Concavità" color="purple" isActive={isStepActive(3)}>
+            <div style={{ padding: "8px 12px", background: "#fff", borderRadius: 6 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                    <Latex>{`a = ${diseq.a} ${diseq.a > 0 ? "> 0" : "< 0"}`}</Latex>
+                    <span style={{ fontSize: 24 }}>⟹ {diseq.a > 0 ? "∪" : "∩"}</span>
+                </div>
+            </div>
+        </StepCard>
+    );
+
+    const Step4 = (
+        <StepCard stepNumber={4} title="Soluzione" color="amber" isActive={isStepActive(4)}>
+            <div style={{ fontSize: 12, color: "#64748b", marginBottom: 4 }}>Intervalli:</div>
+            <div style={{ fontSize: isMobile ? 16 : 18, padding: "6px 10px", background: "#fff", borderRadius: 6, display: "inline-block", color: "#92400e", marginBottom: 8, overflowX: "auto" }}>
+                <Latex>{diseq.solutionIntervals}</Latex>
+            </div>
+            {!isMobile && (
+                <>
+                    <div style={{ fontSize: 12, color: "#64748b", marginBottom: 4 }}>Forma insiemistica:</div>
+                    <div style={{ fontSize: 14, padding: "6px 10px", background: "#fff", borderRadius: 6, color: "#92400e", overflowX: "auto" }}>
+                        <Latex>{diseq.solutionSet}</Latex>
+                    </div>
+                </>
+            )}
+        </StepCard>
+    );
+
+    // ============ GRAFICO ============
+
+    const GraphPanel = (
+        <ResponsiveCard>
+            <div style={{ fontWeight: 600, marginBottom: 12 }}>📈 Grafico</div>
+            <ParabolaGraph
+                diseq={diseq}
+                showIntersections={isStepActive(2)}
+                showConcavity={isStepActive(3)}
+                showSolution={isStepActive(4)}
+                isMobile={isMobile}
+            />
+            {/* Legenda mobile */}
+            {isMobile && isStepActive(4) && (
+                <div style={{ display: "flex", gap: 16, justifyContent: "center", marginTop: 12, fontSize: 12 }}>
+                    <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                        <span style={{ width: 12, height: 12, background: "rgba(34, 197, 94, 0.3)", border: "1px solid rgba(34, 197, 94, 0.5)" }} />
+                        Positiva
+                    </span>
+                    <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                        <span style={{ width: 12, height: 12, background: "rgba(239, 68, 68, 0.3)", border: "1px solid rgba(239, 68, 68, 0.5)" }} />
+                        Negativa
+                    </span>
+                </div>
+            )}
+        </ResponsiveCard>
+    );
+
+    // ============ LAYOUT MOBILE ============
+
+    if (isMobile) {
+        return (
+            <DemoContainer
+                title="Disequazioni 2° grado"
+                description="Risolvi step-by-step"
+            >
+                {/* Pulsante genera */}
+                <div style={{ marginBottom: 12 }}>
+                    <GenerateButton text="Nuova" onClick={handleGenerate} />
+                </div>
+
+                {/* Problema */}
+                <ProblemCard label="Risolvi:">
+                    <div style={{ fontSize: 18 }}>
+                        <Latex display>{originalEquation}</Latex>
+                    </div>
+                </ProblemCard>
+
+                {/* Navigazione */}
+                <NavigationButtons
+                    currentStep={currentStep}
+                    totalSteps={5}
+                    onNext={nextStep}
+                    onPrev={prevStep}
+                    onShowAll={showAll}
+                />
+
+                {/* Tabs per steps e grafico */}
+                <SwipeableTabs
+                    tabs={[
+                        {
+                            id: "steps",
+                            label: "📝 Steps",
+                            content: (
+                                <div style={{ display: "grid", gap: 12 }}>
+                                    {Step1}
+                                    {Step2}
+                                    {Step3}
+                                    {Step4}
+                                </div>
+                            )
+                        },
+                        { id: "graph", label: "📈 Grafico", content: GraphPanel },
+                    ]}
+                    defaultTab="steps"
+                />
+
+                {/* Info collapsible */}
+                <CollapsiblePanel title="💡 Metodo" defaultOpen={false}>
+                    <div style={{ fontSize: 13 }}>
+                        <ol style={{ margin: 0, paddingLeft: 20 }}>
+                            <li>Forma normale: <Latex>{"ax^2 + bx + c \\lessgtr 0"}</Latex></li>
+                            <li>Trova radici con <Latex>{"\\Delta"}</Latex></li>
+                            <li>Studia concavità (a &gt; 0 → ∪)</li>
+                            <li>Leggi soluzione dal grafico</li>
+                        </ol>
+                    </div>
+                </CollapsiblePanel>
+            </DemoContainer>
+        );
+    }
+
+    // ============ LAYOUT TABLET ============
+
+    if (isTablet) {
+        return (
+            <DemoContainer
+                title="Disequazioni di Secondo Grado"
+                description="Risolvi disequazioni quadratiche passo dopo passo."
+            >
+                <div style={{ marginBottom: 16 }}>
+                    <GenerateButton text="Nuova disequazione" onClick={handleGenerate} />
+                </div>
+
+                <ProblemCard label="Risolvi la disequazione:">
+                    <Latex display>{originalEquation}</Latex>
+                </ProblemCard>
+
+                <NavigationButtons
+                    currentStep={currentStep}
+                    totalSteps={5}
+                    onNext={nextStep}
+                    onPrev={prevStep}
+                    onShowAll={showAll}
+                />
+
+                <ResponsiveGrid columns={{ tablet: 2 }} gap={12}>
+                    {Step1}
+                    {Step2}
+                    {Step3}
+                    {Step4}
+                </ResponsiveGrid>
+
+                <div style={{ marginTop: 16 }}>
+                    {GraphPanel}
+                </div>
+
+                <CollapsiblePanel title="💡 Metodo di risoluzione" defaultOpen={false}>
+                    <ol style={{ margin: 0, paddingLeft: 20, fontSize: 14 }}>
+                        <li><strong>Forma normale:</strong> riduci a <Latex>{"ax^2 + bx + c \\lessgtr 0"}</Latex></li>
+                        <li><strong>Equazione associata:</strong> trova le radici usando <Latex>{"\\Delta = b^2 - 4ac"}</Latex></li>
+                        <li><strong>Concavità:</strong> se <Latex>{"a > 0"}</Latex> parabola ∪, se <Latex>{"a < 0"}</Latex> parabola ∩</li>
+                        <li><strong>Soluzione:</strong> leggi dal grafico i valori che soddisfano la disequazione</li>
+                    </ol>
+                </CollapsiblePanel>
+            </DemoContainer>
+        );
+    }
+
+    // ============ LAYOUT DESKTOP ============
 
     return (
         <DemoContainer
@@ -422,60 +641,12 @@ export default function DisequazioniSecondoGradoDemo() {
                         onShowAll={showAll}
                     />
 
-                    <StepGrid columns={2}>
-                        <StepCard stepNumber={1} title="Forma normale" color="green" isActive={isStepActive(1)}>
-                            <div style={{ fontSize: 13, color: "#64748b", marginBottom: 8 }}>
-                                Porta tutti i termini a sinistra:
-                            </div>
-                            <div style={{ fontSize: 18, padding: "8px 12px", background: "#fff", borderRadius: 6, display: "inline-block" }}>
-                                <Latex>{normalForm}</Latex>
-                            </div>
-                            <div style={{ marginTop: 8, fontSize: 12, color: "#64748b" }}>
-                                <Latex>{`a = ${diseq.a}, \\; b = ${diseq.b}, \\; c = ${diseq.c}`}</Latex>
-                            </div>
-                        </StepCard>
-
-                        <StepCard stepNumber={2} title="Equazione associata" color="blue" isActive={isStepActive(2)}>
-                            <div style={{ fontSize: 13, color: "#64748b", marginBottom: 6 }}>
-                                <Latex>{`\\Delta = ${diseq.b}^2 - 4 \\cdot ${diseq.a} \\cdot ${diseq.c} = ${diseq.delta}`}</Latex>
-                            </div>
-                            {diseq.solutionType === "two-roots" && (
-                                <div style={{ padding: "6px 10px", background: "#fef2f2", borderRadius: 6, color: "#991b1b", fontSize: 14 }}>
-                                    <Latex>{`\\Delta > 0 \\Rightarrow x_1 = ${formatNumberLatex(diseq.x1!)}, \\; x_2 = ${formatNumberLatex(diseq.x2!)}`}</Latex>
-                                </div>
-                            )}
-                            {diseq.solutionType === "one-root" && (
-                                <div style={{ padding: "6px 10px", background: "#fef3c7", borderRadius: 6, color: "#92400e", fontSize: 14 }}>
-                                    <Latex>{`\\Delta = 0 \\Rightarrow x_1 = x_2 = ${formatNumberLatex(diseq.x1!)}`}</Latex>
-                                </div>
-                            )}
-                            {diseq.solutionType === "no-roots" && (
-                                <div style={{ padding: "6px 10px", background: "#f3f4f6", borderRadius: 6, color: "#374151", fontSize: 14 }}>
-                                    <Latex>{"\\Delta < 0 \\Rightarrow \\text{nessuna radice reale}"}</Latex>
-                                </div>
-                            )}
-                        </StepCard>
-
-                        <StepCard stepNumber={3} title="Concavità" color="purple" isActive={isStepActive(3)}>
-                            <div style={{ padding: "8px 12px", background: "#fff", borderRadius: 6 }}>
-                                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                                    <Latex>{`a = ${diseq.a} ${diseq.a > 0 ? "> 0" : "< 0"}`}</Latex>
-                                    <span style={{ fontSize: 24 }}>⟹ {diseq.a > 0 ? "∪" : "∩"}</span>
-                                </div>
-                            </div>
-                        </StepCard>
-
-                        <StepCard stepNumber={4} title="Soluzione" color="amber" isActive={isStepActive(4)}>
-                            <div style={{ fontSize: 12, color: "#64748b", marginBottom: 4 }}>Intervalli:</div>
-                            <div style={{ fontSize: 18, padding: "6px 10px", background: "#fff", borderRadius: 6, display: "inline-block", color: "#92400e", marginBottom: 8 }}>
-                                <Latex>{diseq.solutionIntervals}</Latex>
-                            </div>
-                            <div style={{ fontSize: 12, color: "#64748b", marginBottom: 4 }}>Forma insiemistica:</div>
-                            <div style={{ fontSize: 14, padding: "6px 10px", background: "#fff", borderRadius: 6, color: "#92400e" }}>
-                                <Latex>{diseq.solutionSet}</Latex>
-                            </div>
-                        </StepCard>
-                    </StepGrid>
+                    <ResponsiveGrid columns={{ desktop: 2 }} gap={12}>
+                        {Step1}
+                        {Step2}
+                        {Step3}
+                        {Step4}
+                    </ResponsiveGrid>
                 </div>
 
                 {/* Grafico */}

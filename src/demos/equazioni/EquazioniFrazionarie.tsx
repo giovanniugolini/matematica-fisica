@@ -1,5 +1,7 @@
 /**
- * EquazioniFrazionarieDemo - Versione refactorizzata con helpers
+ * EquazioniFrazionarieDemo - Versione Responsive
+ * Step-by-step: C.E. → m.c.m. e trasformazione → risoluzione → verifica C.E.
+ * Layout pulito in stile DisequazioniSecondoGradoDemo
  */
 
 import React, { useState, useCallback, useMemo } from "react";
@@ -11,10 +13,13 @@ import {
     ProblemCard,
     NavigationButtons,
     StepCard,
-    StepGrid,
     InfoBox,
     GenerateButton,
     useStepNavigation,
+    useBreakpoint,
+    ResponsiveGrid,
+    SwipeableTabs,
+    CollapsiblePanel,
 } from "../../components/ui";
 
 // Utility matematiche
@@ -73,7 +78,17 @@ function generateFractionalEq(): FractionalEq {
 
         if (isZero(B)) return generateFractionalEq();
 
-        return { degree, den1, den2, num1: { k: k1 }, num2: { k: k2 }, A: 0, B, C, excluded };
+        return {
+            degree,
+            den1,
+            den2,
+            num1: { k: k1 },
+            num2: { k: k2 },
+            A: 0,
+            B,
+            C,
+            excluded,
+        };
     }
 
     let m1 = randomNonZero(-4, 4);
@@ -84,12 +99,22 @@ function generateFractionalEq(): FractionalEq {
     const n2 = randomInt(-6, 6);
 
     const A = m1 - m2;
-    const B = (m1 * q + n1) - (m2 * p + n2);
+    const B = m1 * q + n1 - (m2 * p + n2);
     const C = n1 * q - n2 * p;
 
     if (isZero(A)) return generateFractionalEq();
 
-    return { degree, den1, den2, num1: { a: m1, b: n1 }, num2: { a: m2, b: n2 }, A, B, C, excluded };
+    return {
+        degree,
+        den1,
+        den2,
+        num1: { a: m1, b: n1 },
+        num2: { a: m2, b: n2 },
+        A,
+        B,
+        C,
+        excluded,
+    };
 }
 
 // ============ RISOLUZIONE ============
@@ -138,153 +163,430 @@ function solveWithoutDenominators(eq: FractionalEq) {
         }
     }
 
-    const admissible = candidates.filter((x) => !excluded.some((e) => Math.abs(x - e) < 1e-9));
+    const admissible = candidates.filter(
+        (x) => !excluded.some((e) => Math.abs(x - e) < 1e-9)
+    );
+
     return { candidates, admissible, detailsLatex };
 }
 
 // ============ COMPONENTE PRINCIPALE ============
 
 export default function EquazioniFrazionarieDemo() {
+    const { isMobile, isTablet } = useBreakpoint();
+
     const [eq, setEq] = useState<FractionalEq>(() => generateFractionalEq());
-    const { currentStep, nextStep, prevStep, showAll, reset, isStepActive } = useStepNavigation(4);
+    const { currentStep, nextStep, prevStep, showAll, reset } =
+        useStepNavigation(4);
+
+    // ✅ Helper robusto (0-based currentStep, stepNumber 1-based)
+    const isActive = (stepNumber: number) => currentStep >= stepNumber - 1;
 
     const handleGenerate = useCallback(() => {
         setEq(generateFractionalEq());
         reset();
     }, [reset]);
 
-    const { candidates, admissible, detailsLatex } = useMemo(() => solveWithoutDenominators(eq), [eq]);
-
-    const p = eq.den1.b;
-    const q = eq.den2.b;
+    const { candidates, admissible, detailsLatex } = useMemo(
+        () => solveWithoutDenominators(eq),
+        [eq]
+    );
 
     const den1Latex = formatLinearLatex(eq.den1.a, eq.den1.b);
     const den2Latex = formatLinearLatex(eq.den2.a, eq.den2.b);
 
-    const num1Latex = eq.degree === 1
-        ? `${(eq.num1 as Const).k}`
-        : formatLinearLatex((eq.num1 as Linear).a, (eq.num1 as Linear).b);
+    const num1Latex =
+        eq.degree === 1
+            ? `${(eq.num1 as Const).k}`
+            : formatLinearLatex((eq.num1 as Linear).a, (eq.num1 as Linear).b);
 
-    const num2Latex = eq.degree === 1
-        ? `${(eq.num2 as Const).k}`
-        : formatLinearLatex((eq.num2 as Linear).a, (eq.num2 as Linear).b);
+    const num2Latex =
+        eq.degree === 1
+            ? `${(eq.num2 as Const).k}`
+            : formatLinearLatex((eq.num2 as Linear).a, (eq.num2 as Linear).b);
 
     const originalEquation = `\\frac{${num1Latex}}{${den1Latex}} = \\frac{${num2Latex}}{${den2Latex}}`;
+
+    const p = eq.den1.b;
+    const q = eq.den2.b;
+
     const mcmLatex = `${parenLinearLatex(1, p)}${parenLinearLatex(1, q)}`;
-    const transformedLatex = `${parenLatex(num1Latex)}\\,${parenLinearLatex(1, q)} = ${parenLatex(num2Latex)}\\,${parenLinearLatex(1, p)}`;
-    const finalPolyLatex = eq.degree === 1
-        ? `${formatLinearLatex(eq.B, eq.C)} = 0`
-        : `${formatQuadraticLatex(eq.A, eq.B, eq.C)} = 0`;
+    const transformedLatex = `${parenLatex(num1Latex)}\\,${parenLinearLatex(
+        1,
+        q
+    )} = ${parenLatex(num2Latex)}\\,${parenLinearLatex(1, p)}`;
+
+    const finalPolyLatex =
+        eq.degree === 1
+            ? `${formatLinearLatex(eq.B, eq.C)} = 0`
+            : `${formatQuadraticLatex(eq.A, eq.B, eq.C)} = 0`;
 
     const excludedLatex = eq.excluded.map((v) => formatNumberLatex(v)).join(", ");
-    const candidatesLatex = candidates.length === 0 ? "\\emptyset" : candidates.map((v) => formatNumberLatex(v)).join(",\\; ");
-    const admissibleLatex = admissible.length === 0 ? "\\emptyset" : admissible.map((v) => formatNumberLatex(v)).join(",\\; ");
+    const candidatesLatex =
+        candidates.length === 0
+            ? "\\emptyset"
+            : candidates.map((v) => formatNumberLatex(v)).join(",\\; ");
+    const admissibleLatex =
+        admissible.length === 0
+            ? "\\emptyset"
+            : admissible.map((v) => formatNumberLatex(v)).join(",\\; ");
 
     const quadClass = eq.degree === 2 ? classifyQuadratic(eq.A, eq.B, eq.C) : null;
-    const quadClassLabel = quadClass === "pura" ? "pura (b=0)" : quadClass === "spuria" ? "spuria (c=0)" : "completa";
+    const quadClassLabel =
+        quadClass === "pura"
+            ? "pura (b=0)"
+            : quadClass === "spuria"
+                ? "spuria (c=0)"
+                : "completa";
+
+    // ============ STEP CARDS ============
+
+    const Step1 = (
+        <StepCard
+            stepNumber={1}
+            title="Condizione di esistenza"
+            color="green"
+            isActive={isActive(1)}
+        >
+            <div style={{ fontSize: 13, color: "#64748b", marginBottom: 8 }}>
+                I denominatori devono essere diversi da zero:
+            </div>
+
+            <div
+                style={{
+                    fontSize: isMobile ? 15 : 16,
+                    padding: "8px 12px",
+                    background: "#fff",
+                    borderRadius: 6,
+                    display: "inline-block",
+                }}
+            >
+                <Latex display>{`${den1Latex} \\neq 0 \\quad \\land \\quad ${den2Latex} \\neq 0`}</Latex>
+                <Latex display>{`x \\neq ${excludedLatex}`}</Latex>
+            </div>
+        </StepCard>
+    );
+
+    const Step2 = (
+        <StepCard
+            stepNumber={2}
+            title="m.c.m. e trasformazione"
+            color="blue"
+            isActive={isActive(2)}
+        >
+            <div style={{ fontSize: 13, color: "#64748b", marginBottom: 8 }}>
+                Il m.c.m. dei denominatori è:
+            </div>
+
+            <div
+                style={{
+                    fontSize: isMobile ? 15 : 16,
+                    padding: "8px 12px",
+                    background: "#fff",
+                    borderRadius: 6,
+                    display: "inline-block",
+                }}
+            >
+                <Latex display>{`\\text{m.c.m.} = ${mcmLatex}`}</Latex>
+                <Latex display>{`\\Rightarrow ${transformedLatex}`}</Latex>
+            </div>
+
+            <div style={{ marginTop: 8, fontSize: 12, color: "#64748b" }}>
+                (Moltiplico entrambi i membri per il m.c.m., valido solo sotto C.E.)
+            </div>
+        </StepCard>
+    );
+
+    const Step3 = (
+        <StepCard
+            stepNumber={3}
+            title="Risoluzione"
+            color="amber"
+            isActive={isActive(3)}
+        >
+            <div style={{ fontSize: 12, color: "#64748b", marginBottom: 6 }}>
+                Equazione (dopo sviluppo):
+            </div>
+
+            <div
+                style={{
+                    fontSize: isMobile ? 17 : 18,
+                    padding: "8px 12px",
+                    background: "#fff7ed",
+                    borderRadius: 6,
+                    border: "1px solid #fed7aa",
+                    display: "inline-block",
+                }}
+            >
+                <Latex>{finalPolyLatex}</Latex>
+            </div>
+
+            {eq.degree === 2 && (
+                <div style={{ marginTop: 10, fontSize: 13, color: "#64748b" }}>
+                    Classificazione: <strong>{quadClassLabel}</strong>
+                </div>
+            )}
+
+            <div style={{ marginTop: 10, fontSize: 12, color: "#64748b" }}>
+                Svolgimento:
+            </div>
+            <div style={{ marginTop: 6, fontSize: 16 }}>
+                <Latex display>{detailsLatex}</Latex>
+            </div>
+        </StepCard>
+    );
+
+    const Step4 = (
+        <StepCard
+            stepNumber={4}
+            title="Verifica C.E. e soluzioni"
+            color="purple"
+            isActive={isActive(4)}
+        >
+            <div style={{ fontSize: 12, color: "#64748b", marginBottom: 6 }}>
+                Soluzioni candidate:
+            </div>
+            <div
+                style={{
+                    fontSize: 15,
+                    padding: "8px 12px",
+                    background: "#f8fafc",
+                    borderRadius: 6,
+                    border: "1px solid #e2e8f0",
+                    overflowX: "auto",
+                    marginBottom: 10,
+                }}
+            >
+                <Latex>
+                    {candidates.length === 0
+                        ? "\\emptyset"
+                        : `\\left\\{ ${candidatesLatex} \\right\\}`}
+                </Latex>
+            </div>
+
+            <div style={{ fontSize: 12, color: "#64748b", marginBottom: 6 }}>
+                Verifica C.E.:
+            </div>
+            <div
+                style={{
+                    fontSize: 14,
+                    padding: "8px 12px",
+                    background: "#f0fdf4",
+                    borderRadius: 6,
+                    border: "1px solid #bbf7d0",
+                    marginBottom: 10,
+                    overflowX: "auto",
+                }}
+            >
+                <Latex>{`x \\neq ${excludedLatex}`}</Latex>
+            </div>
+
+            <div style={{ fontSize: 12, color: "#64748b", marginBottom: 6 }}>
+                Soluzioni ammissibili:
+            </div>
+            <div
+                style={{
+                    fontSize: 15,
+                    padding: "8px 12px",
+                    background: "#dcfce7",
+                    borderRadius: 6,
+                    border: "1px solid #86efac",
+                    color: "#166534",
+                    fontWeight: 700,
+                    overflowX: "auto",
+                }}
+            >
+                <Latex>
+                    {admissible.length === 0
+                        ? "\\emptyset"
+                        : `\\left\\{ ${admissibleLatex} \\right\\}`}
+                </Latex>
+            </div>
+
+            {candidates.length > admissible.length && (
+                <div style={{ marginTop: 10, fontSize: 12, color: "#991b1b" }}>
+                    Alcune soluzioni candidate sono state scartate perché non rispettano la
+                    C.E.
+                </div>
+            )}
+        </StepCard>
+    );
+
+    // ============ METODO (testo) ============
+
+    const MethodContent = (
+        <div style={{ fontSize: 13 }}>
+            <ol style={{ margin: 0, paddingLeft: 20 }}>
+                <li>
+                    <strong>Condizione di esistenza:</strong> escludi i valori che annullano
+                    i denominatori.
+                </li>
+                <li>
+                    <strong>m.c.m. e trasformazione:</strong> moltiplica entrambi i membri
+                    per il m.c.m.
+                </li>
+                <li>
+                    <strong>Risoluzione:</strong> risolvi l’equazione senza denominatori; se
+                    è di 2° grado usa Δ.
+                </li>
+                <li>
+                    <strong>Verifica:</strong> elimina i candidati che violano la C.E.
+                </li>
+            </ol>
+        </div>
+    );
+
+    // ============ LAYOUT MOBILE ============
+
+    if (isMobile) {
+        return (
+            <DemoContainer title="Equazioni frazionarie" description="Risolvi step-by-step">
+                {/* Pulsante genera */}
+                <div style={{ marginBottom: 12 }}>
+                    <GenerateButton text="Nuova" onClick={handleGenerate} />
+                </div>
+
+                {/* Problema */}
+                <ProblemCard label="Risolvi:">
+                    <div style={{ fontSize: 18 }}>
+                        <Latex display>{originalEquation}</Latex>
+                    </div>
+                    <div style={{ marginTop: 10, fontSize: 12, color: "#64748b" }}>
+                        Tipo:{" "}
+                        <strong>
+                            {eq.degree === 1 ? "1° grado (dopo m.c.m.)" : "2° grado (dopo m.c.m.)"}
+                        </strong>
+                    </div>
+                </ProblemCard>
+
+                {/* Navigazione */}
+                <NavigationButtons
+                    currentStep={currentStep}
+                    totalSteps={4}
+                    onNext={nextStep}
+                    onPrev={prevStep}
+                    onShowAll={showAll}
+                />
+
+                {/* Tabs */}
+                <SwipeableTabs
+                    tabs={[
+                        {
+                            id: "steps",
+                            label: "📝 Steps",
+                            content: (
+                                <div style={{ display: "grid", gap: 12 }}>
+                                    {Step1}
+                                    {Step2}
+                                    {Step3}
+                                    {Step4}
+                                </div>
+                            ),
+                        },
+                        {
+                            id: "method",
+                            label: "💡 Metodo",
+                            content: (
+                                <CollapsiblePanel title="Metodo di risoluzione" defaultOpen={true}>
+                                    {MethodContent}
+                                </CollapsiblePanel>
+                            ),
+                        },
+                    ]}
+                    defaultTab="steps"
+                />
+            </DemoContainer>
+        );
+    }
+
+    // ============ LAYOUT TABLET ============
+
+    if (isTablet) {
+        return (
+            <DemoContainer
+                title="Equazioni Frazionarie"
+                description="Risolvi equazioni frazionarie passo dopo passo."
+            >
+                <div style={{ marginBottom: 16 }}>
+                    <GenerateButton text="Nuova equazione" onClick={handleGenerate} />
+                </div>
+
+                <ProblemCard label="Risolvi l'equazione:">
+                    <Latex display>{originalEquation}</Latex>
+                    <div style={{ marginTop: 10, fontSize: 12, color: "#64748b" }}>
+                        Tipo:{" "}
+                        <strong>
+                            {eq.degree === 1 ? "1° grado (dopo m.c.m.)" : "2° grado (dopo m.c.m.)"}
+                        </strong>
+                    </div>
+                </ProblemCard>
+
+                <NavigationButtons
+                    currentStep={currentStep}
+                    totalSteps={4}
+                    onNext={nextStep}
+                    onPrev={prevStep}
+                    onShowAll={showAll}
+                />
+
+                <ResponsiveGrid columns={{ tablet: 2 }} gap={12}>
+                    {Step1}
+                    {Step2}
+                    {Step3}
+                    {Step4}
+                </ResponsiveGrid>
+
+                <div style={{ marginTop: 16 }}>
+                    <CollapsiblePanel title="💡 Metodo di risoluzione" defaultOpen={false}>
+                        {MethodContent}
+                    </CollapsiblePanel>
+                </div>
+            </DemoContainer>
+        );
+    }
+
+    // ============ LAYOUT DESKTOP ============
 
     return (
         <DemoContainer
             title="Equazioni Frazionarie"
-            description="Step: condizione di esistenza → m.c.m. e trasformazione → risoluzione (1° o 2° grado)."
+            description="Risolvi equazioni frazionarie passo dopo passo."
         >
             <div style={{ marginBottom: 20 }}>
                 <GenerateButton text="Nuova equazione" onClick={handleGenerate} />
             </div>
 
-            <ProblemCard label="Risolvi l'equazione:">
-                <Latex display>{originalEquation}</Latex>
-                <div style={{ marginTop: 10, fontSize: 12, color: "#64748b" }}>
-                    Tipo: <strong>{eq.degree === 1 ? "1° grado (dopo m.c.m.)" : "2° grado (dopo m.c.m.)"}</strong>
+            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                {/* Problema e steps */}
+                <div>
+                    <ProblemCard label="Risolvi l'equazione:">
+                        <Latex display>{originalEquation}</Latex>
+                        <div style={{ marginTop: 10, fontSize: 12, color: "#64748b" }}>
+                            Tipo:{" "}
+                            <strong>
+                                {eq.degree === 1 ? "1° grado (dopo m.c.m.)" : "2° grado (dopo m.c.m.)"}
+                            </strong>
+                        </div>
+                    </ProblemCard>
+
+                    <NavigationButtons
+                        currentStep={currentStep}
+                        totalSteps={4}
+                        onNext={nextStep}
+                        onPrev={prevStep}
+                        onShowAll={showAll}
+                    />
+
+                    <ResponsiveGrid columns={{ desktop: 2 }} gap={12}>
+                        {Step1}
+                        {Step2}
+                        {Step3}
+                        {Step4}
+                    </ResponsiveGrid>
                 </div>
-            </ProblemCard>
+            </div>
 
-            <NavigationButtons
-                currentStep={currentStep}
-                totalSteps={4}
-                onNext={nextStep}
-                onPrev={prevStep}
-                onShowAll={showAll}
-            />
-
-            <StepGrid columns={2}>
-                {/* Step 1: CE */}
-                <StepCard stepNumber={1} title="Condizione di esistenza" color="green" isActive={isStepActive(1)}>
-                    <div style={{ fontSize: 13, color: "#64748b", marginBottom: 8 }}>
-                        I denominatori devono essere diversi da zero:
-                    </div>
-                    <div style={{ fontSize: 16, padding: "8px 12px", background: "#fff", borderRadius: 6 }}>
-                        <Latex display>{`${den1Latex} \\neq 0 \\quad \\land \\quad ${den2Latex} \\neq 0`}</Latex>
-                        <Latex display>{`x \\neq ${excludedLatex}`}</Latex>
-                    </div>
-                </StepCard>
-
-                {/* Step 2: MCM */}
-                <StepCard stepNumber={2} title="m.c.m. e trasformazione" color="blue" isActive={isStepActive(2)}>
-                    <div style={{ fontSize: 13, color: "#64748b", marginBottom: 8 }}>
-                        Il m.c.m. dei denominatori è:
-                    </div>
-                    <div style={{ fontSize: 16, padding: "8px 12px", background: "#fff", borderRadius: 6 }}>
-                        <Latex display>{`\\text{m.c.m.} = ${mcmLatex}`}</Latex>
-                        <Latex display>{`\\Rightarrow ${transformedLatex}`}</Latex>
-                    </div>
-                    <div style={{ marginTop: 8, fontSize: 12, color: "#64748b" }}>
-                        (Moltiplico entrambi i membri per il m.c.m., valido solo sotto C.E.)
-                    </div>
-                </StepCard>
-
-                {/* Step 3: Risoluzione */}
-                <StepCard stepNumber={3} title="Risoluzione" color="amber" isActive={isStepActive(3)} fullWidth>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                        <div style={{ background: "#fff", borderRadius: 8, padding: 12 }}>
-                            <div style={{ fontSize: 12, color: "#64748b", marginBottom: 6 }}>Equazione (dopo sviluppo):</div>
-                            <div style={{ fontSize: 18, padding: "6px 10px", background: "#fff7ed", borderRadius: 6, border: "1px solid #fed7aa" }}>
-                                <Latex>{finalPolyLatex}</Latex>
-                            </div>
-                            {eq.degree === 2 && (
-                                <div style={{ marginTop: 10, fontSize: 13, color: "#64748b" }}>
-                                    Classificazione: <strong>{quadClassLabel}</strong>
-                                </div>
-                            )}
-                            <div style={{ marginTop: 12, fontSize: 12, color: "#64748b", marginBottom: 6 }}>Svolgimento:</div>
-                            <div style={{ fontSize: 16 }}>
-                                <Latex display>{detailsLatex}</Latex>
-                            </div>
-                        </div>
-
-                        <div style={{ background: "#fff", borderRadius: 8, padding: 12 }}>
-                            <div style={{ fontSize: 12, color: "#64748b", marginBottom: 6 }}>Soluzioni candidate:</div>
-                            <div style={{ fontSize: 16, padding: "6px 10px", background: "#f8fafc", borderRadius: 6, border: "1px solid #e2e8f0", marginBottom: 12 }}>
-                                <Latex>{candidates.length === 0 ? "\\emptyset" : `\\left\\{ ${candidatesLatex} \\right\\}`}</Latex>
-                            </div>
-
-                            <div style={{ fontSize: 12, color: "#64748b", marginBottom: 6 }}>Verifica C.E.:</div>
-                            <div style={{ fontSize: 14, padding: "6px 10px", background: "#f0fdf4", borderRadius: 6, border: "1px solid #bbf7d0" }}>
-                                <Latex>{`x \\neq ${excludedLatex}`}</Latex>
-                            </div>
-
-                            <div style={{ marginTop: 12, fontSize: 12, color: "#64748b", marginBottom: 6 }}>Soluzioni ammissibili:</div>
-                            <div style={{ fontSize: 16, padding: "6px 10px", background: "#dcfce7", borderRadius: 6, border: "1px solid #86efac", color: "#166534", fontWeight: 600 }}>
-                                <Latex>{admissible.length === 0 ? "\\emptyset" : `\\left\\{ ${admissibleLatex} \\right\\}`}</Latex>
-                            </div>
-
-                            {candidates.length > admissible.length && (
-                                <div style={{ marginTop: 10, fontSize: 12, color: "#991b1b" }}>
-                                    Alcune soluzioni candidate sono state scartate perché non rispettano la C.E.
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </StepCard>
-            </StepGrid>
-
-            <InfoBox title="Metodo (3 step):">
-                <ol style={{ margin: "8px 0 0 0", paddingLeft: 20 }}>
-                    <li><strong>Condizione di esistenza:</strong> escludi i valori che annullano i denominatori.</li>
-                    <li><strong>m.c.m. e trasformazione:</strong> moltiplica entrambi i membri per il m.c.m.</li>
-                    <li><strong>Risoluzione:</strong> risolvi l'equazione senza denominatori; se è di 2° grado usa Δ.</li>
-                </ol>
-            </InfoBox>
+            <InfoBox title="Metodo di risoluzione:">{MethodContent}</InfoBox>
         </DemoContainer>
     );
 }
