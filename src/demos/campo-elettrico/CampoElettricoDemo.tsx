@@ -192,11 +192,12 @@ export default function CampoElettricoDemo() {
     }
 
     function onPointerDown(e: React.PointerEvent<SVGSVGElement>) {
+        e.preventDefault(); // Previene scroll su mobile
         const px = getLocalPx(e.clientX, e.clientY);
+        // Area touch più grande su mobile (35px invece di 22px)
+        const touchRadius = e.pointerType === "touch" ? 35 : 22;
         let target: null | "source" | "test" = null;
 
-        // Area touch più grande su mobile
-        const touchRadius = isMobile ? 35 : 22;
         if (nearCharge(px, source, touchRadius)) target = "source";
         else if (showTest && nearCharge(px, test, touchRadius)) target = "test";
 
@@ -210,12 +211,16 @@ export default function CampoElettricoDemo() {
         const px = getLocalPx(e.clientX, e.clientY);
 
         if (!dragging) {
-            const h = nearCharge(px, source, 14)
+            const hoverRadius = e.pointerType === "touch" ? 25 : 14;
+            const h = nearCharge(px, source, hoverRadius)
                 ? "source"
-                : (showTest && nearCharge(px, test, 14) ? "test" : null);
+                : (showTest && nearCharge(px, test, hoverRadius) ? "test" : null);
             setHoverTarget(h);
             return;
         }
+
+        // Previene scroll durante il drag
+        e.preventDefault();
 
         let p = getWorldPoint(e.clientX, e.clientY);
         p.x = clamp(p.x, WORLD.xmin, WORLD.xmax);
@@ -520,7 +525,91 @@ export default function CampoElettricoDemo() {
                     </div>
                 </div>
 
-                {SvgCanvas}
+                <svg
+                    ref={svgRef}
+                    viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+                    preserveAspectRatio="xMidYMid meet"
+                    style={{ width: "100%", height: "auto", maxHeight: "70vh", cursor, touchAction: "none", display: "block", margin: "0 auto" }}
+                    onPointerDown={onPointerDown}
+                    onPointerMove={onPointerMove}
+                    onPointerUp={onPointerUp}
+                    onPointerLeave={onPointerLeave}
+                >
+                    {/* Sfondo */}
+                    <rect x={0} y={0} width={WIDTH} height={HEIGHT} fill="#fff" rx={16} />
+
+                    {/* Griglia */}
+                    {Array.from({ length: 11 }, (_, i) => WORLD.xmin + i * (WORLD.xmax - WORLD.xmin) / 10).map((vx) => (
+                        <line key={`vx-${vx}`} x1={toX(vx)} y1={offsetY} x2={toX(vx)} y2={HEIGHT - offsetY} stroke="#eef2f7" />
+                    ))}
+                    {Array.from({ length: 8 }, (_, j) => WORLD.ymin + j * (WORLD.ymax - WORLD.ymin) / 7).map((vy) => (
+                        <line key={`vy-${vy}`} x1={offsetX} y1={toY(vy)} x2={WIDTH - offsetX} y2={toY(vy)} stroke="#eef2f7" />
+                    ))}
+
+                    {/* Assi */}
+                    <line x1={toX(WORLD.xmin)} y1={toY(0)} x2={toX(WORLD.xmax)} y2={toY(0)} stroke="#0f172a" strokeWidth={1.5} />
+                    <line x1={toX(0)} y1={toY(WORLD.ymin)} x2={toX(0)} y2={toY(WORLD.ymax)} stroke="#0f172a" strokeWidth={1.5} />
+
+                    {/* Vettori campo */}
+                    {showField && gridPts.map((p, idx) => {
+                        const E = electricFieldAt(p, source, qSourceC);
+                        const L = lenFromEmag(E.Emag);
+                        const color = qSourceC >= 0 ? "#2563eb" : "#1d4ed8";
+                        return <Arrow key={idx} x={p.x} y={p.y} vx={E.Ex} vy={E.Ey} lenWorld={L} toX={toX} toY={toY} color={color} />;
+                    })}
+
+                    {/* Carica sorgente */}
+                    <g
+                        onPointerDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setDragging("source");
+                            svgRef.current?.setPointerCapture?.(e.pointerId);
+                        }}
+                        style={{ cursor: dragging === "source" ? "grabbing" : "grab", touchAction: "none" }}
+                    >
+                        {/* Area touch invisibile più grande per mobile */}
+                        <circle cx={toX(source.x)} cy={toY(source.y)} r={30} fill="transparent" />
+                        <circle cx={toX(source.x)} cy={toY(source.y)} r={18} fill={qSourceC >= 0 ? "#ef4444" : "#3b82f6"} stroke="#0f172a" strokeWidth={2} />
+                        <text x={toX(source.x)} y={toY(source.y) + 6} fontSize={22} textAnchor="middle" fill="#fff" fontWeight={700}>
+                            {qSourceC >= 0 ? "+" : "−"}
+                        </text>
+                        <text x={toX(source.x) + 24} y={toY(source.y) - 22} fontSize={14} fill="#0f172a" fontWeight={500}>
+                            q = {qMicro.toFixed(1)} μC
+                        </text>
+                    </g>
+
+                    {/* Carica di prova */}
+                    {showTest && (
+                        <g
+                            onPointerDown={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setDragging("test");
+                                svgRef.current?.setPointerCapture?.(e.pointerId);
+                            }}
+                            style={{ cursor: dragging === "test" ? "grabbing" : "grab", touchAction: "none" }}
+                        >
+                            {/* Vettore forza */}
+                            <Arrow
+                                x={test.x}
+                                y={test.y}
+                                vx={testForceData.Fx}
+                                vy={testForceData.Fy}
+                                lenWorld={lenFromEmag(testField.Emag) * 0.9}
+                                toX={toX}
+                                toY={toY}
+                                color="#10b981"
+                            />
+                            {/* Area touch invisibile più grande per mobile */}
+                            <circle cx={toX(test.x)} cy={toY(test.y)} r={26} fill="transparent" />
+                            <circle cx={toX(test.x)} cy={toY(test.y)} r={14} fill="#f59e0b" stroke="#0f172a" strokeWidth={2} />
+                            <text x={toX(test.x) + 18} y={toY(test.y) - 16} fontSize={14} fill="#0f172a" fontWeight={500}>
+                                q_t = {qTestNano.toFixed(1)} nC
+                            </text>
+                        </g>
+                    )}
+                </svg>
 
                 {/* Slider sotto il canvas */}
                 <div style={{ display: "flex", gap: 32, marginTop: 16, flexWrap: "wrap", justifyContent: "center" }}>

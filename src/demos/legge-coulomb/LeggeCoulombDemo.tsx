@@ -146,12 +146,15 @@ export default function LeggeCoulombDemo() {
     }
 
     function startDrag(which: "q1" | "q2", e: React.PointerEvent<Element>) {
+        e.preventDefault(); // Previene scroll su mobile
+        e.stopPropagation();
         (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
         setDrag({ which, id: e.pointerId });
     }
 
     function moveDrag(e: React.PointerEvent<SVGSVGElement>) {
         if (!drag) return;
+        e.preventDefault(); // Previene scroll durante drag
         const m = ptrToLocal(e);
         const nx = clamp(m.x, PAD, WIDTH - PAD);
         const ny = clamp(m.y, PAD, HEIGHT - PAD);
@@ -316,11 +319,68 @@ export default function LeggeCoulombDemo() {
                     <div style={{ fontSize: 12, color: "#64748b", marginTop: 6 }}>= {formatScientific(q1C, 2)} C</div>
                 </div>
 
-                <div style={miniCard("#fef2f2")}>
-                    <div style={{ fontWeight: 700, marginBottom: 6, color: "#ef4444" }}>⊖ q₂</div>
-                    <CompactInput label="q₂" unit={unit} value={q2} step={0.1} onChange={setQ2} />
-                    <div style={{ fontSize: 12, color: "#64748b", marginTop: 6 }}>= {formatScientific(q2C, 2)} C</div>
-                </div>
+                <svg
+                    ref={svgRef}
+                    viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+                    style={{ width: "100%", height: "auto", maxHeight: "65vh", display: "block", margin: "0 auto", touchAction: "none" }}
+                    onPointerMove={moveDrag}
+                    onPointerUp={endDrag}
+                    onPointerCancel={endDrag}
+                    onPointerLeave={endDrag}
+                >
+                    {/* Sfondo */}
+                    <rect x={0} y={0} width={WIDTH} height={HEIGHT} rx={16} fill="#ffffff" />
+
+                    {/* Griglia */}
+                    {Array.from({ length: 10 }, (_, i) => i + 1).map((i) => (
+                        <line key={`vg-${i}`} x1={(i * WIDTH) / 10} y1={PAD} x2={(i * WIDTH) / 10} y2={HEIGHT - PAD} stroke="#f1f5f9" />
+                    ))}
+                    {Array.from({ length: 8 }, (_, i) => i + 1).map((i) => (
+                        <line key={`hg-${i}`} x1={PAD} y1={(i * HEIGHT) / 8} x2={WIDTH - PAD} y2={(i * HEIGHT) / 8} stroke="#f1f5f9" />
+                    ))}
+
+                    {/* Segmento distanza */}
+                    <line x1={p1.x} y1={p1.y} x2={p2.x} y2={p2.y} stroke="#94a3b8" strokeDasharray="6 6" />
+
+                    {/* Vettori forza */}
+                    {showForces && !coincidenti && (
+                        <>
+                            <Arrow x1={p1.x} y1={p1.y} x2={p1.x + F1x_px} y2={p1.y + F1y_px} color="#0ea5e9" label="F₁" />
+                            <Arrow x1={p2.x} y1={p2.y} x2={p2.x + F2x_px} y2={p2.y + F2y_px} color="#ef4444" label="F₂" />
+                        </>
+                    )}
+
+                    {/* Cariche */}
+                    <g style={{ cursor }}>
+                        {/* q1 - area touch più grande per mobile */}
+                        <circle
+                            cx={p1.x} cy={p1.y} r={35}
+                            fill="transparent"
+                            style={{ touchAction: "none" }}
+                            onPointerDown={(e) => startDrag("q1", e)}
+                        />
+                        <circle cx={p1.x} cy={p1.y} r={20} fill={q1 >= 0 ? "#0ea5e9" : "#0284c7"} stroke="#0c4a6e" strokeWidth={2} pointerEvents="none" />
+                        <text x={p1.x} y={p1.y + 5} fontSize={14} textAnchor="middle" fill="#ffffff" fontWeight={600} pointerEvents="none">q₁</text>
+
+                        {/* q2 - area touch più grande per mobile */}
+                        <circle
+                            cx={p2.x} cy={p2.y} r={35}
+                            fill="transparent"
+                            style={{ touchAction: "none" }}
+                            onPointerDown={(e) => startDrag("q2", e)}
+                        />
+                        <circle cx={p2.x} cy={p2.y} r={20} fill={q2 >= 0 ? "#ef4444" : "#dc2626"} stroke="#7f1d1d" strokeWidth={2} pointerEvents="none" />
+                        <text x={p2.x} y={p2.y + 5} fontSize={14} textAnchor="middle" fill="#ffffff" fontWeight={600} pointerEvents="none">q₂</text>
+                    </g>
+
+                    {/* Etichetta distanza */}
+                    <g>
+                        <circle cx={(p1.x + p2.x) / 2} cy={(p1.y + p2.y) / 2} r={3} fill="#94a3b8" />
+                        <text x={(p1.x + p2.x) / 2} y={(p1.y + p2.y) / 2 - 10} fontSize={13} textAnchor="middle" fill="#475569" fontWeight={500}>
+                            r = {r_m.toFixed(2)} m
+                        </text>
+                    </g>
+                </svg>
             </div>
 
             <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid #e5e7eb", display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
