@@ -360,9 +360,10 @@ interface ControlButtonProps {
     active?: boolean;
     disabled?: boolean;
     children: React.ReactNode;
+    style?: React.CSSProperties; // ✅ AGGIUNTO
 }
 
-export function ControlButton({ onClick, active, disabled, children }: ControlButtonProps) {
+export function ControlButton({ onClick, active, disabled, children, style }: ControlButtonProps) {
     return (
         <button
             onClick={onClick}
@@ -375,6 +376,7 @@ export function ControlButton({ onClick, active, disabled, children }: ControlBu
                 cursor: disabled ? "not-allowed" : "pointer",
                 fontWeight: active ? 600 : 400,
                 fontSize: 13,
+                ...style, // ✅ AGGIUNTO (merge finale)
             }}
         >
             {children}

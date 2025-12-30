@@ -1,16 +1,31 @@
 /**
  * LimiteFinitoPiuMenoInfinito - Versione refactorizzata
  * Limite finito per x → ±∞ (asintoti orizzontali)
+ *
+ * FIX: ControlButton non supporta prop "style" (vedi components.tsx).
+ * Layout: mobile / tablet / desktop.
  */
 
-import React, { useMemo, useState, useEffect, useRef } from "react";
+import React, { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import {
-    SVG_WIDTH, SVG_HEIGHT,
-    clamp, createTransform, sampleFunction, generatePath,
-    GridPattern, Axes, FunctionCurve, HorizontalLine,
-    ApproachPoints, AnimatedPoint,
-    ControlButton, FunctionSelector, ResultBox, NoteBox, ConceptBox,
-    cardStyle, ApproachPoint
+    SVG_WIDTH,
+    SVG_HEIGHT,
+    createTransform,
+    sampleFunction,
+    generatePath,
+    GridPattern,
+    Axes,
+    FunctionCurve,
+    HorizontalLine,
+    ApproachPoints,
+    AnimatedPoint,
+    ControlButton,
+    FunctionSelector,
+    ResultBox,
+    NoteBox,
+    ConceptBox,
+    cardStyle,
+    ApproachPoint,
 } from "./components";
 
 // ============ FUNZIONI CON ASINTOTI ORIZZONTALI ============
@@ -82,9 +97,31 @@ const FUNCTIONS: FunctionDef[] = [
     },
 ];
 
+// ============ HOOK RESPONSIVE (mobile/tablet/desktop) ============
+
+function useViewport() {
+    const [w, setW] = useState<number>(() =>
+        typeof window !== "undefined" ? window.innerWidth : 1200
+    );
+
+    useEffect(() => {
+        const onResize = () => setW(window.innerWidth);
+        window.addEventListener("resize", onResize);
+        return () => window.removeEventListener("resize", onResize);
+    }, []);
+
+    const isMobile = w < 640;
+    const isTablet = w >= 640 && w < 1024;
+    const isDesktop = w >= 1024;
+
+    return { w, isMobile, isTablet, isDesktop };
+}
+
 // ============ COMPONENTE PRINCIPALE ============
 
 export default function LimiteFinitoPiuMenoInfinito() {
+    const { isMobile, isTablet, isDesktop } = useViewport();
+
     const [selectedFunc, setSelectedFunc] = useState<FunctionDef>(FUNCTIONS[0]);
     const [showPoints, setShowPoints] = useState(true);
     const [animating, setAnimating] = useState(false);
@@ -94,25 +131,32 @@ export default function LimiteFinitoPiuMenoInfinito() {
     const [direction, setDirection] = useState<"plus" | "minus">("plus");
 
     // Range esteso per vedere comportamento all'infinito
-    const xMin = -25, xMax = 25;
+    const xMin = -25,
+        xMax = 25;
 
     // Campionamento
-    const samples = useMemo(() => sampleFunction(selectedFunc.f, xMin, xMax, 500), [selectedFunc, xMin, xMax]);
+    const samples = useMemo(
+        () => sampleFunction(selectedFunc.f, xMin, xMax, 500),
+        [selectedFunc, xMin, xMax]
+    );
 
     // Range Y dinamico ma contenuto
     const yMin = useMemo(() => {
-        const ys = samples.map(p => p.y).filter(y => Math.abs(y) < 100);
+        const ys = samples.map((p) => p.y).filter((y) => Math.abs(y) < 100);
         const minY = Math.min(...ys, selectedFunc.limitPlus ?? 0, selectedFunc.limitMinus ?? 0);
         return minY - 1;
     }, [samples, selectedFunc]);
 
     const yMax = useMemo(() => {
-        const ys = samples.map(p => p.y).filter(y => Math.abs(y) < 100);
+        const ys = samples.map((p) => p.y).filter((y) => Math.abs(y) < 100);
         const maxY = Math.max(...ys, selectedFunc.limitPlus ?? 0, selectedFunc.limitMinus ?? 0);
         return maxY + 1;
     }, [samples, selectedFunc]);
 
-    const { toX, toY } = useMemo(() => createTransform(xMin, xMax, yMin, yMax), [xMin, xMax, yMin, yMax]);
+    const { toX, toY } = useMemo(
+        () => createTransform(xMin, xMax, yMin, yMax),
+        [xMin, xMax, yMin, yMax]
+    );
 
     // Punti di avvicinamento
     const approachPlus = useMemo(() => {
@@ -154,10 +198,8 @@ export default function LimiteFinitoPiuMenoInfinito() {
             const t = Math.min(1, (timestamp - startTime) / duration);
 
             if (direction === "plus") {
-                // Da 0 verso +∞
                 setAnimX(t * xMax * 0.95);
             } else {
-                // Da 0 verso -∞
                 setAnimX(-t * Math.abs(xMin) * 0.95);
             }
 
@@ -169,7 +211,9 @@ export default function LimiteFinitoPiuMenoInfinito() {
         };
 
         animRef.current = requestAnimationFrame(step);
-        return () => { if (animRef.current) cancelAnimationFrame(animRef.current); };
+        return () => {
+            if (animRef.current) cancelAnimationFrame(animRef.current);
+        };
     }, [animating, direction, xMin, xMax]);
 
     // Punto attivo
@@ -177,14 +221,24 @@ export default function LimiteFinitoPiuMenoInfinito() {
     const activeY = activeX !== null ? selectedFunc.f(activeX) : null;
 
     // Cambio funzione
-    const handleFuncSelect = (id: string) => {
-        const f = FUNCTIONS.find(fn => fn.id === id);
+    const handleFuncSelect = useCallback((id: string) => {
+        const f = FUNCTIONS.find((fn) => fn.id === id);
         if (f) {
             setSelectedFunc(f);
             setAnimating(false);
             setManualMode(false);
+            setManualX(null);
         }
-    };
+    }, []);
+
+    const toggleManual = useCallback(() => {
+        setManualMode((m) => {
+            const next = !m;
+            if (next) setManualX(10);
+            return next;
+        });
+        setAnimating(false);
+    }, []);
 
     const formatLimit = (val: number | null) => {
         if (val === null) return "non esiste";
@@ -193,43 +247,115 @@ export default function LimiteFinitoPiuMenoInfinito() {
         return val.toFixed(4);
     };
 
+    // ============ STILI LAYOUT ============
+
+    const pageWrap: React.CSSProperties = {
+        maxWidth: 1100,
+        margin: "0 auto",
+        padding: 16,
+    };
+
+    const topBar: React.CSSProperties = {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: isMobile ? "stretch" : "center",
+        marginBottom: 12,
+        flexWrap: "wrap",
+        gap: 8,
+    };
+
+    const controlsRow: React.CSSProperties = {
+        display: "flex",
+        gap: 8,
+        flexWrap: "wrap",
+        alignItems: "center",
+        width: isMobile ? "100%" : "auto",
+    };
+
+    // Wrapper per rendere i ControlButton “larghi” su mobile/tablet
+    const btnWrap: React.CSSProperties = isMobile
+        ? { width: "100%" }
+        : isTablet
+            ? { flex: 1, minWidth: 160 }
+            : {};
+
+    const bottomGrid: React.CSSProperties = isDesktop
+        ? { display: "grid", gridTemplateColumns: "220px 1fr 1fr", gap: 12, marginTop: 12 }
+        : isTablet
+            ? { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 12 }
+            : { display: "grid", gridTemplateColumns: "1fr", gap: 12, marginTop: 12 };
+
+    // In tablet: metto il selettore funzione a tutta larghezza sopra
+    const functionPanelStyle: React.CSSProperties = isTablet
+        ? { gridColumn: "1 / -1" }
+        : {};
+
     return (
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: 16 }}>
+        <div style={pageWrap}>
             <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 6 }}>
                 Limite finito per x → ±∞
             </h1>
             <p style={{ color: "#475569", marginBottom: 12 }}>
-                Studia il comportamento di funzioni con <strong>asintoti orizzontali</strong>:
-                quando x tende a ±∞, f(x) tende a un valore finito L.
+                Studia il comportamento di funzioni con <strong>asintoti orizzontali</strong>: quando x tende a ±∞, f(x)
+                tende a un valore finito L.
             </p>
 
             {/* Canvas principale */}
             <div style={cardStyle}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
+                <div style={topBar}>
                     <div style={{ fontWeight: 600, fontSize: 16 }}>Grafico di {selectedFunc.name}</div>
-                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+
+                    <div style={controlsRow}>
                         <select
                             value={direction}
                             onChange={(e) => setDirection(e.target.value as "plus" | "minus")}
-                            style={{ padding: "6px 10px", borderRadius: 8, border: "1px solid #cbd5e1" }}
+                            style={{
+                                padding: "6px 10px",
+                                borderRadius: 8,
+                                border: "1px solid #cbd5e1",
+                                width: isMobile ? "100%" : "auto",
+                            }}
                         >
                             <option value="plus">Verso +∞</option>
                             <option value="minus">Verso -∞</option>
                         </select>
-                        <ControlButton onClick={() => setAnimating(true)} disabled={animating}>
-                            {animating ? "Animazione..." : "▶ Anima"}
-                        </ControlButton>
-                        <ControlButton onClick={() => { setManualMode(!manualMode); if (!manualMode) setManualX(10); }} active={manualMode}>
-                            Manuale
-                        </ControlButton>
-                        <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13 }}>
-                            <input type="checkbox" checked={showPoints} onChange={(e) => setShowPoints(e.target.checked)} />
+
+                        <div style={btnWrap}>
+                            <ControlButton onClick={() => setAnimating(true)} disabled={animating}>
+                                {animating ? "Animazione..." : "▶ Anima"}
+                            </ControlButton>
+                        </div>
+
+                        <div style={btnWrap}>
+                            <ControlButton onClick={toggleManual} active={manualMode}>
+                                Manuale
+                            </ControlButton>
+                        </div>
+
+                        <label
+                            style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 6,
+                                fontSize: 13,
+                                width: isMobile ? "100%" : "auto",
+                                padding: isMobile ? "6px 0" : 0,
+                            }}
+                        >
+                            <input
+                                type="checkbox"
+                                checked={showPoints}
+                                onChange={(e) => setShowPoints(e.target.checked)}
+                            />
                             Punti
                         </label>
                     </div>
                 </div>
 
-                <svg viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`} style={{ width: "100%", height: "auto", maxHeight: "60vh" }}>
+                <svg
+                    viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
+                    style={{ width: "100%", height: "auto", maxHeight: isMobile ? "56vh" : "60vh" }}
+                >
                     <GridPattern id="gridLimiteFin" />
                     <rect x={0} y={0} width={SVG_WIDTH} height={SVG_HEIGHT} fill="url(#gridLimiteFin)" />
 
@@ -237,10 +363,20 @@ export default function LimiteFinitoPiuMenoInfinito() {
 
                     {/* Asintoti orizzontali */}
                     {selectedFunc.limitPlus !== null && (
-                        <HorizontalLine y={selectedFunc.limitPlus} toY={toY} color="#10b981" label={`L₊ = ${formatLimit(selectedFunc.limitPlus)}`} />
+                        <HorizontalLine
+                            y={selectedFunc.limitPlus}
+                            toY={toY}
+                            color="#10b981"
+                            label={`L₊ = ${formatLimit(selectedFunc.limitPlus)}`}
+                        />
                     )}
                     {selectedFunc.limitMinus !== null && selectedFunc.limitMinus !== selectedFunc.limitPlus && (
-                        <HorizontalLine y={selectedFunc.limitMinus} toY={toY} color="#f59e0b" label={`L₋ = ${formatLimit(selectedFunc.limitMinus)}`} />
+                        <HorizontalLine
+                            y={selectedFunc.limitMinus}
+                            toY={toY}
+                            color="#f59e0b"
+                            label={`L₋ = ${formatLimit(selectedFunc.limitMinus)}`}
+                        />
                     )}
 
                     <FunctionCurve pathD={pathD} />
@@ -278,10 +414,10 @@ export default function LimiteFinitoPiuMenoInfinito() {
                 )}
             </div>
 
-            {/* Controlli in basso */}
-            <div style={{ display: "grid", gridTemplateColumns: "220px 1fr 1fr", gap: 12, marginTop: 12 }}>
+            {/* Controlli in basso (3 layout) */}
+            <div style={bottomGrid}>
                 {/* Selezione funzione */}
-                <div style={cardStyle}>
+                <div style={{ ...cardStyle, ...functionPanelStyle }}>
                     <div style={{ fontWeight: 600, marginBottom: 8 }}>Funzione</div>
                     <FunctionSelector functions={FUNCTIONS} selected={selectedFunc.id} onSelect={handleFuncSelect} />
                 </div>
@@ -338,9 +474,8 @@ export default function LimiteFinitoPiuMenoInfinito() {
             </div>
 
             <ConceptBox>
-                Il limite per x → ±∞ è <strong>finito</strong> quando f(x) si avvicina a un valore L.
-                La retta y = L è un <strong>asintoto orizzontale</strong>.
-                I limiti per x → +∞ e x → -∞ possono essere uguali o diversi.
+                Il limite per x → ±∞ è <strong>finito</strong> quando f(x) si avvicina a un valore L. La retta y = L è un{" "}
+                <strong>asintoto orizzontale</strong>. I limiti per x → +∞ e x → -∞ possono essere uguali o diversi.
             </ConceptBox>
         </div>
     );

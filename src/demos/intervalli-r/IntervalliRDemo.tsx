@@ -1,11 +1,30 @@
 /**
- * IntervalliRDemo - Versione refactorizzata
- * Visualizzazione interattiva di intervalli sulla retta reale
- * con pallina che rimbalza sugli estremi
+ * IntervalliRDemo - Versione refactorizzata (fix animazione) + 3 layout (mobile/tablet/desktop)
+ * Desktop: selezione -> retta -> 3 cards in orizzontale (Estremi / Animazione / Proprietà) -> legenda
  */
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { DemoContainer } from "../../components/ui";
+
+// ============ HOOK BREAKPOINT LOCALE ============
+
+function useLocalBreakpoint() {
+    const [w, setW] = useState<number>(() =>
+        typeof window !== "undefined" ? window.innerWidth : 1200
+    );
+
+    useEffect(() => {
+        const onResize = () => setW(window.innerWidth);
+        window.addEventListener("resize", onResize);
+        return () => window.removeEventListener("resize", onResize);
+    }, []);
+
+    const isMobile = w < 720;
+    const isTablet = w >= 720 && w < 1100;
+    const isDesktop = w >= 1100;
+
+    return { w, isMobile, isTablet, isDesktop };
+}
 
 // ============ TIPI ============
 
@@ -35,15 +54,20 @@ const INTERVAL_TYPES: IntervalType[] = [
 // ============ COMPONENTE PRINCIPALE ============
 
 export default function IntervalliRDemo() {
+    const { isMobile, isTablet, isDesktop } = useLocalBreakpoint();
+
     const [intervalType, setIntervalType] = useState<IntervalType>(INTERVAL_TYPES[0]);
     const [a, setA] = useState(-3);
     const [b, setB] = useState(4);
     const [speed, setSpeed] = useState(0.8);
     const [playing, setPlaying] = useState(true);
 
-    // Posizione pallina
+    // Posizione pallina (state per render)
     const [ballX, setBallX] = useState(0);
-    const [direction, setDirection] = useState<1 | -1>(1);
+
+    // Ref “fisici” per evitare reset dell’animazione ad ogni frame
+    const ballXRef = useRef(0);
+    const dirRef = useRef<1 | -1>(1);
     const lastTimeRef = useRef<number | null>(null);
 
     // Geometria linea
@@ -78,56 +102,8 @@ export default function IntervalliRDemo() {
         }
         const scale = (lineWidth - 60) / (maxX - minX);
         const toPx = (x: number) => 30 + (x - minX) * scale;
-        const fromPx = (px: number) => minX + (px - 30) / scale;
-        return { minX, maxX, scale, toPx, fromPx };
+        return { minX, maxX, scale, toPx };
     }, [lineWidth, intervalType, a, b]);
-
-    // Reset pallina quando cambia intervallo
-    useEffect(() => {
-        let startX = 0;
-        if (intervalType.hasA && intervalType.hasB) startX = (a + b) / 2;
-        else if (intervalType.hasA) startX = a + 2;
-        else if (intervalType.hasB) startX = b - 2;
-        setBallX(startX);
-        setDirection(1);
-    }, [intervalType, a, b]);
-
-    // Animazione pallina
-    useEffect(() => {
-        if (!playing) { lastTimeRef.current = null; return; }
-
-        let raf: number;
-        const tick = (t: number) => {
-            if (!lastTimeRef.current) lastTimeRef.current = t;
-            const dt = t - lastTimeRef.current;
-            lastTimeRef.current = t;
-
-            const velocity = speed / view.scale;
-            let newX = ballX + direction * velocity * dt;
-
-            const lowerBound = intervalType.hasA ? a : -Infinity;
-            const upperBound = intervalType.hasB ? b : Infinity;
-
-            // Rimbalzo o wrap
-            if (newX <= lowerBound && Number.isFinite(lowerBound)) {
-                newX = lowerBound;
-                setDirection(1);
-            } else if (newX >= upperBound && Number.isFinite(upperBound)) {
-                newX = upperBound;
-                setDirection(-1);
-            } else if (!Number.isFinite(upperBound) && newX > view.maxX + 2) {
-                newX = view.minX - 1;
-            } else if (!Number.isFinite(lowerBound) && newX < view.minX - 2) {
-                newX = view.maxX + 1;
-            }
-
-            setBallX(newX);
-            raf = requestAnimationFrame(tick);
-        };
-
-        raf = requestAnimationFrame(tick);
-        return () => cancelAnimationFrame(raf);
-    }, [playing, speed, view, ballX, direction, intervalType, a, b]);
 
     // Proprietà matematiche
     const properties = useMemo(() => {
@@ -140,112 +116,192 @@ export default function IntervalliRDemo() {
         return { lowerBounded, upperBounded, inf, sup, hasMin, hasMax };
     }, [intervalType, a, b]);
 
-    // Stili
-    const cardStyle: React.CSSProperties = { background: "#fff", borderRadius: 12, padding: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.08)" };
+    // Reset pallina quando cambia intervallo
+    useEffect(() => {
+        let startX = 0;
+        if (intervalType.hasA && intervalType.hasB) startX = (a + b) / 2;
+        else if (intervalType.hasA) startX = a + 2;
+        else if (intervalType.hasB) startX = b - 2;
 
-    return (
-        <DemoContainer
-            title="Intervalli sulla retta reale"
-            description="Visualizza intervalli aperti, chiusi e semirette. La pallina rimbalza sugli estremi inclusi."
-        >
-            {/* Selezione intervallo - cards cliccabili */}
-            <div style={cardStyle}>
-                <div style={{ fontWeight: 600, marginBottom: 12 }}>Tipo di intervallo</div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 8 }}>
-                    {INTERVAL_TYPES.map(type => (
-                        <button
-                            key={type.id}
-                            onClick={() => setIntervalType(type)}
-                            style={{
-                                padding: "10px 12px",
-                                borderRadius: 8,
-                                border: intervalType.id === type.id ? "2px solid #3b82f6" : "1px solid #e5e7eb",
-                                background: intervalType.id === type.id ? "#dbeafe" : "#fff",
-                                cursor: "pointer",
-                                textAlign: "left"
-                            }}
-                        >
-                            <div style={{ fontWeight: 600, fontSize: 16, fontFamily: "monospace" }}>{type.notation}</div>
-                            <div style={{ fontSize: 11, color: "#6b7280" }}>{type.name}</div>
-                        </button>
-                    ))}
-                </div>
+        ballXRef.current = startX;
+        dirRef.current = 1;
+        lastTimeRef.current = null;
+
+        setBallX(startX);
+    }, [intervalType, a, b]);
+
+    // Animazione pallina (FIX: niente ballX/direction in deps)
+    useEffect(() => {
+        if (!playing) {
+            lastTimeRef.current = null;
+            return;
+        }
+
+        let raf = 0;
+
+        const tick = (t: number) => {
+            if (lastTimeRef.current === null) lastTimeRef.current = t;
+            const dt = t - lastTimeRef.current;
+            lastTimeRef.current = t;
+
+            const velocity = speed / view.scale;
+            let newX = ballXRef.current + dirRef.current * velocity * dt;
+
+            const lowerBound = intervalType.hasA ? a : -Infinity;
+            const upperBound = intervalType.hasB ? b : Infinity;
+
+            if (Number.isFinite(lowerBound) && newX <= lowerBound) {
+                newX = lowerBound;
+                dirRef.current = 1;
+            } else if (Number.isFinite(upperBound) && newX >= upperBound) {
+                newX = upperBound;
+                dirRef.current = -1;
+            } else if (!Number.isFinite(upperBound) && newX > view.maxX + 2) {
+                newX = view.minX - 1;
+            } else if (!Number.isFinite(lowerBound) && newX < view.minX - 2) {
+                newX = view.maxX + 1;
+            }
+
+            ballXRef.current = newX;
+            setBallX(newX);
+
+            raf = requestAnimationFrame(tick);
+        };
+
+        raf = requestAnimationFrame(tick);
+        return () => cancelAnimationFrame(raf);
+    }, [playing, speed, view, intervalType, a, b]);
+
+    // ============ STILI BASE ============
+
+    const cardStyle: React.CSSProperties = {
+        background: "#fff",
+        borderRadius: 12,
+        padding: 16,
+        boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+    };
+
+    // ============ UI: SELEZIONE INTERVALLO ============
+
+    const selection = (
+        <div style={cardStyle}>
+            <div style={{ fontWeight: 600, marginBottom: 12 }}>Tipo di intervallo</div>
+            <div
+                style={{
+                    display: "grid",
+                    gridTemplateColumns: isMobile
+                        ? "repeat(2, minmax(0, 1fr))"
+                        : "repeat(auto-fill, minmax(140px, 1fr))",
+                    gap: 8,
+                }}
+            >
+                {INTERVAL_TYPES.map((type) => (
+                    <button
+                        key={type.id}
+                        onClick={() => setIntervalType(type)}
+                        style={{
+                            padding: "10px 12px",
+                            borderRadius: 8,
+                            border: intervalType.id === type.id ? "2px solid #3b82f6" : "1px solid #e5e7eb",
+                            background: intervalType.id === type.id ? "#dbeafe" : "#fff",
+                            cursor: "pointer",
+                            textAlign: "left",
+                        }}
+                    >
+                        <div style={{ fontWeight: 600, fontSize: 16, fontFamily: "monospace" }}>{type.notation}</div>
+                        <div style={{ fontSize: 11, color: "#6b7280" }}>{type.name}</div>
+                    </button>
+                ))}
             </div>
+        </div>
+    );
 
-            {/* Visualizzazione intervallo */}
-            <div ref={lineRef} style={{ ...cardStyle, marginTop: 16, position: "relative", height: 140, overflow: "hidden" }}>
-                {/* Linea base */}
-                <div style={{ position: "absolute", left: 30, right: 30, top: "50%", height: 3, background: "#374151", borderRadius: 2 }} />
+    // ============ UI: RETTA ============
 
-                {/* Frecce infinito */}
-                {!properties.lowerBounded && (
-                    <div style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", fontSize: 20 }}>←</div>
-                )}
-                {!properties.upperBounded && (
-                    <div style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", fontSize: 20 }}>→</div>
-                )}
+    const line = (
+        <div
+            ref={lineRef}
+            style={{
+                ...cardStyle,
+                marginTop: 16,
+                position: "relative",
+                height: isMobile ? 160 : 140,
+                overflow: "hidden",
+            }}
+        >
+            <div style={{ position: "absolute", left: 30, right: 30, top: "50%", height: 3, background: "#374151", borderRadius: 2 }} />
 
-                {/* Zona colorata dell'intervallo */}
-                {(() => {
-                    const leftPx = intervalType.hasA ? view.toPx(a) : 30;
-                    const rightPx = intervalType.hasB ? view.toPx(b) : lineWidth - 30;
-                    return (
-                        <div style={{
+            {!properties.lowerBounded && (
+                <div style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", fontSize: 20 }}>←</div>
+            )}
+            {!properties.upperBounded && (
+                <div style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", fontSize: 20 }}>→</div>
+            )}
+
+            {(() => {
+                const leftPx = intervalType.hasA ? view.toPx(a) : 30;
+                const rightPx = intervalType.hasB ? view.toPx(b) : lineWidth - 30;
+                return (
+                    <div
+                        style={{
                             position: "absolute",
                             left: leftPx,
-                            width: rightPx - leftPx,
+                            width: Math.max(0, rightPx - leftPx),
                             top: "calc(50% - 15px)",
                             height: 30,
                             background: "rgba(59, 130, 246, 0.15)",
-                            borderRadius: 4
-                        }} />
-                    );
-                })()}
+                            borderRadius: 4,
+                        }}
+                    />
+                );
+            })()}
 
-                {/* Estremo a */}
-                {intervalType.hasA && (
-                    <div style={{ position: "absolute", left: view.toPx(a), top: "50%", transform: "translate(-50%, -50%)" }}>
-                        <div style={{
+            {intervalType.hasA && (
+                <div style={{ position: "absolute", left: view.toPx(a), top: "50%", transform: "translate(-50%, -50%)" }}>
+                    <div
+                        style={{
                             width: 16,
                             height: 16,
                             borderRadius: "50%",
                             border: "3px solid #3b82f6",
-                            background: intervalType.includesA ? "#3b82f6" : "#fff"
-                        }} />
-                        <div style={{ position: "absolute", top: 24, left: "50%", transform: "translateX(-50%)", fontSize: 13, fontWeight: 600 }}>
-                            a={a}
-                        </div>
-                        {properties.hasMin && (
-                            <div style={{ position: "absolute", top: 42, left: "50%", transform: "translateX(-50%)", fontSize: 11, color: "#059669", whiteSpace: "nowrap" }}>
-                                = min
-                            </div>
-                        )}
+                            background: intervalType.includesA ? "#3b82f6" : "#fff",
+                        }}
+                    />
+                    <div style={{ position: "absolute", top: 24, left: "50%", transform: "translateX(-50%)", fontSize: 13, fontWeight: 600 }}>
+                        a={a}
                     </div>
-                )}
+                    {properties.hasMin && (
+                        <div style={{ position: "absolute", top: 42, left: "50%", transform: "translateX(-50%)", fontSize: 11, color: "#059669", whiteSpace: "nowrap" }}>
+                            = min
+                        </div>
+                    )}
+                </div>
+            )}
 
-                {/* Estremo b */}
-                {intervalType.hasB && (
-                    <div style={{ position: "absolute", left: view.toPx(b), top: "50%", transform: "translate(-50%, -50%)" }}>
-                        <div style={{
+            {intervalType.hasB && (
+                <div style={{ position: "absolute", left: view.toPx(b), top: "50%", transform: "translate(-50%, -50%)" }}>
+                    <div
+                        style={{
                             width: 16,
                             height: 16,
                             borderRadius: "50%",
                             border: "3px solid #f59e0b",
-                            background: intervalType.includesB ? "#f59e0b" : "#fff"
-                        }} />
-                        <div style={{ position: "absolute", top: 24, left: "50%", transform: "translateX(-50%)", fontSize: 13, fontWeight: 600 }}>
-                            b={b}
-                        </div>
-                        {properties.hasMax && (
-                            <div style={{ position: "absolute", top: 42, left: "50%", transform: "translateX(-50%)", fontSize: 11, color: "#059669", whiteSpace: "nowrap" }}>
-                                = max
-                            </div>
-                        )}
+                            background: intervalType.includesB ? "#f59e0b" : "#fff",
+                        }}
+                    />
+                    <div style={{ position: "absolute", top: 24, left: "50%", transform: "translateX(-50%)", fontSize: 13, fontWeight: 600 }}>
+                        b={b}
                     </div>
-                )}
+                    {properties.hasMax && (
+                        <div style={{ position: "absolute", top: 42, left: "50%", transform: "translateX(-50%)", fontSize: 11, color: "#059669", whiteSpace: "nowrap" }}>
+                            = max
+                        </div>
+                    )}
+                </div>
+            )}
 
-                {/* Pallina */}
-                <div style={{
+            <div
+                style={{
                     position: "absolute",
                     left: view.toPx(ballX),
                     top: "50%",
@@ -255,119 +311,228 @@ export default function IntervalliRDemo() {
                     borderRadius: "50%",
                     background: "#ef4444",
                     boxShadow: "0 2px 8px rgba(239, 68, 68, 0.4)",
-                    transition: playing ? "none" : "left 0.1s"
-                }} />
+                    transition: playing ? "none" : "left 0.1s",
+                }}
+            />
 
-                {/* Scala numerica */}
-                <div style={{ position: "absolute", bottom: 8, left: 30, right: 30, display: "flex", justifyContent: "space-between", fontSize: 10, color: "#9ca3af" }}>
-                    <span>{view.minX.toFixed(0)}</span>
-                    <span>0</span>
-                    <span>{view.maxX.toFixed(0)}</span>
+            <div style={{ position: "absolute", bottom: 8, left: 30, right: 30, display: "flex", justifyContent: "space-between", fontSize: 10, color: "#9ca3af" }}>
+                <span>{view.minX.toFixed(0)}</span>
+                <span>0</span>
+                <span>{view.maxX.toFixed(0)}</span>
+            </div>
+        </div>
+    );
+
+    // ============ UI: 3 BOX SOTTO (Estremi / Animazione / Proprietà) ============
+
+    const extremesCard = (
+        <div style={cardStyle}>
+            <div style={{ fontWeight: 700, marginBottom: 12 }}>Estremi</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div>
+                    <label style={{ fontSize: 12, color: "#6b7280" }}>a =</label>
+                    <input
+                        type="number"
+                        value={a}
+                        step={0.5}
+                        onChange={(e) => setA(Math.min(+e.target.value, b - 1))}
+                        disabled={!intervalType.hasA}
+                        style={{
+                            width: "100%",
+                            padding: 8,
+                            borderRadius: 6,
+                            border: "1px solid #d1d5db",
+                            marginTop: 4,
+                            background: intervalType.hasA ? "#fff" : "#f8fafc",
+                        }}
+                    />
+                </div>
+                <div>
+                    <label style={{ fontSize: 12, color: "#6b7280" }}>b =</label>
+                    <input
+                        type="number"
+                        value={b}
+                        step={0.5}
+                        onChange={(e) => setB(Math.max(+e.target.value, a + 1))}
+                        disabled={!intervalType.hasB}
+                        style={{
+                            width: "100%",
+                            padding: 8,
+                            borderRadius: 6,
+                            border: "1px solid #d1d5db",
+                            marginTop: 4,
+                            background: intervalType.hasB ? "#fff" : "#f8fafc",
+                        }}
+                    />
                 </div>
             </div>
+        </div>
+    );
 
-            {/* Controlli e proprietà */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginTop: 16 }}>
-                {/* Valori estremi */}
-                <div style={cardStyle}>
-                    <div style={{ fontWeight: 600, marginBottom: 12 }}>Estremi</div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                        <div>
-                            <label style={{ fontSize: 12, color: "#6b7280" }}>a =</label>
-                            <input
-                                type="number"
-                                value={a}
-                                step={0.5}
-                                onChange={e => setA(Math.min(+e.target.value, b - 1))}
-                                disabled={!intervalType.hasA}
-                                style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #d1d5db", marginTop: 4 }}
-                            />
-                        </div>
-                        <div>
-                            <label style={{ fontSize: 12, color: "#6b7280" }}>b =</label>
-                            <input
-                                type="number"
-                                value={b}
-                                step={0.5}
-                                onChange={e => setB(Math.max(+e.target.value, a + 1))}
-                                disabled={!intervalType.hasB}
-                                style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #d1d5db", marginTop: 4 }}
-                            />
-                        </div>
-                    </div>
+    const animationCard = (
+        <div style={cardStyle}>
+            <div style={{ fontWeight: 700, marginBottom: 12 }}>Animazione</div>
+
+            <button
+                onClick={() => setPlaying(!playing)}
+                style={{
+                    width: "100%",
+                    padding: "10px 16px",
+                    borderRadius: 8,
+                    border: "none",
+                    background: playing ? "#ef4444" : "#22c55e",
+                    color: "#fff",
+                    cursor: "pointer",
+                    fontWeight: 700,
+                    marginBottom: 12,
+                }}
+            >
+                {playing ? "⏸ Pausa" : "▶ Play"}
+            </button>
+
+            <label style={{ fontSize: 12, color: "#6b7280" }}>
+                Velocità
+                <input
+                    type="range"
+                    min={0.2}
+                    max={2}
+                    step={0.1}
+                    value={speed}
+                    onChange={(e) => setSpeed(+e.target.value)}
+                    style={{ width: "100%", marginTop: 6 }}
+                />
+            </label>
+        </div>
+    );
+
+    const propertiesCard = (
+        <div style={{ ...cardStyle, background: "#f8fafc" }}>
+            <div style={{ fontWeight: 700, marginBottom: 12 }}>Proprietà</div>
+
+            <div style={{ fontSize: 13, display: "grid", gap: 8 }}>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <span>Limitato inf.:</span>
+                    <strong style={{ color: properties.lowerBounded ? "#059669" : "#dc2626" }}>
+                        {properties.lowerBounded ? "Sì" : "No"}
+                    </strong>
                 </div>
 
-                {/* Controlli animazione */}
-                <div style={cardStyle}>
-                    <div style={{ fontWeight: 600, marginBottom: 12 }}>Animazione</div>
-                    <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-                        <button
-                            onClick={() => setPlaying(!playing)}
-                            style={{
-                                flex: 1,
-                                padding: "10px 16px",
-                                borderRadius: 8,
-                                border: "none",
-                                background: playing ? "#ef4444" : "#22c55e",
-                                color: "#fff",
-                                cursor: "pointer",
-                                fontWeight: 600
-                            }}
-                        >
-                            {playing ? "⏸ Pausa" : "▶ Play"}
-                        </button>
-                    </div>
-                    <label style={{ fontSize: 12, color: "#6b7280" }}>
-                        Velocità
-                        <input
-                            type="range"
-                            min={0.2}
-                            max={2}
-                            step={0.1}
-                            value={speed}
-                            onChange={e => setSpeed(+e.target.value)}
-                            style={{ width: "100%", marginTop: 4 }}
-                        />
-                    </label>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <span>Limitato sup.:</span>
+                    <strong style={{ color: properties.upperBounded ? "#059669" : "#dc2626" }}>
+                        {properties.upperBounded ? "Sì" : "No"}
+                    </strong>
                 </div>
 
-                {/* Proprietà */}
-                <div style={{ ...cardStyle, background: "#f8fafc" }}>
-                    <div style={{ fontWeight: 600, marginBottom: 12 }}>Proprietà</div>
-                    <div style={{ fontSize: 13, display: "grid", gap: 6 }}>
-                        <div style={{ display: "flex", justifyContent: "space-between" }}>
-                            <span>Limitato inf.:</span>
-                            <strong style={{ color: properties.lowerBounded ? "#059669" : "#dc2626" }}>{properties.lowerBounded ? "Sì" : "No"}</strong>
-                        </div>
-                        <div style={{ display: "flex", justifyContent: "space-between" }}>
-                            <span>Limitato sup.:</span>
-                            <strong style={{ color: properties.upperBounded ? "#059669" : "#dc2626" }}>{properties.upperBounded ? "Sì" : "No"}</strong>
-                        </div>
-                        <div style={{ borderTop: "1px solid #e5e7eb", paddingTop: 6, marginTop: 4 }}>
-                            <div style={{ display: "flex", justifyContent: "space-between" }}>
-                                <span>inf =</span>
-                                <strong>{properties.inf}</strong>
-                                {properties.hasMin && <span style={{ color: "#059669", fontSize: 11 }}>(= min)</span>}
-                            </div>
-                            <div style={{ display: "flex", justifyContent: "space-between" }}>
-                                <span>sup =</span>
-                                <strong>{properties.sup}</strong>
-                                {properties.hasMax && <span style={{ color: "#059669", fontSize: 11 }}>(= max)</span>}
-                            </div>
-                        </div>
+                <div style={{ borderTop: "1px solid #e5e7eb", paddingTop: 10, marginTop: 2 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "baseline" }}>
+                        <span>inf =</span>
+                        <strong style={{ marginLeft: "auto" }}>{properties.inf}</strong>
+                        {properties.hasMin && <span style={{ color: "#059669", fontSize: 11 }}>(= min)</span>}
+                    </div>
+
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "baseline", marginTop: 6 }}>
+                        <span>sup =</span>
+                        <strong style={{ marginLeft: "auto" }}>{properties.sup}</strong>
+                        {properties.hasMax && <span style={{ color: "#059669", fontSize: 11 }}>(= max)</span>}
                     </div>
                 </div>
             </div>
+        </div>
+    );
 
-            {/* Legenda */}
-            <div style={{ marginTop: 16, background: "#eff6ff", borderRadius: 12, padding: 16, fontSize: 13, color: "#1e40af" }}>
-                <strong>💡 Legenda:</strong>
-                <ul style={{ margin: "8px 0 0 0", paddingLeft: 20 }}>
-                    <li><strong>Punto pieno</strong> = estremo incluso (la pallina può toccarlo e rimbalza)</li>
-                    <li><strong>Punto vuoto</strong> = estremo escluso (la pallina si avvicina ma non lo raggiunge mai)</li>
-                    <li><strong>Frecce</strong> = intervallo illimitato (la pallina prosegue all'infinito)</li>
-                    <li><strong>inf ≠ min</strong> quando l'estremo esiste ma non appartiene all'insieme</li>
-                </ul>
+    const legend = (
+        <div style={{ marginTop: 16, background: "#eff6ff", borderRadius: 12, padding: 16, fontSize: 13, color: "#1e40af" }}>
+            <strong>💡 Legenda:</strong>
+            <ul style={{ margin: "8px 0 0 0", paddingLeft: 20 }}>
+                <li><strong>Punto pieno</strong> = estremo incluso (la pallina può toccarlo e rimbalza)</li>
+                <li><strong>Punto vuoto</strong> = estremo escluso (la pallina si avvicina ma non lo raggiunge mai)</li>
+                <li><strong>Frecce</strong> = intervallo illimitato (la pallina prosegue all'infinito)</li>
+                <li><strong>inf ≠ min</strong> quando l'estremo esiste ma non appartiene all'insieme</li>
+            </ul>
+        </div>
+    );
+
+    // ============ LAYOUTS ============
+
+    // MOBILE: tutto in colonna
+    if (isMobile) {
+        return (
+            <DemoContainer
+                title="Intervalli sulla retta reale"
+                description="Visualizza intervalli aperti, chiusi e semirette. La pallina rimbalza sugli estremi inclusi."
+            >
+                <div style={{ display: "grid", gap: 12 }}>
+                    {selection}
+                    {line}
+                    {extremesCard}
+                    {animationCard}
+                    {propertiesCard}
+                    {legend}
+                </div>
+            </DemoContainer>
+        );
+    }
+
+    // TABLET: sotto la retta: 2 colonne (Estremi/Animazione), poi Proprietà full width
+    if (isTablet) {
+        return (
+            <DemoContainer
+                title="Intervalli sulla retta reale"
+                description="Visualizza intervalli aperti, chiusi e semirette. La pallina rimbalza sugli estremi inclusi."
+            >
+                <div style={{ display: "grid", gap: 12 }}>
+                    {selection}
+                    {line}
+
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 4 }}>
+                        {extremesCard}
+                        {animationCard}
+                    </div>
+
+                    {propertiesCard}
+                    {legend}
+                </div>
+            </DemoContainer>
+        );
+    }
+
+    // DESKTOP: 3 box sotto in orizzontale come in figura
+    if (isDesktop) {
+        return (
+            <DemoContainer
+                title="Intervalli sulla retta reale"
+                description="Visualizza intervalli aperti, chiusi e semirette. La pallina rimbalza sugli estremi inclusi."
+            >
+                {selection}
+                {line}
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginTop: 16 }}>
+                    {extremesCard}
+                    {animationCard}
+                    {propertiesCard}
+                </div>
+
+                {legend}
+            </DemoContainer>
+        );
+    }
+
+    // fallback
+    return (
+        <DemoContainer
+            title="Intervalli sulla retta reale"
+            description="Visualizza intervalli aperti, chiusi e semirette. La pallina rimbalza sugli estremi inclusi."
+        >
+            <div style={{ display: "grid", gap: 12 }}>
+                {selection}
+                {line}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 12 }}>
+                    {extremesCard}
+                    {animationCard}
+                    {propertiesCard}
+                </div>
+                {legend}
             </div>
         </DemoContainer>
     );
