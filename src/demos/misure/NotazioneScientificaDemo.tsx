@@ -348,7 +348,7 @@ export default function NotazioneScientificaDemo() {
                                 <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
                                     <span style={{ background: "#f59e0b", color: "#fff", borderRadius: "50%", width: 24, height: 24, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, flexShrink: 0 }}>3</span>
                                     <div>
-                                        <strong>Scrivi il risultatoi</strong> mantissa × 10 elevato all'esponente.
+                                        <strong>Scrivi il risultato:</strong> mantissa × 10 elevato all'esponente.
                                     </div>
                                 </div>
                             </div>
