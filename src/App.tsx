@@ -28,18 +28,20 @@ const categories: Category[] = [
                 id: "algebra",
                 name: "Algebra",
                 slugs: [
+                    "scomposizione-polinomi",
                     "equazioni-secondo-grado",
                     "equazioni-frazionarie",
                     "disequazioni-secondo-grado",
                     "sistemi-disequazioni",
                     "disequazioni-soluzioni",
-                    "intervalli-r",
+
                 ],
             },
             {
                 id: "analisi",
                 name: "Analisi",
                 slugs: [
+                    "intervalli-r",
                     "domini-funzioni",
                     "limite-finito-finito",
                     "limite-infinito-finito",

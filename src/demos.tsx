@@ -139,6 +139,11 @@ export const demos: DemoInfo[] = [
             () => import("./demos/vettori-piano/VettorePerScalare")
         ),
     },
+    {
+        slug: "scomposizione-polinomi",
+        title: "Scomposizione di Polinomi (step-by-step)",
+        Component: React.lazy(() => import("./demos/algebra/ScomposizionePolinomiDemo")),
+    },
 
 
 
