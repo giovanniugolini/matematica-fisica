@@ -132,6 +132,14 @@ export const demos: DemoInfo[] = [
             () => import("./demos/equazioni/EquazioniFrazionarie")
         ),
     },
+    {
+        slug: "vettore-per-escalare",
+        title: "Moltiplicazione tra un vettore e uno scalare",
+        Component: React.lazy(
+            () => import("./demos/vettori-piano/VettorePerScalare")
+        ),
+    },
+
 
 
 
