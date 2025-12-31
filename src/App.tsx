@@ -49,6 +49,13 @@ const categories: Category[] = [
                     "limite-infinito-infinito",
                 ],
             },
+            {
+                id: "probabilita",
+                name: "Probabilità",
+                slugs: [
+                    "probabilita-urna-albero",
+                ],
+            },
 
             {
                 id: "goniometria",
@@ -106,13 +113,7 @@ const categories: Category[] = [
         name: "Altro",
         icon: "📚",
         subcategories: [
-            {
-                id: "probabilita",
-                name: "Probabilità",
-                slugs: [
-                    "probabilita-urna-albero",
-                ],
-            },
+
             {
                 id: "apprendimento",
                 name: "Apprendimento",
