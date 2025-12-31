@@ -39,7 +39,8 @@ interface SimulationParams {
     v0: number;     // velocità iniziale (m/s) - positiva verso l'alto
     g: number;      // accelerazione di gravità (m/s²)
     hasAtmosphere: boolean; // se simulare resistenza aria
-    terminalVelocity: number; // velocità terminale (m/s)
+    mass: number;   // massa oggetto (kg)
+    CdA: number;    // coefficiente drag * area (m²)
 }
 
 interface Planet {
@@ -48,37 +49,83 @@ interface Planet {
     icon: string;
     color: string;
     hasAtmosphere: boolean;
+    // Colori ambiente
+    skyTop: string;
+    skyBottom: string;
+    groundColor: string;
+    groundAccent: string;
+    groundType: "grass" | "rock" | "dust" | "gas";
 }
 
 // ============ COSTANTI ============
 
 const PLANETS: Planet[] = [
-    { name: "Terra", g: 9.81, icon: "🌍", color: "#3b82f6", hasAtmosphere: true },
-    { name: "Luna", g: 1.62, icon: "🌙", color: "#94a3b8", hasAtmosphere: false },
-    { name: "Marte", g: 3.72, icon: "🔴", color: "#ef4444", hasAtmosphere: false }, // Marte ha atmosfera tenue, la ignoriamo
-    { name: "Giove", g: 24.79, icon: "🟠", color: "#f59e0b", hasAtmosphere: false }, // Troppo complesso
+    {
+        name: "Terra", g: 9.81, icon: "🌍", color: "#3b82f6", hasAtmosphere: true,
+        skyTop: "#0ea5e9", skyBottom: "#e0f2fe",
+        groundColor: "#65a30d", groundAccent: "#4ade80",
+        groundType: "grass"
+    },
+    {
+        name: "Luna", g: 1.62, icon: "🌙", color: "#94a3b8", hasAtmosphere: false,
+        skyTop: "#0f172a", skyBottom: "#1e293b",
+        groundColor: "#6b7280", groundAccent: "#9ca3af",
+        groundType: "rock"
+    },
+    {
+        name: "Marte", g: 3.72, icon: "🔴", color: "#ef4444", hasAtmosphere: false,
+        skyTop: "#fecaca", skyBottom: "#fef2f2",
+        groundColor: "#dc2626", groundAccent: "#f87171",
+        groundType: "dust"
+    },
+    {
+        name: "Giove", g: 24.79, icon: "🟠", color: "#f59e0b", hasAtmosphere: false,
+        skyTop: "#fed7aa", skyBottom: "#ffedd5",
+        groundColor: "#d97706", groundAccent: "#fbbf24",
+        groundType: "gas"
+    },
 ];
 
 interface FallingObject {
     name: string;
     icon: string;
-    size: number; // dimensione emoji
-    terminalVelocity: number; // velocità terminale in m/s (sulla Terra)
+    size: number;      // dimensione emoji
+    mass: number;      // massa in kg
+    CdA: number;       // coefficiente di drag * area frontale (m²)
+    // v_t viene calcolato: v_t = sqrt(2mg / (ρ * CdA))
 }
 
+// Densità aria a livello del mare (kg/m³)
+const RHO_AIR = 1.225;
+
+// Calcola velocità terminale: v_t = sqrt(2mg / (ρ * CdA))
+function calculateTerminalVelocity(mass: number, CdA: number, g: number = 9.81): number {
+    return Math.sqrt((2 * mass * g) / (RHO_AIR * CdA));
+}
+
+// Oggetti con parametri fisici realistici
+// CdA = Cd * A dove Cd è il coefficiente di drag e A l'area frontale
 const OBJECTS: FallingObject[] = [
-    { name: "Palla da calcio", icon: "⚽", size: 36, terminalVelocity: 30 },
-    { name: "Palla da basket", icon: "🏀", size: 38, terminalVelocity: 20 },
-    { name: "Pallina da tennis", icon: "🎾", size: 30, terminalVelocity: 31 },
-    { name: "Bowling", icon: "🎳", size: 34, terminalVelocity: 70 },
-    { name: "Mela", icon: "🍎", size: 32, terminalVelocity: 25 },
-    { name: "Anguria", icon: "🍉", size: 40, terminalVelocity: 45 },
-    { name: "Pianoforte", icon: "🎹", size: 44, terminalVelocity: 120 },
-    { name: "Incudine", icon: "⚒️", size: 38, terminalVelocity: 150 },
-    { name: "Elefante", icon: "🐘", size: 46, terminalVelocity: 90 },
-    { name: "Pinguino", icon: "🐧", size: 36, terminalVelocity: 35 },
-    { name: "Auto", icon: "🚗", size: 42, terminalVelocity: 100 },
-    { name: "Paracadutista", icon: "🪂", size: 40, terminalVelocity: 5 }, // Con paracadute aperto
+    // Sfere: Cd ≈ 0.47
+    { name: "Palla da calcio", icon: "⚽", size: 36, mass: 0.43, CdA: 0.47 * 0.038 },      // A = π*0.11²
+    { name: "Palla da basket", icon: "🏀", size: 38, mass: 0.62, CdA: 0.47 * 0.045 },     // A = π*0.12²
+
+    // Oggetti irregolari: Cd ≈ 1.0-1.3
+    { name: "Mela", icon: "🍎", size: 32, mass: 0.2, CdA: 0.8 * 0.005 },                   // piccola, tonda
+    { name: "Mattone", icon: "🧱", size: 34, mass: 3.5, CdA: 1.0 * 0.023 },                // 23x11 cm
+    { name: "Sasso", icon: "🪨", size: 32, mass: 2.0, CdA: 0.8 * 0.008 },                  // irregolare
+
+    // Animali/persone: Cd ≈ 1.0-1.2
+    { name: "Pinguino", icon: "🐧", size: 36, mass: 30, CdA: 0.9 * 0.12 },                 // aerodinamico
+    { name: "Persona", icon: "🧍", size: 40, mass: 75, CdA: 1.0 * 0.7 },                   // in piedi, A ≈ 0.7m²
+    { name: "Elefante", icon: "🐘", size: 46, mass: 5000, CdA: 1.1 * 6.0 },                // grande, A ≈ 6m²
+
+    // Veicoli/macchine
+    { name: "Robot sonda", icon: "🤖", size: 38, mass: 150, CdA: 1.2 * 0.8 },              // compatto
+    { name: "Auto", icon: "🚗", size: 42, mass: 1500, CdA: 0.35 * 2.5 },                   // Cd auto ≈ 0.3-0.4
+
+    // Paracadute: Cd ≈ 1.3-1.5, area grande
+    { name: "Paracadutista", icon: "🪂", size: 40, mass: 80, CdA: 1.4 * 30 },              // paracadute ~30m²
 ];
 
 const COLORS = {
@@ -148,11 +195,14 @@ function calculateMotionNoAir(params: SimulationParams, t: number): MotionState 
 }
 
 // Calcola lo stato del moto con resistenza dell'aria (integrazione numerica)
+// Fisica: F_drag = ½ρCdA·v² (opposta al moto)
+// Accelerazione: a = -g - (F_drag/m) * sign(v) = -g - (ρCdA·v²)/(2m) * sign(v)
 function calculateMotionWithAir(params: SimulationParams, t: number): MotionState {
-    const { y0, v0, g, terminalVelocity } = params;
+    const { y0, v0, g, mass, CdA } = params;
 
-    // Costante k tale che a velocità terminale: mg = k*vt² → k = g/vt²
-    const k = g / (terminalVelocity * terminalVelocity);
+    // Coefficiente per il calcolo della resistenza: k = ρCdA/(2m)
+    // a_drag = k * v² (sempre opposta al moto)
+    const k = (RHO_AIR * CdA) / (2 * mass);
 
     // Integrazione numerica con step piccoli
     const dt = 0.001; // 1ms step
@@ -165,11 +215,15 @@ function calculateMotionWithAir(params: SimulationParams, t: number): MotionStat
     let yMax = y0;
 
     while (currentT < t && !landed) {
-        // Accelerazione = -g + resistenza aria
-        // Se v < 0 (caduta), resistenza è verso l'alto: a = -g + k*v²
-        // Se v > 0 (salita), resistenza è verso il basso: a = -g - k*v²
-        const airResistance = k * v * Math.abs(v); // k*v*|v| mantiene il segno corretto
-        const a = -g - airResistance;
+        // Accelerazione totale:
+        // - Gravità: -g (sempre verso il basso)
+        // - Resistenza aria: -sign(v) * k * v² (sempre opposta al moto)
+        //
+        // Usando k * v * |v| otteniamo il segno corretto automaticamente:
+        // - Se v > 0 (salita): resistenza = -k*v² (verso il basso, frena la salita)
+        // - Se v < 0 (discesa): resistenza = +k*v² (verso l'alto, frena la caduta)
+        const dragAcceleration = k * v * Math.abs(v);
+        const a = -g - dragAcceleration;
 
         // Euler integration
         v = v + a * dt;
@@ -188,11 +242,6 @@ function calculateMotionWithAir(params: SimulationParams, t: number): MotionStat
             landed = true;
             tLand = currentT;
         }
-    }
-
-    // Se non è atterrato, continua fino a t
-    if (!landed && currentT < t) {
-        // Già a tempo t, calcola stato finale
     }
 
     const finalA = landed ? 0 : -g - k * v * Math.abs(v);
@@ -436,18 +485,13 @@ function Animation({ params1, params2, currentT, maxT, width, height, planet, fa
     const arrowLength2 = state2 ? (Math.abs(state2.v) / maxV) * 50 : 0;
     const arrowDirection2 = state2 ? (state2.v >= 0 ? -1 : 1) : 1;
 
-    // Colore sfondo in base al pianeta
-    const skyGradient = planet.name === "Luna" ? "#1e293b" :
-        planet.name === "Marte" ? "#fecaca" :
-            planet.name === "Giove" ? "#fed7aa" : "#e0f2fe";
-
     return (
         <svg width={width} height={height} style={{ display: 'block' }}>
             {/* Sfondo cielo */}
             <defs>
                 <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stopColor={skyGradient} />
-                    <stop offset="100%" stopColor={planet.name === "Luna" ? "#334155" : "#f0f9ff"} />
+                    <stop offset="0%" stopColor={planet.skyTop} />
+                    <stop offset="100%" stopColor={planet.skyBottom} />
                 </linearGradient>
             </defs>
             <rect x={0} y={0} width={width} height={groundY} fill="url(#skyGrad)" />
@@ -455,7 +499,7 @@ function Animation({ params1, params2, currentT, maxT, width, height, planet, fa
             {/* Stelle per Luna */}
             {planet.name === "Luna" && (
                 <>
-                    {Array.from({ length: 20 }, (_, i) => (
+                    {Array.from({ length: 30 }, (_, i) => (
                         <circle
                             key={i}
                             cx={30 + (i * 37) % (width - 60)}
@@ -465,21 +509,99 @@ function Animation({ params1, params2, currentT, maxT, width, height, planet, fa
                             opacity={0.6 + (i % 3) * 0.2}
                         />
                     ))}
+                    {/* Terra vista dalla Luna */}
+                    <circle cx={width - 60} cy={50} r={20} fill="#3b82f6" opacity={0.8} />
+                    <circle cx={width - 55} cy={45} r={8} fill="#22c55e" opacity={0.6} />
                 </>
             )}
 
-            {/* Terreno */}
-            <rect x={0} y={groundY} width={width} height={padding.bottom} fill={COLORS.ground} />
-            <rect x={0} y={groundY} width={width} height={4} fill="#4d7c0f" />
+            {/* Terreno base */}
+            <rect x={0} y={groundY} width={width} height={padding.bottom} fill={planet.groundColor} />
+            <rect x={0} y={groundY} width={width} height={4} fill={planet.groundAccent} />
 
-            {/* Erba stilizzata */}
-            {Array.from({ length: Math.floor(width / 15) }, (_, i) => (
-                <path
-                    key={i}
-                    d={`M ${i * 15 + 7} ${groundY} Q ${i * 15 + 5} ${groundY - 8} ${i * 15 + 7} ${groundY - 12} Q ${i * 15 + 9} ${groundY - 8} ${i * 15 + 7} ${groundY}`}
-                    fill="#4ade80"
-                />
-            ))}
+            {/* Dettagli terreno specifici per pianeta */}
+            {planet.groundType === "grass" && (
+                /* Erba stilizzata - Terra */
+                <>
+                    {Array.from({ length: Math.floor(width / 15) }, (_, i) => (
+                        <path
+                            key={i}
+                            d={`M ${i * 15 + 7} ${groundY} Q ${i * 15 + 5} ${groundY - 8} ${i * 15 + 7} ${groundY - 12} Q ${i * 15 + 9} ${groundY - 8} ${i * 15 + 7} ${groundY}`}
+                            fill="#4ade80"
+                        />
+                    ))}
+                </>
+            )}
+
+            {planet.groundType === "rock" && (
+                /* Rocce e crateri - Luna */
+                <>
+                    {Array.from({ length: 8 }, (_, i) => (
+                        <g key={i}>
+                            <ellipse
+                                cx={40 + i * 45}
+                                cy={groundY + 15}
+                                rx={12 + (i % 3) * 5}
+                                ry={6 + (i % 2) * 3}
+                                fill="#4b5563"
+                                opacity={0.5}
+                            />
+                            <circle
+                                cx={30 + i * 50}
+                                cy={groundY + 25}
+                                r={3 + (i % 3)}
+                                fill="#374151"
+                            />
+                        </g>
+                    ))}
+                </>
+            )}
+
+            {planet.groundType === "dust" && (
+                /* Polvere e rocce rosse - Marte */
+                <>
+                    {Array.from({ length: 12 }, (_, i) => (
+                        <g key={i}>
+                            <circle
+                                cx={20 + i * 30}
+                                cy={groundY + 10 + (i % 3) * 8}
+                                r={2 + (i % 4)}
+                                fill="#b91c1c"
+                                opacity={0.6}
+                            />
+                            <rect
+                                x={35 + i * 35}
+                                y={groundY + 5}
+                                width={8 + (i % 3) * 4}
+                                height={4 + (i % 2) * 2}
+                                fill="#991b1b"
+                                rx={2}
+                                opacity={0.4}
+                            />
+                        </g>
+                    ))}
+                </>
+            )}
+
+            {planet.groundType === "gas" && (
+                /* Bande di gas - Giove */
+                <>
+                    {Array.from({ length: 5 }, (_, i) => (
+                        <rect
+                            key={i}
+                            x={0}
+                            y={groundY + i * 10}
+                            width={width}
+                            height={6}
+                            fill={i % 2 === 0 ? "#f59e0b" : "#d97706"}
+                            opacity={0.5 + (i % 2) * 0.2}
+                        />
+                    ))}
+                    <text x={width / 2} y={groundY + 30} textAnchor="middle" fontSize={10} fill="#fff" opacity={0.7}>
+                        (superficie gassosa)
+                    </text>
+                </>
+            )}
 
             {/* Scala altezza */}
             <line x1={padding.left - 10} y1={padding.top} x2={padding.left - 10} y2={groundY} stroke="#64748b" strokeWidth={2} />
@@ -701,7 +823,8 @@ export default function CadutaLiberaDemo() {
     const [v0, setV0] = useState(0);
     const [selectedPlanet, setSelectedPlanet] = useState(0);
     const [selectedObject1, setSelectedObject1] = useState(0);
-    const [selectedObject2, setSelectedObject2] = useState<number | null>(null); // null = disabilitato
+    const [enableSecondObject, setEnableSecondObject] = useState(false); // checkbox per abilitare
+    const [selectedObject2, setSelectedObject2] = useState<number | null>(1); // default secondo oggetto
     const [currentT, setCurrentT] = useState(0);
     const [maxT, setMaxT] = useState(5);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -710,7 +833,8 @@ export default function CadutaLiberaDemo() {
 
     const planet = PLANETS[selectedPlanet];
     const fallingObject1 = OBJECTS[selectedObject1];
-    const fallingObject2 = selectedObject2 !== null ? OBJECTS[selectedObject2] : null;
+    // Oggetto 2 è attivo solo se enableSecondObject è true E c'è una selezione
+    const fallingObject2 = (enableSecondObject && selectedObject2 !== null) ? OBJECTS[selectedObject2] : null;
 
     // L'atmosfera è disponibile solo sulla Terra
     const canHaveAtmosphere = planet.hasAtmosphere;
@@ -725,8 +849,9 @@ export default function CadutaLiberaDemo() {
         v0,
         g: planet.g,
         hasAtmosphere,
-        terminalVelocity: fallingObject1.terminalVelocity
-    }), [y0, v0, planet.g, hasAtmosphere, fallingObject1.terminalVelocity]);
+        mass: fallingObject1.mass,
+        CdA: fallingObject1.CdA
+    }), [y0, v0, planet.g, hasAtmosphere, fallingObject1.mass, fallingObject1.CdA]);
 
     // Params per oggetto 2 (se presente)
     const params2: SimulationParams | null = useMemo(() => {
@@ -736,7 +861,8 @@ export default function CadutaLiberaDemo() {
             v0,
             g: planet.g,
             hasAtmosphere,
-            terminalVelocity: fallingObject2.terminalVelocity
+            mass: fallingObject2.mass,
+            CdA: fallingObject2.CdA
         };
     }, [y0, v0, planet.g, hasAtmosphere, fallingObject2]);
 
@@ -751,6 +877,17 @@ export default function CadutaLiberaDemo() {
 
     // Dati grafici oggetto 1
     const graphData1 = useMemo(() => generateGraphData(params1, maxT), [params1, maxT]);
+
+    // Se l'oggetto 2 è uguale all'oggetto 1, seleziona il prossimo disponibile
+    useEffect(() => {
+        if (enableSecondObject && selectedObject2 === selectedObject1) {
+            // Trova il primo oggetto diverso
+            const nextObj = OBJECTS.findIndex((_, i) => i !== selectedObject1);
+            if (nextObj !== -1) {
+                setSelectedObject2(nextObj);
+            }
+        }
+    }, [selectedObject1, selectedObject2, enableSecondObject]);
 
     // Calcola tempo di volo ottimale per maxT (considera entrambi gli oggetti)
     useEffect(() => {
@@ -916,85 +1053,107 @@ export default function CadutaLiberaDemo() {
                     Oggetto 1 (principale):
                 </div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                    {OBJECTS.map((obj, i) => (
-                        <button
-                            key={i}
-                            onClick={() => { setSelectedObject1(i); handleReset(); }}
-                            title={`${obj.name} (v_t = ${obj.terminalVelocity} m/s)`}
-                            style={{
-                                padding: "6px 10px",
-                                fontSize: 20,
-                                background: selectedObject1 === i ? "#dbeafe" : "#f1f5f9",
-                                border: selectedObject1 === i ? "2px solid #3b82f6" : "2px solid transparent",
-                                borderRadius: 8,
-                                cursor: "pointer",
-                                transition: "all 0.2s",
-                            }}
-                        >
-                            {obj.icon}
-                        </button>
-                    ))}
+                    {OBJECTS.map((obj, i) => {
+                        const vt = calculateTerminalVelocity(obj.mass, obj.CdA, planet.g);
+                        return (
+                            <button
+                                key={i}
+                                onClick={() => { setSelectedObject1(i); handleReset(); }}
+                                title={`${obj.name}\nm = ${obj.mass} kg\nCdA = ${obj.CdA.toFixed(4)} m²\nv_t = ${vt.toFixed(1)} m/s`}
+                                style={{
+                                    padding: "6px 10px",
+                                    fontSize: 20,
+                                    background: selectedObject1 === i ? "#dbeafe" : "#f1f5f9",
+                                    border: selectedObject1 === i ? "2px solid #3b82f6" : "2px solid transparent",
+                                    borderRadius: 8,
+                                    cursor: "pointer",
+                                    transition: "all 0.2s",
+                                }}
+                            >
+                                {obj.icon}
+                            </button>
+                        );
+                    })}
                 </div>
                 <div style={{ fontSize: 11, color: "#3b82f6", marginTop: 4 }}>
-                    {fallingObject1.icon} {fallingObject1.name}
-                    {hasAtmosphere && <span style={{ color: "#64748b" }}> (v_t = {fallingObject1.terminalVelocity} m/s)</span>}
+                    {fallingObject1.icon} <strong>{fallingObject1.name}</strong>
+                </div>
+                <div style={{ fontSize: 11, color: "#64748b", marginTop: 2, display: "flex", gap: 12, flexWrap: "wrap" }}>
+                    <span>m = {fallingObject1.mass < 1 ? (fallingObject1.mass * 1000).toFixed(0) + " g" : fallingObject1.mass.toFixed(1) + " kg"}</span>
+                    <span>P = {formatNumber(fallingObject1.mass * planet.g, 1)} N</span>
+                    {hasAtmosphere && <span>v_t = {formatNumber(calculateTerminalVelocity(fallingObject1.mass, fallingObject1.CdA, planet.g), 1)} m/s</span>}
                 </div>
             </div>
 
             {/* Selezione oggetto 2 (opzionale) */}
             <div style={{ marginBottom: 16 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                    <span style={{ fontSize: 12, color: "#64748b" }}>
-                        Oggetto 2 (confronto):
-                    </span>
-                    {selectedObject2 !== null && (
-                        <button
-                            onClick={() => { setSelectedObject2(null); handleReset(); }}
-                            style={{
-                                padding: "2px 8px",
-                                fontSize: 11,
-                                background: "#fee2e2",
-                                color: "#dc2626",
-                                border: "none",
-                                borderRadius: 4,
-                                cursor: "pointer",
-                            }}
-                        >
-                            ✕ Rimuovi
-                        </button>
-                    )}
-                </div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                    {OBJECTS.map((obj, i) => (
-                        <button
-                            key={i}
-                            onClick={() => { setSelectedObject2(i === selectedObject2 ? null : i); handleReset(); }}
-                            title={`${obj.name} (v_t = ${obj.terminalVelocity} m/s)`}
-                            style={{
-                                padding: "6px 10px",
-                                fontSize: 20,
-                                background: selectedObject2 === i ? "#fef3c7" : "#f1f5f9",
-                                border: selectedObject2 === i ? "2px solid #f59e0b" : "2px solid transparent",
-                                borderRadius: 8,
-                                cursor: "pointer",
-                                transition: "all 0.2s",
-                                opacity: i === selectedObject1 ? 0.4 : 1,
-                            }}
-                            disabled={i === selectedObject1}
-                        >
-                            {obj.icon}
-                        </button>
-                    ))}
-                </div>
-                {fallingObject2 ? (
-                    <div style={{ fontSize: 11, color: "#f59e0b", marginTop: 4 }}>
-                        {fallingObject2.icon} {fallingObject2.name}
-                        {hasAtmosphere && <span style={{ color: "#64748b" }}> (v_t = {fallingObject2.terminalVelocity} m/s)</span>}
-                    </div>
-                ) : (
-                    <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 4 }}>
-                        Clicca su un oggetto per confrontare
-                    </div>
+                {/* Checkbox per abilitare secondo oggetto */}
+                <label style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    fontSize: 13,
+                    cursor: "pointer",
+                    marginBottom: 10,
+                    padding: "8px 12px",
+                    background: enableSecondObject ? "#fef3c7" : "#f8fafc",
+                    borderRadius: 8,
+                    border: enableSecondObject ? "2px solid #f59e0b" : "2px solid #e2e8f0",
+                    transition: "all 0.2s",
+                }}>
+                    <input
+                        type="checkbox"
+                        checked={enableSecondObject}
+                        onChange={e => { setEnableSecondObject(e.target.checked); handleReset(); }}
+                        style={{ width: 18, height: 18 }}
+                    />
+                    <span>🆚 Confronta con secondo oggetto</span>
+                </label>
+
+                {/* Pannello selezione secondo oggetto - visibile solo se abilitato */}
+                {enableSecondObject && (
+                    <>
+                        <div style={{ fontSize: 12, color: "#64748b", marginBottom: 8 }}>
+                            Oggetto 2 (confronto):
+                        </div>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                            {OBJECTS.map((obj, i) => {
+                                const vt = calculateTerminalVelocity(obj.mass, obj.CdA, planet.g);
+                                return (
+                                    <button
+                                        key={i}
+                                        onClick={() => { setSelectedObject2(i); handleReset(); }}
+                                        title={`${obj.name}\nm = ${obj.mass} kg\nCdA = ${obj.CdA.toFixed(4)} m²\nv_t = ${vt.toFixed(1)} m/s`}
+                                        style={{
+                                            padding: "6px 10px",
+                                            fontSize: 20,
+                                            background: selectedObject2 === i ? "#fef3c7" : "#f1f5f9",
+                                            border: selectedObject2 === i ? "2px solid #f59e0b" : "2px solid transparent",
+                                            borderRadius: 8,
+                                            cursor: i === selectedObject1 ? "not-allowed" : "pointer",
+                                            transition: "all 0.2s",
+                                            opacity: i === selectedObject1 ? 0.4 : 1,
+                                        }}
+                                        disabled={i === selectedObject1}
+                                    >
+                                        {obj.icon}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        {fallingObject2 && (
+                            <>
+                                <div style={{ fontSize: 11, color: "#f59e0b", marginTop: 4 }}>
+                                    {fallingObject2.icon} <strong>{fallingObject2.name}</strong>
+                                </div>
+                                <div style={{ fontSize: 11, color: "#64748b", marginTop: 2, display: "flex", gap: 12, flexWrap: "wrap" }}>
+                                    <span>m = {fallingObject2.mass < 1 ? (fallingObject2.mass * 1000).toFixed(0) + " g" : fallingObject2.mass.toFixed(1) + " kg"}</span>
+                                    <span>P = {formatNumber(fallingObject2.mass * planet.g, 1)} N</span>
+                                    {hasAtmosphere && <span>v_t = {formatNumber(calculateTerminalVelocity(fallingObject2.mass, fallingObject2.CdA, planet.g), 1)} m/s</span>}
+                                </div>
+                            </>
+                        )}
+                    </>
                 )}
             </div>
 
@@ -1242,26 +1401,48 @@ export default function CadutaLiberaDemo() {
                             🌫️ Resistenza dell'aria attiva
                         </div>
                         <div style={{ fontSize: 12, color: "#78716c", marginBottom: 12 }}>
-                            Le formule della caduta libera che abbiamo studiato non sono applicabili.
+                            Le formule della caduta libera non sono applicabili. La simulazione usa integrazione numerica.
                         </div>
 
                         <div style={{ fontWeight: 600, color: "#0e7490", marginBottom: 8 }}>
-                            Velocità terminali:
+                            Proprietà oggetti:
                         </div>
                         <div style={{ display: "grid", gap: 6 }}>
-                            <div style={{ padding: 8, background: "#dbeafe", borderRadius: 6, fontSize: 12 }}>
-                                {fallingObject1.icon} <strong>{fallingObject1.name}</strong>: v_t = {fallingObject1.terminalVelocity} m/s ({formatNumber(msToKmh(fallingObject1.terminalVelocity), 0)} km/h)
+                            <div style={{ padding: 8, background: "#dbeafe", borderRadius: 6, fontSize: 11 }}>
+                                <div><strong>{fallingObject1.icon} {fallingObject1.name}</strong></div>
+                                <div style={{ display: "flex", gap: 12, marginTop: 4, flexWrap: "wrap" }}>
+                                    <span>m = {fallingObject1.mass < 1 ? (fallingObject1.mass * 1000).toFixed(0) + " g" : fallingObject1.mass + " kg"}</span>
+                                    <span>P = {formatNumber(fallingObject1.mass * planet.g, 1)} N</span>
+                                    <span>C_dA = {fallingObject1.CdA.toFixed(4)} m²</span>
+                                    <span>v_t = {formatNumber(calculateTerminalVelocity(fallingObject1.mass, fallingObject1.CdA, planet.g), 1)} m/s</span>
+                                </div>
                             </div>
                             {fallingObject2 && (
-                                <div style={{ padding: 8, background: "#fef3c7", borderRadius: 6, fontSize: 12 }}>
-                                    {fallingObject2.icon} <strong>{fallingObject2.name}</strong>: v_t = {fallingObject2.terminalVelocity} m/s ({formatNumber(msToKmh(fallingObject2.terminalVelocity), 0)} km/h)
+                                <div style={{ padding: 8, background: "#fef3c7", borderRadius: 6, fontSize: 11 }}>
+                                    <div><strong>{fallingObject2.icon} {fallingObject2.name}</strong></div>
+                                    <div style={{ display: "flex", gap: 12, marginTop: 4, flexWrap: "wrap" }}>
+                                        <span>m = {fallingObject2.mass < 1 ? (fallingObject2.mass * 1000).toFixed(0) + " g" : fallingObject2.mass + " kg"}</span>
+                                        <span>P = {formatNumber(fallingObject2.mass * planet.g, 1)} N</span>
+                                        <span>C_dA = {fallingObject2.CdA.toFixed(4)} m²</span>
+                                        <span>v_t = {formatNumber(calculateTerminalVelocity(fallingObject2.mass, fallingObject2.CdA, planet.g), 1)} m/s</span>
+                                    </div>
                                 </div>
                             )}
                         </div>
 
                         <div style={{ fontSize: 11, color: "#64748b", marginTop: 10 }}>
-                            💡 A velocità terminale, gravità e resistenza si bilanciano: l'oggetto cade a velocità costante.
+                            💡 <strong>Velocità terminale:</strong> v_t = √(2mg / ρC_dA). A questa velocità, peso e resistenza si bilanciano.
                         </div>
+
+                        <div style={{ fontSize: 11, color: "#64748b", marginTop: 6 }}>
+                            💡 <strong>Accelerazione:</strong> a = -g - (ρC_dA·v²)/(2m). La massa influenza quanto la resistenza rallenta l'oggetto!
+                        </div>
+
+                        {v0 > 0 && fallingObject2 && (
+                            <div style={{ fontSize: 11, color: "#b45309", marginTop: 10, padding: 8, background: "#fff7ed", borderRadius: 6 }}>
+                                ⚠️ <strong>Nel lancio verso l'alto:</strong> oggetti più pesanti (a parità di forma) subiscono meno decelerazione dalla resistenza e salgono più in alto.
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
