@@ -144,11 +144,27 @@ export const demos: DemoInfo[] = [
         title: "Scomposizione di Polinomi (step-by-step)",
         Component: React.lazy(() => import("./demos/algebra/ScomposizionePolinomiDemo")),
     },
-
-
-
-
-
-
-
+    // ============ NUOVE DEMO CINEMATICA ============
+    {
+        slug: "moto-uniformemente-accelerato",
+        title: "Moto Uniformemente Accelerato (MUA)",
+        Component: React.lazy(() => import("./demos/cinematica/MotoUniformementeAcceleratoDemo")),
+    },
+    {
+        slug: "caduta-libera",
+        title: "Caduta Libera",
+        Component: React.lazy(() => import("./demos/cinematica/CadutaLiberaDemo")),
+    },
+    // ============ NUOVE DEMO GONIOMETRIA ============
+    {
+        slug: "archi-associati",
+        title: "Archi Associati e Formule Goniometriche",
+        Component: React.lazy(() => import("./demos/goniometria/ArchiAssociatiDemo")),
+    },
+    // ============ NUOVE DEMO ELETTROMAGNETISMO ============
+    {
+        slug: "condensatore",
+        title: "Il Condensatore: Capacità, Carica ed Energia",
+        Component: React.lazy(() => import("./demos/elettromagnetismo/./CondensatoreDemo")),
+    },
 ];

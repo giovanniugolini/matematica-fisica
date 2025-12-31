@@ -49,12 +49,13 @@ const categories: Category[] = [
                     "limite-infinito-infinito",
                 ],
             },
+
             {
-                id: "geometria",
-                name: "Geometria",
+                id: "goniometria",
+                name: "Goniometria",
                 slugs: [
                     "angolo-rotazione",
-
+                    "archi-associati",
                 ],
             },
         ],
@@ -77,6 +78,8 @@ const categories: Category[] = [
                 name: "Cinematica",
                 slugs: [
                     "velocita-media-secante",
+                    "moto-uniformemente-accelerato",
+                    "caduta-libera",
                 ],
             },
             {
@@ -85,6 +88,7 @@ const categories: Category[] = [
                 slugs: [
                     "campo-elettrico",
                     "legge-di-coulomb",
+                    "condensatore",
                 ],
             },
             {
@@ -376,7 +380,7 @@ export default function App() {
                             textAlign: "center"
                         }}>
                             <div style={{ fontSize: 48, marginBottom: 16 }}>🔍</div>
-                            <h2 style={{ color: "#1e293b", marginBottom: 8 }}>404 — Demo non trovata</h2>
+                            <h2 style={{ color: "#1e293b", marginBottom: 8 }}>404 – Demo non trovata</h2>
                             <p style={{ color: "#64748b", marginBottom: 16 }}>
                                 La pagina che cerchi non esiste.
                             </p>

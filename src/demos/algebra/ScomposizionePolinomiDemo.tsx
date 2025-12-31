@@ -451,23 +451,23 @@ function generateTrinomioSpeciale(): Problem {
     const steps: Step[] = [
         {
             title: "Riconosco il trinomio di secondo grado",
-            content: `x^2 + sx + p`,
-            explanation: "È un trinomio con coefficiente di x² uguale a 1."
+            content: `x^2 + sx + p \\quad \\text{con } s = ${sum}, \\; p = ${product}`,
+            explanation: "È un trinomio con coefficiente di x² uguale a 1. Qui s è la somma e p il prodotto."
         },
         {
-            title: "Cerco due numeri p e q tali che",
-            content: `p + q = ${sum}, \\quad p \\cdot q = ${product}`,
+            title: "Cerco due numeri α₁ e α₂ tali che",
+            content: `\\alpha_1 + \\alpha_2 = s = ${sum}, \\quad \\alpha_1 \\cdot \\alpha_2 = p = ${product}`,
             explanation: "La somma deve dare il coefficiente di x, il prodotto il termine noto."
         },
         {
-            title: "Trovo p e q",
-            content: `p = ${p}, \\quad q = ${q}`,
+            title: "Trovo α₁ e α₂",
+            content: `\\alpha_1 = ${p}, \\quad \\alpha_2 = ${q}`,
             explanation: `Infatti ${p} + (${q}) = ${sum} e ${p} × (${q}) = ${product}.`
         },
         {
             title: "Scompongo",
             content: `${latex} = ${result}`,
-            explanation: "x² + (p+q)x + pq = (x + p)(x + q)"
+            explanation: "x² + sx + p = (x + α₁)(x + α₂)"
         }
     ];
 
@@ -722,12 +722,14 @@ function generateRuffini(): Problem {
     const quotientLatex = polyToLatex(quotientCoeffs);
     const result = `${factorLatex}(${quotientLatex})`;
 
-    // Costruisco la tabella Ruffini in LaTeX
+    // Costruisco la tabella Ruffini in LaTeX con barra verticale sull'ultima colonna
+    const numCols = expandedCoeffs.length;
+    const colSpec = "c".repeat(numCols - 1) + "|c"; // ultima colonna separata
     const coeffStr = expandedCoeffs.join(" & ");
     const multRow = [""].concat(expandedCoeffs.slice(1).map((_, i) => `${r * resultCoeffs[i]}`)).join(" & ");
     const resultRow = resultCoeffs.join(" & ");
 
-    const ruffiniTable = `\\begin{array}{c|${"c".repeat(expandedCoeffs.length)}}
+    const ruffiniTable = `\\begin{array}{c|${colSpec}}
 ${r} & ${coeffStr} \\\\
 & ${multRow} \\\\
 \\hline
@@ -1347,7 +1349,10 @@ export default function ScomposizionePolinomiDemo() {
                     <div style={{ fontWeight: 600, marginBottom: 4, color: METHOD_COLORS["trinomio-speciale"] }}>
                         Trinomio speciale
                     </div>
-                    <Latex>{"x^2 + (p+q)x + pq = (x+p)(x+q)"}</Latex>
+                    <Latex>{"x^2 + sx + p = (x+\\alpha_1)(x+\\alpha_2)"}</Latex>
+                    <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>
+                        con α₁ + α₂ = s e α₁ · α₂ = p
+                    </div>
                 </div>
                 <div>
                     <div style={{ fontWeight: 600, marginBottom: 4, color: METHOD_COLORS["ruffini"] }}>
