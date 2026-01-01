@@ -21,7 +21,7 @@ import {
     CollapsibleExplanation,
 } from "../../components/ui";
 
-import { randomChoice, gcd, signToSymbol } from "../../utils/math";
+import { randomChoice, gcd } from "../../utils/math";
 import { SistemiDisequazioniexExercises, RawInequality, Exercise } from "./sistemiDisequazioniexExercises";
 
 // ============ TIPI ============
@@ -55,13 +55,6 @@ function formatFraction(num: number, den: number): string {
     return `${sign}\\frac{${n / g}}{${d / g}}`;
 }
 
-function formatInequalityNormal(ineq: RawInequality): string {
-    const { a, b, sign } = ineq;
-    if (a === 0) return `${b} ${signToSymbol(sign)} 0`;
-    let lhs = a === 1 ? "x" : a === -1 ? "-x" : `${a}x`;
-    let rhs = b > 0 ? ` + ${b}` : b < 0 ? ` ${b}` : "";
-    return `${lhs}${rhs} ${signToSymbol(sign)} 0`;
-}
 
 function solveInequality(ineq: RawInequality): Solution {
     const { a, b, sign } = ineq;
