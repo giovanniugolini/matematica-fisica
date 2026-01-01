@@ -21,6 +21,7 @@ import {
     SwipeableTabs,
     CollapsiblePanel,
 } from "../../components/ui";
+import { CollapsibleExplanation } from "../../components/ui/CollapsibleExplanation";
 
 // Utility matematiche
 import {
@@ -190,15 +191,6 @@ export default function EquazioniSecondoGradoDemo() {
         reset();
     }, [reset]);
 
-    const leftSide = formatQuadraticLatex(eq.originalLeft.a, eq.originalLeft.b, eq.originalLeft.c);
-    const rightSide = formatQuadraticLatex(eq.originalRight.a, eq.originalRight.b, eq.originalRight.c);
-    const originalEquation = `${leftSide} = ${rightSide}`;
-    const normalForm = `${formatQuadraticLatex(eq.a, eq.b, eq.c)} = 0`;
-
-    const eqTypeLabel =
-        eq.eqType === "pura" ? "pura (b = 0)" : eq.eqType === "spuria" ? "spuria (c = 0)" : "completa";
-
-    // Passaggi numerici (latex)
     const numericWorkLatex = useMemo(() => {
         const A = eq.a,
             B = eq.b,
@@ -261,10 +253,25 @@ export default function EquazioniSecondoGradoDemo() {
         return `\\begin{aligned} ${line0} \\\\ ${line1} \\\\ ${line2} \\\\ ${line3} \\\\ ${line4} \\\\ ${line5} \\end{aligned}`;
     }, [eq]);
 
+    const leftSide = formatQuadraticLatex(eq.originalLeft.a, eq.originalLeft.b, eq.originalLeft.c);
+    const rightSide = formatQuadraticLatex(eq.originalRight.a, eq.originalRight.b, eq.originalRight.c);
+    const originalEquation = `${leftSide} = ${rightSide}`;
+    const normalForm = `${formatQuadraticLatex(eq.a, eq.b, eq.c)} = 0`;
+
+    const eqTypeLabel =
+        eq.eqType === "pura" ? "pura (b = 0)" : eq.eqType === "spuria" ? "spuria (c = 0)" : "completa";
+
     // ============ STEP CARDS ============
 
     const Step1 = (
         <StepCard stepNumber={1} title="Forma normale" color="green" isActive={isActive(1)}>
+            <CollapsibleExplanation title="Spiegazione">
+                <div>
+                    <p>Per risolvere un'equazione di secondo grado, il primo passo è portarla in <strong>forma normale</strong>:</p>
+                    <Latex>{"ax^2 + bx + c = 0"}</Latex>
+                    <p>In questa fase, spostiamo tutti i termini a sinistra dell'uguale.</p>
+                </div>
+            </CollapsibleExplanation>
             <div style={{ fontSize: 13, color: "#64748b", marginBottom: 8 }}>Porta tutto a sinistra:</div>
             <div
                 style={{
@@ -285,6 +292,17 @@ export default function EquazioniSecondoGradoDemo() {
 
     const Step2 = (
         <StepCard stepNumber={2} title="Classificazione" color="blue" isActive={isActive(2)}>
+            <CollapsibleExplanation title="Spiegazione">
+                <div>
+                    <p>Le equazioni di secondo grado in forma normale hanno  <Latex>{"a \\neq 0"}</Latex> e possono essere classificate in tre tipi  :</p>
+                    <ul>
+                        <li><strong>Pura</strong>: <Latex>{"b = 0"}</Latex></li>
+                        <li><strong>Spuria</strong>: <Latex>{"c = 0"}</Latex></li>
+                        <li><strong>Completa</strong>: <Latex>{"b, c \\neq 0"}</Latex></li>
+                    </ul>
+                    <p>Per i casi Pura e Spuria possiamo utilizzare metodi più veloci</p>
+                </div>
+            </CollapsibleExplanation>
             <div style={{ padding: "8px 12px", background: "#fff", borderRadius: 6 }}>
                 <div style={{ fontWeight: 700, marginBottom: 6 }}>Equazione {eq.eqType}</div>
                 <div style={{ fontSize: 13, color: "#64748b" }}>{eqTypeLabel}</div>
@@ -306,6 +324,17 @@ export default function EquazioniSecondoGradoDemo() {
 
     const Step3 = (
         <StepCard stepNumber={3} title="Risoluzione" color="amber" isActive={isActive(3)} fullWidth>
+            <CollapsibleExplanation title="Spiegazione">
+                <div>
+                    <p>La risoluzione dipende dal tipo di equazione:</p>
+                    <ul>
+                        <li><strong>Pura</strong>: <Latex>{"x^2 = -\\frac{c}{a}"}</Latex></li>
+                        <li><strong>Spuria</strong>: <Latex>{"x(ax+b)=0"}</Latex></li>
+                        <li><strong>Completa</strong>: <Latex>{"\\Delta = b^2 - 4ac"}</Latex></li>
+                    </ul>
+                    <p>il discriminante <Latex>{"\\Delta"}</Latex> determina il numero di soluzioni reali.</p>
+                </div>
+            </CollapsibleExplanation>
             <div
                 style={{
                     display: "grid",
@@ -365,6 +394,17 @@ export default function EquazioniSecondoGradoDemo() {
             isActive={isActive(4)}
             fullWidth
         >
+            <CollapsibleExplanation title="Spiegazione">
+                <div>
+                    <p>Il risultato finale dipende dal valore del discriminante <Latex>{"\\Delta"}</Latex>:</p>
+                    <ul>
+                        <li><Latex>{"\\Delta > 0"}</Latex>: due soluzioni reali distinte</li>
+                        <li><Latex>{"\\Delta = 0"}</Latex>: una soluzione reale doppia</li>
+                        <li><Latex>{"\\Delta < 0"}</Latex>: nessuna soluzione reale</li>
+                    </ul>
+                    <p>Le soluzioni sono espresse in forma insiemistica.</p>
+                </div>
+            </CollapsibleExplanation>
             <div
                 style={{
                     background: eq.hasRealSolutions ? "#f0fdf4" : "#fef2f2",

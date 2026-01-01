@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useCallback } from "react";
+import { CollapsibleExplanation } from "../../components/ui/CollapsibleExplanation";
 
 // Componenti UI
 import {
@@ -54,6 +55,7 @@ interface DisequazioneDef {
     x2?: number;
     solutionIntervals: string;
     solutionSet: string;
+    solutionExplanation: string;
 }
 
 // ============ GENERATORE ============
@@ -105,14 +107,17 @@ function generateDisequazione(): DisequazioneDef {
 
     let solutionIntervals: string;
     let solutionSet: string;
+    let solutionExplanation: string;
 
     if (solutionType === "no-roots") {
         if ((concavityUp && positive) || (!concavityUp && !positive)) {
             solutionIntervals = "\\mathbb{R}";
             solutionSet = "\\left\\{ x \\in \\mathbb{R} \\right\\}";
+            solutionExplanation = "La parabola è sempre positiva (o sempre negativa) e la disequazione è soddisfatta per tutti i valori reali di x.";
         } else {
             solutionIntervals = "\\emptyset";
             solutionSet = "\\emptyset";
+            solutionExplanation = "La parabola è sempre positiva (o sempre negativa) e la disequazione non è mai soddisfatta.";
         }
     } else if (solutionType === "one-root") {
         const x1Latex = formatNumberLatex(x1!);
@@ -120,17 +125,21 @@ function generateDisequazione(): DisequazioneDef {
             if (strict) {
                 solutionIntervals = `\\mathbb{R} \\setminus \\{${x1Latex}\\}`;
                 solutionSet = `\\left\\{ x \\in \\mathbb{R} : x \\neq ${x1Latex} \\right\\}`;
+                solutionExplanation = `La parabola tocca l'asse x in x = ${x1Latex} ed è positiva (o negativa) altrove. La disequazione è soddisfatta per tutti i valori reali tranne x = ${x1Latex}.`;
             } else {
                 solutionIntervals = "\\mathbb{R}";
                 solutionSet = "\\left\\{ x \\in \\mathbb{R} \\right\\}";
+                solutionExplanation = `La parabola tocca l'asse x in x = ${x1Latex} ed è positiva (o negativa) altrove. La disequazione è soddisfatta per tutti i valori reali.`;
             }
         } else {
             if (strict) {
                 solutionIntervals = "\\emptyset";
                 solutionSet = "\\emptyset";
+                solutionExplanation = `La parabola tocca l'asse x in x = ${x1Latex} ed è positiva (o negativa) altrove. La disequazione non è mai soddisfatta.`;
             } else {
                 solutionIntervals = `\\{${x1Latex}\\}`;
                 solutionSet = `\\left\\{ x \\in \\mathbb{R} : x = ${x1Latex} \\right\\}`;
+                solutionExplanation = `La parabola tocca l'asse x in x = ${x1Latex} ed è positiva (o negativa) altrove. La disequazione è soddisfatta solo in x = ${x1Latex}.`;
             }
         }
     } else {
@@ -147,12 +156,14 @@ function generateDisequazione(): DisequazioneDef {
                 ? `x < ${x1Latex} \\lor x > ${x2Latex}`
                 : `x \\leq ${x1Latex} \\lor x \\geq ${x2Latex}`;
             solutionSet = `\\left\\{ x \\in \\mathbb{R} : ${cond} \\right\\}`;
+            solutionExplanation = `La parabola interseca l'asse x in x = ${x1Latex} e x = ${x2Latex}. La disequazione è soddisfatta per valori di x minori di ${x1Latex} e maggiori di ${x2Latex}.`;
         } else {
             solutionIntervals = `\\left${leftBracket}${x1Latex}, ${x2Latex}\\right${rightBracket}`;
             const cond = strict
                 ? `${x1Latex} < x < ${x2Latex}`
                 : `${x1Latex} \\leq x \\leq ${x2Latex}`;
             solutionSet = `\\left\\{ x \\in \\mathbb{R} : ${cond} \\right\\}`;
+            solutionExplanation = `La parabola interseca l'asse x in x = ${x1Latex} e x = ${x2Latex}. La disequazione è soddisfatta per valori di x compresi tra ${x1Latex} e ${x2Latex}.`;
         }
     }
 
@@ -162,6 +173,7 @@ function generateDisequazione(): DisequazioneDef {
         sign, a, b, c, delta,
         solutionType, x1, x2,
         solutionIntervals, solutionSet,
+        solutionExplanation,
     };
 }
 
@@ -180,7 +192,7 @@ interface ParabolaGraphProps {
 }
 
 function ParabolaGraph({ diseq, showIntersections, showConcavity, showSolution, isMobile }: ParabolaGraphProps) {
-    const { a, b, c, x1, x2, solutionType } = diseq;
+    const { a, b, c, x1, x2, solutionType, sign } = diseq;
 
     // Range X
     let xMin = -8, xMax = 8;
@@ -257,32 +269,37 @@ function ParabolaGraph({ diseq, showIntersections, showConcavity, showSolution, 
     const fontSize = isMobile ? 12 : 14;
     const labelFontSize = isMobile ? 11 : 13;
 
+    const positive = isPositiveInequality(sign);
+
     return (
         <svg viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`} style={{ width: "100%", height: "auto" }}>
             <rect x={0} y={0} width={SVG_WIDTH} height={SVG_HEIGHT} fill="#fafafa" stroke="#ddd" rx={8} />
 
             {/* Zone +/- */}
-            {showSolution && zones.map((zone, idx) => (
-                <g key={`zone-${idx}`}>
-                    <rect
-                        x={scaleX(zone.x1)}
-                        y={PADDING}
-                        width={scaleX(zone.x2) - scaleX(zone.x1)}
-                        height={SVG_HEIGHT - 2 * PADDING}
-                        fill={zone.positive ? "rgba(34, 197, 94, 0.15)" : "rgba(239, 68, 68, 0.15)"}
-                    />
-                    <text
-                        x={(scaleX(zone.x1) + scaleX(zone.x2)) / 2}
-                        y={PADDING + 25}
-                        fontSize={20}
-                        fontWeight={700}
-                        textAnchor="middle"
-                        fill={zone.positive ? "rgba(34, 197, 94, 0.7)" : "rgba(239, 68, 68, 0.7)"}
-                    >
-                        {zone.positive ? "+" : "−"}
-                    </text>
-                </g>
-            ))}
+            {showSolution && zones.map((zone, idx) => {
+                const isSolutionZone = (concavityUp && !positive) || (!concavityUp && positive) ? !zone.positive : zone.positive;
+                return (
+                    <g key={`zone-${idx}`}>
+                        <rect
+                            x={scaleX(zone.x1)}
+                            y={PADDING}
+                            width={scaleX(zone.x2) - scaleX(zone.x1)}
+                            height={SVG_HEIGHT - 2 * PADDING}
+                            fill={isSolutionZone ? "rgba(34, 197, 94, 0.15)" : "rgba(239, 68, 68, 0.15)"}
+                        />
+                        <text
+                            x={(scaleX(zone.x1) + scaleX(zone.x2)) / 2}
+                            y={PADDING + 25}
+                            fontSize={20}
+                            fontWeight={700}
+                            textAnchor="middle"
+                            fill={zone.positive ? "rgba(34, 197, 94, 0.7)" : "rgba(239, 68, 68, 0.7)"}
+                        >
+                            {zone.positive ? "+" : "−"}
+                        </text>
+                    </g>
+                );
+            })}
 
             {/* Griglia */}
             {Array.from({ length: Math.ceil(xMax - xMin) + 1 }, (_, i) => {
@@ -383,9 +400,9 @@ function ParabolaGraph({ diseq, showIntersections, showConcavity, showSolution, 
                 <g transform={`translate(${SVG_WIDTH - 160}, ${SVG_HEIGHT - PADDING - 55})`}>
                     <rect x={0} y={0} width={150} height={50} fill="#fff" stroke="#e5e7eb" rx={6} />
                     <rect x={10} y={10} width={18} height={12} fill="rgba(34, 197, 94, 0.3)" stroke="rgba(34, 197, 94, 0.5)" />
-                    <text x={34} y={20} fontSize={11} fill="#374151">Parabola positiva</text>
+                    <text x={34} y={20} fontSize={11} fill="#374151">Soluzione</text>
                     <rect x={10} y={30} width={18} height={12} fill="rgba(239, 68, 68, 0.3)" stroke="rgba(239, 68, 68, 0.5)" />
-                    <text x={34} y={40} fontSize={11} fill="#374151">Parabola negativa</text>
+                    <text x={34} y={40} fontSize={11} fill="#374151">Non soluzione</text>
                 </g>
             )}
         </svg>
@@ -396,6 +413,7 @@ function ParabolaGraph({ diseq, showIntersections, showConcavity, showSolution, 
 
 export default function DisequazioniSecondoGradoDemo() {
     const { isMobile, isTablet } = useBreakpoint();
+    const [allExplanationsOpen, setAllExplanationsOpen] = useState(false);
     const [diseq, setDiseq] = useState<DisequazioneDef>(() => generateDisequazione());
     const { currentStep, nextStep, prevStep, showAll, reset, isStepActive } = useStepNavigation(5);
 
@@ -404,29 +422,53 @@ export default function DisequazioniSecondoGradoDemo() {
         reset();
     }, [reset]);
 
+    const toggleAllExplanations = () => {
+        setAllExplanationsOpen(!allExplanationsOpen);
+    };
+
     const leftSide = formatQuadraticLatex(diseq.originalLeft.a, diseq.originalLeft.b, diseq.originalLeft.c);
     const rightSide = formatQuadraticLatex(diseq.originalRight.a, diseq.originalRight.b, diseq.originalRight.c);
     const originalEquation = `${leftSide} ${signToLatex(diseq.sign)} ${rightSide}`;
-    const normalForm = `${formatQuadraticLatex(diseq.a, diseq.b, diseq.c)} ${signToLatex(diseq.sign)} 0`;
+
+    // Correzione della forma normale
+    const normalForm = `${formatQuadraticLatex(-diseq.a, -diseq.b, -diseq.c)} ${signToLatex(diseq.sign)} 0`;
 
     // ============ STEP CARDS ============
 
     const Step1 = (
         <StepCard stepNumber={1} title="Forma normale" color="green" isActive={isStepActive(1)}>
-            <div style={{ fontSize: 13, color: "#64748b", marginBottom: 8 }}>
-                Porta tutti i termini a sinistra:
-            </div>
+            <CollapsibleExplanation title="Spiegazione">
+                <div>
+                    <p>Per risolvere una disequazione di secondo grado, il primo passo è portarla in <strong>forma normale</strong>:</p>
+                    <Latex>{"ax^2 + bx + c \\lessgtr 0"}</Latex>
+                    <p>In questa fase, spostiamo tutti i termini a sinistra dell'uguale <strong>senza cambiare il segno della disequazione</strong>.</p>
+                    <p>Esempio: <Latex>{"3x - 1 < -2x^2 - 9x - 19"}</Latex> diventa <Latex>{"2x^2 + 12x + 18 < 0"}</Latex></p>
+                </div>
+            </CollapsibleExplanation>
+            <div style={{ fontSize: 13, color: "#64748b", marginBottom: 8 }}>Porta tutti i termini a sinistra:</div>
             <div style={{ fontSize: isMobile ? 16 : 18, padding: "8px 12px", background: "#fff", borderRadius: 6, display: "inline-block" }}>
                 <Latex>{normalForm}</Latex>
             </div>
             <div style={{ marginTop: 8, fontSize: 12, color: "#64748b" }}>
-                <Latex>{`a = ${diseq.a}, \\; b = ${diseq.b}, \\; c = ${diseq.c}`}</Latex>
+                <Latex>{`a = ${-diseq.a}, \\; b = ${-diseq.b}, \\; c = ${-diseq.c}`}</Latex>
             </div>
         </StepCard>
     );
 
     const Step2 = (
         <StepCard stepNumber={2} title="Equazione associata" color="blue" isActive={isStepActive(2)}>
+            <CollapsibleExplanation title="Spiegazione">
+                <div>
+                    <p>Calcoliamo il <strong>discriminante</strong>:</p>
+                    <Latex>{"\\Delta = b^2 - 4ac"}</Latex>
+                    <p>Il discriminante ci dice quante radici reali ha l'equazione associata:</p>
+                    <ul>
+                        <li><Latex>{"\\Delta > 0"}</Latex>: due radici reali distinte</li>
+                        <li><Latex>{"\\Delta = 0"}</Latex>: una radice reale doppia</li>
+                        <li><Latex>{"\\Delta < 0"}</Latex>: nessuna radice reale</li>
+                    </ul>
+                </div>
+            </CollapsibleExplanation>
             <div style={{ fontSize: 13, color: "#64748b", marginBottom: 6 }}>
                 <Latex>{`\\Delta = ${diseq.b}^2 - 4 \\cdot ${diseq.a} \\cdot ${diseq.c} = ${diseq.delta}`}</Latex>
             </div>
@@ -450,10 +492,20 @@ export default function DisequazioniSecondoGradoDemo() {
 
     const Step3 = (
         <StepCard stepNumber={3} title="Concavità" color="purple" isActive={isStepActive(3)}>
+            <CollapsibleExplanation title="Spiegazione">
+                <div>
+                    <p>La <strong>concavità</strong> della parabola è determinata dal coefficiente <Latex>{"a"}</Latex>:</p>
+                    <ul>
+                        <li><Latex>{"a > 0"}</Latex>: parabola rivolta verso l'alto (∪)</li>
+                        <li><Latex>{"a < 0"}</Latex>: parabola rivolta verso il basso (∩)</li>
+                    </ul>
+                    <p>La concavità influenza il segno della parabola nelle diverse regioni.</p>
+                </div>
+            </CollapsibleExplanation>
             <div style={{ padding: "8px 12px", background: "#fff", borderRadius: 6 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-                    <Latex>{`a = ${diseq.a} ${diseq.a > 0 ? "> 0" : "< 0"}`}</Latex>
-                    <span style={{ fontSize: 24 }}>⟹ {diseq.a > 0 ? "∪" : "∩"}</span>
+                    <Latex>{`a = ${-diseq.a} ${-diseq.a > 0 ? "> 0" : "< 0"}`}</Latex>
+                    <span style={{ fontSize: 24 }}>⟹ {-diseq.a > 0 ? "∪" : "∩"}</span>
                 </div>
             </div>
         </StepCard>
@@ -461,6 +513,20 @@ export default function DisequazioniSecondoGradoDemo() {
 
     const Step4 = (
         <StepCard stepNumber={4} title="Soluzione" color="amber" isActive={isStepActive(4)}>
+            <CollapsibleExplanation title="Spiegazione">
+                <div>
+                    <p>La soluzione della disequazione si ottiene combinando:</p>
+                    <ul>
+                        <li>Il segno della disequazione (<Latex>{signToLatex(diseq.sign)}</Latex>)</li>
+                        <li>La concavità della parabola (<Latex>{-diseq.a > 0 ? "a > 0" : "a < 0"}</Latex>)</li>
+                        <li>Le radici dell'equazione associata</li>
+                    </ul>
+                    <p>La soluzione è rappresentata dagli intervalli in cui la disequazione è soddisfatta.</p>
+                    <p>{diseq.solutionExplanation}</p>
+                    <p>Se la disequazione è <Latex>{"<"}</Latex>, la soluzione è dove la parabola è <strong>negativa</strong>.</p>
+                    <p>Se la disequazione è <Latex>{">"}</Latex>, la soluzione è dove la parabola è <strong>positiva</strong>.</p>
+                </div>
+            </CollapsibleExplanation>
             <div style={{ fontSize: 12, color: "#64748b", marginBottom: 4 }}>Intervalli:</div>
             <div style={{ fontSize: isMobile ? 16 : 18, padding: "6px 10px", background: "#fff", borderRadius: 6, display: "inline-block", color: "#92400e", marginBottom: 8, overflowX: "auto" }}>
                 <Latex>{diseq.solutionIntervals}</Latex>
@@ -482,7 +548,7 @@ export default function DisequazioniSecondoGradoDemo() {
         <ResponsiveCard>
             <div style={{ fontWeight: 600, marginBottom: 12 }}>📈 Grafico</div>
             <ParabolaGraph
-                diseq={diseq}
+                diseq={{...diseq, a: -diseq.a, b: -diseq.b, c: -diseq.c}}
                 showIntersections={isStepActive(2)}
                 showConcavity={isStepActive(3)}
                 showSolution={isStepActive(4)}
@@ -493,11 +559,11 @@ export default function DisequazioniSecondoGradoDemo() {
                 <div style={{ display: "flex", gap: 16, justifyContent: "center", marginTop: 12, fontSize: 12 }}>
                     <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
                         <span style={{ width: 12, height: 12, background: "rgba(34, 197, 94, 0.3)", border: "1px solid rgba(34, 197, 94, 0.5)" }} />
-                        Positiva
+                        Soluzione
                     </span>
                     <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
                         <span style={{ width: 12, height: 12, background: "rgba(239, 68, 68, 0.3)", border: "1px solid rgba(239, 68, 68, 0.5)" }} />
-                        Negativa
+                        Non soluzione
                     </span>
                 </div>
             )}
@@ -512,7 +578,20 @@ export default function DisequazioniSecondoGradoDemo() {
                 title="Disequazioni 2° grado"
                 description="Risolvi step-by-step"
             >
-                {/* Pulsante genera */}
+                <div style={{ marginBottom: 12 }}>
+                    <button
+                        onClick={toggleAllExplanations}
+                        style={{
+                            background: "#f1f5f9",
+                            border: "1px solid #cbd5e1",
+                            padding: "6px 12px",
+                            borderRadius: 6,
+                            cursor: "pointer",
+                        }}
+                    >
+                        {allExplanationsOpen ? "Nascondi tutte le spiegazioni" : "Mostra tutte le spiegazioni"}
+                    </button>
+                </div>
                 <div style={{ marginBottom: 12 }}>
                     <GenerateButton text="Nuova" onClick={handleGenerate} />
                 </div>
@@ -577,6 +656,20 @@ export default function DisequazioniSecondoGradoDemo() {
                 description="Risolvi disequazioni quadratiche passo dopo passo."
             >
                 <div style={{ marginBottom: 16 }}>
+                    <button
+                        onClick={toggleAllExplanations}
+                        style={{
+                            background: "#f1f5f9",
+                            border: "1px solid #cbd5e1",
+                            padding: "6px 12px",
+                            borderRadius: 6,
+                            cursor: "pointer",
+                        }}
+                    >
+                        {allExplanationsOpen ? "Nascondi tutte le spiegazioni" : "Mostra tutte le spiegazioni"}
+                    </button>
+                </div>
+                <div style={{ marginBottom: 16 }}>
                     <GenerateButton text="Nuova disequazione" onClick={handleGenerate} />
                 </div>
 
@@ -623,6 +716,20 @@ export default function DisequazioniSecondoGradoDemo() {
             description="Risolvi disequazioni quadratiche passo dopo passo."
         >
             <div style={{ marginBottom: 20 }}>
+                <button
+                    onClick={toggleAllExplanations}
+                    style={{
+                        background: "#f1f5f9",
+                        border: "1px solid #cbd5e1",
+                        padding: "6px 12px",
+                        borderRadius: 6,
+                        cursor: "pointer",
+                    }}
+                >
+                    {allExplanationsOpen ? "Nascondi tutte le spiegazioni" : "Mostra tutte le spiegazioni"}
+                </button>
+            </div>
+            <div style={{ marginBottom: 20 }}>
                 <GenerateButton text="Nuova disequazione" onClick={handleGenerate} />
             </div>
 
@@ -660,7 +767,7 @@ export default function DisequazioniSecondoGradoDemo() {
                     }
                 >
                     <ParabolaGraph
-                        diseq={diseq}
+                        diseq={{...diseq, a: -diseq.a, b: -diseq.b, c: -diseq.c}}
                         showIntersections={isStepActive(2)}
                         showConcavity={isStepActive(3)}
                         showSolution={isStepActive(4)}

@@ -1,6 +1,7 @@
 /**
  * SistemiDisequazioniDemo - Versione con Esercizi Predefiniti
  * Risoluzione guidata di sistemi di disequazioni lineari
+ * + CollapsibleExplanation con passaggi algebrici completi
  */
 
 import React, { useState, useCallback, useMemo } from "react";
@@ -17,26 +18,13 @@ import {
     StepCard,
     useStepNavigation,
     Latex,
+    CollapsibleExplanation,
 } from "../../components/ui";
 
-import { randomChoice, gcd, InequalitySign, signToSymbol } from "../../utils/math";
+import { randomChoice, gcd, signToSymbol } from "../../utils/math";
+import { SistemiDisequazioniexExercises, RawInequality, Exercise } from "./sistemiDisequazioniexExercises";
 
 // ============ TIPI ============
-
-interface RawInequality {
-    original: string;
-    simplified: string;
-    a: number;
-    b: number;
-    sign: InequalitySign;
-}
-
-interface Exercise {
-    id: number;
-    level: "base" | "intermedio" | "avanzato";
-    inequalities: RawInequality[];
-    solution: string;
-}
 
 interface Solution {
     type: "all" | "none" | "interval";
@@ -45,144 +33,6 @@ interface Solution {
     leftOpen?: boolean;
     rightOpen?: boolean;
 }
-
-// ============ ESERCIZI PREDEFINITI ============
-
-const EXERCISES: Exercise[] = [
-    // BASE
-    {
-        id: 118, level: "base",
-        inequalities: [
-            { original: "x - 1 > 0", simplified: "x - 1 > 0", a: 1, b: -1, sign: ">" },
-            { original: "x - 6 > 0", simplified: "x - 6 > 0", a: 1, b: -6, sign: ">" },
-        ],
-        solution: "x > 6"
-    },
-    {
-        id: 119, level: "base",
-        inequalities: [
-            { original: "4x + 6 < 0", simplified: "4x + 6 < 0", a: 4, b: 6, sign: "<" },
-            { original: "6x \\geq 0", simplified: "6x \\geq 0", a: 6, b: 0, sign: ">=" },
-        ],
-        solution: "impossibile"
-    },
-    {
-        id: 120, level: "base",
-        inequalities: [
-            { original: "x + 4 < 0", simplified: "x + 4 < 0", a: 1, b: 4, sign: "<" },
-            { original: "3x < 1", simplified: "3x - 1 < 0", a: 3, b: -1, sign: "<" },
-        ],
-        solution: "x < -4"
-    },
-    {
-        id: 121, level: "base",
-        inequalities: [
-            { original: "x + 1 > 0", simplified: "x + 1 > 0", a: 1, b: 1, sign: ">" },
-            { original: "-2x \\geq 0", simplified: "-2x \\geq 0", a: -2, b: 0, sign: ">=" },
-            { original: "3x + 2 > 0", simplified: "3x + 2 > 0", a: 3, b: 2, sign: ">" },
-        ],
-        solution: "-2/3 < x ≤ 0"
-    },
-    {
-        id: 1001, level: "base",
-        inequalities: [
-            { original: "2x - 4 > 0", simplified: "2x - 4 > 0", a: 2, b: -4, sign: ">" },
-            { original: "x + 3 < 10", simplified: "x - 7 < 0", a: 1, b: -7, sign: "<" },
-        ],
-        solution: "2 < x < 7"
-    },
-    {
-        id: 1002, level: "base",
-        inequalities: [
-            { original: "5x \\leq 15", simplified: "5x - 15 \\leq 0", a: 5, b: -15, sign: "<=" },
-            { original: "x - 1 \\geq 0", simplified: "x - 1 \\geq 0", a: 1, b: -1, sign: ">=" },
-        ],
-        solution: "1 ≤ x ≤ 3"
-    },
-    // INTERMEDIO
-    {
-        id: 122, level: "intermedio",
-        inequalities: [
-            { original: "x - 4 < 0", simplified: "x - 4 < 0", a: 1, b: -4, sign: "<" },
-            { original: "2 - x > 0", simplified: "-x + 2 > 0", a: -1, b: 2, sign: ">" },
-            { original: "x + 3 > 0", simplified: "x + 3 > 0", a: 1, b: 3, sign: ">" },
-        ],
-        solution: "-3 < x < 2"
-    },
-    {
-        id: 123, level: "intermedio",
-        inequalities: [
-            { original: "3x + 9 + 2 < x - 1", simplified: "2x + 12 < 0", a: 2, b: 12, sign: "<" },
-            { original: "2x - 3 > x + 7", simplified: "x - 10 > 0", a: 1, b: -10, sign: ">" },
-        ],
-        solution: "impossibile"
-    },
-    {
-        id: 125, level: "intermedio",
-        inequalities: [
-            { original: "x + 7 - 3x \\geq -x(x+1) + x^2 - 3 - 2x", simplified: "x + 10 \\geq 0", a: 1, b: 10, sign: ">=" },
-            { original: "2x + 3 < 7", simplified: "2x - 4 < 0", a: 2, b: -4, sign: "<" },
-        ],
-        solution: "-10 ≤ x < 2"
-    },
-    {
-        id: 126, level: "intermedio",
-        inequalities: [
-            { original: "\\frac{1}{3}(9x + 12) - 10 > 12", simplified: "3x - 18 > 0", a: 3, b: -18, sign: ">" },
-            { original: "4x(x-1) + 10 < 4x(x+1) - 6", simplified: "-8x + 16 < 0", a: -8, b: 16, sign: "<" },
-        ],
-        solution: "x > 6"
-    },
-    {
-        id: 127, level: "intermedio",
-        inequalities: [
-            { original: "2x(x-1) - 2x^2 + x < 2 - x", simplified: "2x - 2 < 0", a: 2, b: -2, sign: "<" },
-            { original: "7x - 1 - 6x > x - 3", simplified: "2 > 0", a: 0, b: 2, sign: ">" },
-        ],
-        solution: "∀x ∈ ℝ"
-    },
-    // AVANZATO
-    {
-        id: 136, level: "avanzato",
-        inequalities: [
-            { original: "2x - 3 < (x+1)^2 - x(x-1)", simplified: "-4 < 0", a: 0, b: -4, sign: "<" },
-            { original: "x + 3 - 2x \\geq 4", simplified: "-x - 1 \\geq 0", a: -1, b: -1, sign: ">=" },
-        ],
-        solution: "x ≤ -1"
-    },
-    {
-        id: 137, level: "avanzato",
-        inequalities: [
-            { original: "(x-1)^2 + 2x - 7 < 1 + x^2", simplified: "-6 < 0", a: 0, b: -6, sign: "<" },
-            { original: "7x + 1 < 7 + x(x-2) - x^2 + 9x", simplified: "-6 < 0", a: 0, b: -6, sign: "<" },
-        ],
-        solution: "∀x ∈ ℝ"
-    },
-    {
-        id: 138, level: "avanzato",
-        inequalities: [
-            { original: "x^2 + 6x - 3 < 2x(x+2) - x^2", simplified: "2x - 3 < 0", a: 2, b: -3, sign: "<" },
-            { original: "(x-2)^2 + 3x - 3 > -2x + 1 + x^2", simplified: "x - 8 > 0", a: 1, b: -8, sign: ">" },
-        ],
-        solution: "impossibile"
-    },
-    {
-        id: 139, level: "avanzato",
-        inequalities: [
-            { original: "(x+3)^2 - x^2 - 7 < x + 2", simplified: "5x < 0", a: 5, b: 0, sign: "<" },
-            { original: "2x > x(x+1) + 4 - x^2", simplified: "x - 4 > 0", a: 1, b: -4, sign: ">" },
-        ],
-        solution: "impossibile"
-    },
-    {
-        id: 141, level: "avanzato",
-        inequalities: [
-            { original: "4(\\frac{1}{8}x - 2) - \\frac{x}{4} \\leq -\\frac{x+3}{4}", simplified: "x - 20 \\leq 0", a: 1, b: -20, sign: "<=" },
-            { original: "\\frac{1}{3}x + 2 > \\frac{1}{2}x - \\frac{x-5}{6} + 1", simplified: "1 > 0", a: 0, b: 1, sign: ">" },
-        ],
-        solution: "x ≤ 20"
-    },
-];
 
 // ============ COSTANTI ============
 
@@ -328,11 +178,8 @@ function SolutionRow({ sol, y, color, label, ineq, toX, viewRange, isMobile }: S
 export default function SistemiDisequazioniDemo() {
     const { isMobile, isTablet } = useBreakpoint();
     const [selectedLevel, setSelectedLevel] = useState<"base" | "intermedio" | "avanzato">("base");
-    const [currentExercise, setCurrentExercise] = useState<Exercise>(() => EXERCISES.filter(e => e.level === "base")[0]);
+    const [currentExercise, setCurrentExercise] = useState<Exercise>(() => SistemiDisequazioniexExercises.filter(e => e.level === "base")[0]);
 
-    // Step 0: sistema
-    // Step 1..n: risoluzione singole disequazioni
-    // Step n+1: soluzione (intersezione)
     const totalSteps = currentExercise.inequalities.length + 2;
     const { currentStep, nextStep, prevStep, showAll, reset } = useStepNavigation(totalSteps);
 
@@ -345,65 +192,67 @@ export default function SistemiDisequazioniDemo() {
 
     const handleLevelChange = useCallback((level: "base" | "intermedio" | "avanzato") => {
         setSelectedLevel(level);
-        setCurrentExercise(EXERCISES.filter(e => e.level === level)[0]);
+        setCurrentExercise(SistemiDisequazioniexExercises.filter(e => e.level === level)[0]);
         reset();
     }, [reset]);
 
     const handleNewExercise = useCallback(() => {
-        const exs = EXERCISES.filter(e => e.level === selectedLevel && e.id !== currentExercise.id);
-        setCurrentExercise(exs.length ? randomChoice(exs) : currentExercise);
+        const exs = SistemiDisequazioniexExercises.filter(e => e.level === selectedLevel && e.id !== currentExercise.id);
+        setCurrentExercise(randomChoice(exs.length ? exs : SistemiDisequazioniexExercises.filter(e => e.level === selectedLevel)));
         reset();
-    }, [selectedLevel, currentExercise, reset]);
+    }, [selectedLevel, currentExercise.id, reset]);
+
+    // ============ VIEW RANGE & TICKS ============
 
     const viewRange = useMemo(() => {
-        let min = -10, max = 10;
-        for (const sol of solutions) {
-            if (sol.type === "interval") {
-                if (sol.left !== -Infinity) { min = Math.min(min, sol.left! - 3); max = Math.max(max, sol.left! + 3); }
-                if (sol.right !== Infinity) { min = Math.min(min, sol.right! - 3); max = Math.max(max, sol.right! + 3); }
-            }
-        }
-        return { min: Math.floor(min), max: Math.ceil(max) };
+        const bounds = solutions
+            .flatMap((s) => (s.type === "interval" ? [s.left!, s.right!] : []))
+            .filter((x) => x !== Infinity && x !== -Infinity && !Number.isNaN(x));
+
+        const minB = bounds.length ? Math.min(...bounds) : -5;
+        const maxB = bounds.length ? Math.max(...bounds) : 5;
+
+        const pad = Math.max(2, (maxB - minB) * 0.25);
+        return { min: Math.floor(minB - pad), max: Math.ceil(maxB + pad) };
     }, [solutions]);
 
-    const toX = (v: number) =>
-        PAD_LEFT + ((v - viewRange.min) / (viewRange.max - viewRange.min)) * (SVG_WIDTH - PAD_LEFT - PAD_RIGHT);
-
-    const SVG_HEIGHT = (currentExercise.inequalities.length + 2) * ROW_HEIGHT + 40;
-
-    const ticks = useMemo(() => {
-        const r: number[] = [];
-        const step = Math.max(1, Math.floor((viewRange.max - viewRange.min) / 10));
-        for (let v = Math.ceil(viewRange.min); v <= Math.floor(viewRange.max); v += step) r.push(v);
-        return r;
+    const toX = useCallback((v: number) => {
+        const { min, max } = viewRange;
+        const span = max - min;
+        return PAD_LEFT + ((v - min) / span) * (SVG_WIDTH - PAD_LEFT - PAD_RIGHT);
     }, [viewRange]);
 
+    const ticks = useMemo(() => {
+        const { min, max } = viewRange;
+        const step = Math.max(1, Math.round((max - min) / 8));
+        const arr: number[] = [];
+        for (let v = min; v <= max; v += step) arr.push(v);
+        return arr;
+    }, [viewRange]);
+
+    const SVG_HEIGHT = useMemo(() => {
+        const rows = currentExercise.inequalities.length + 2;
+        return rows * ROW_HEIGHT + 70;
+    }, [currentExercise]);
+
     const intersectionBounds = useMemo(() => {
-        if (intersection.type === "none") return null;
-        if (intersection.type === "all") return { left: viewRange.min, right: viewRange.max };
+        if (intersection.type !== "interval") return null;
         return {
             left: intersection.left === -Infinity ? viewRange.min : intersection.left!,
-            right: intersection.right === Infinity ? viewRange.max : intersection.right!
+            right: intersection.right === Infinity ? viewRange.max : intersection.right!,
         };
     }, [intersection, viewRange]);
 
-    // ============ UI COMPONENTS ============
+    // ============ UI ============
 
     const LevelSelector = (
-        <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
             {(["base", "intermedio", "avanzato"] as const).map(level => (
-                <TouchButton
-                    key={level}
-                    variant={selectedLevel === level ? "primary" : "outline"}
-                    onClick={() => handleLevelChange(level)}
-                    size={isMobile ? "md" : "sm"}
-                >
+                <TouchButton key={level} variant={selectedLevel === level ? "primary" : "outline"} onClick={() => handleLevelChange(level)} size={isMobile ? "md" : "sm"}>
                     {level === "base" ? "📗 Base" : level === "intermedio" ? "📙 Intermedio" : "📕 Avanzato"}
                 </TouchButton>
             ))}
-            <TouchButton variant="outline" onClick={handleNewExercise} size={isMobile ? "md" : "sm"}>
-                🎲 Nuovo
-            </TouchButton>
+            <TouchButton variant="outline" onClick={handleNewExercise} size={isMobile ? "md" : "sm"}>🎲 Nuovo</TouchButton>
         </div>
     );
 
@@ -411,40 +260,39 @@ export default function SistemiDisequazioniDemo() {
         <StepCard stepNumber={0} title="Sistema di disequazioni" color="blue" isActive={true}>
             <div style={{ display: "flex", alignItems: "stretch", gap: 8, padding: "12px 0" }}>
                 <svg width="20" height={currentExercise.inequalities.length * 40 + 10} style={{ flexShrink: 0 }}>
-                    <path
-                        d={`M 18 5 Q 10 5, 10 15 L 10 ${(currentExercise.inequalities.length * 40) / 2 - 10} Q 10 ${(currentExercise.inequalities.length * 40) / 2}, 2 ${(currentExercise.inequalities.length * 40) / 2 + 5} Q 10 ${(currentExercise.inequalities.length * 40) / 2 + 10}, 10 ${(currentExercise.inequalities.length * 40) / 2 + 20} L 10 ${currentExercise.inequalities.length * 40 - 5} Q 10 ${currentExercise.inequalities.length * 40 + 5}, 18 ${currentExercise.inequalities.length * 40 + 5}`}
-                        fill="none"
-                        stroke="#334155"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                    />
+                    <path d={`M 18 5 Q 10 5, 10 15 L 10 ${(currentExercise.inequalities.length * 40) / 2 - 10} Q 10 ${(currentExercise.inequalities.length * 40) / 2}, 2 ${(currentExercise.inequalities.length * 40) / 2 + 5} Q 10 ${(currentExercise.inequalities.length * 40) / 2 + 10}, 10 ${(currentExercise.inequalities.length * 40) / 2 + 20} L 10 ${currentExercise.inequalities.length * 40 - 5} Q 10 ${currentExercise.inequalities.length * 40 + 5}, 18 ${currentExercise.inequalities.length * 40 + 5}`} fill="none" stroke="#334155" strokeWidth="2" strokeLinecap="round" />
                 </svg>
                 <div style={{ flex: 1 }}>
                     {currentExercise.inequalities.map((ineq, i) => (
-                        <div
-                            key={i}
-                            style={{
-                                padding: "8px 0",
-                                fontSize: 18,
-                                borderLeft: `4px solid ${COLORS[i]}`,
-                                paddingLeft: 12,
-                                marginBottom: 4
-                            }}
-                        >
+                        <div key={i} style={{ padding: "8px 0", fontSize: 18, borderLeft: `4px solid ${COLORS[i]}`, paddingLeft: 12, marginBottom: 4 }}>
                             <Latex>{ineq.original}</Latex>
                         </div>
                     ))}
                 </div>
             </div>
-            <div style={{ fontSize: 12, color: "#64748b" }}>
-                Es. #{currentExercise.id} • {currentExercise.level}
-            </div>
+            <div style={{ fontSize: 12, color: "#64748b", marginBottom: 8 }}>Es. #{currentExercise.id} • {currentExercise.level}</div>
+            <CollapsibleExplanation title="Cos'è un sistema di disequazioni?">
+                <p style={{ margin: "0 0 8px 0" }}>Un <strong>sistema di disequazioni</strong> è un insieme di disequazioni che devono essere verificate <em>contemporaneamente</em>.</p>
+                <p style={{ margin: "0 0 8px 0" }}>La soluzione è l'<strong>intersezione</strong> (∩) delle soluzioni di ciascuna disequazione.</p>
+                <p style={{ margin: 0 }}><strong>Procedimento:</strong> risolvi ogni disequazione separatamente, poi trova i valori comuni.</p>
+            </CollapsibleExplanation>
         </StepCard>
     );
 
+    // ✅ QUI: CollapsibleExplanation dentro lo StepCard, tra prima e ultima riga
     const InequalitySteps = currentExercise.inequalities.map((ineq, i) => {
         const sol = solutions[i];
         const frac = ineq.a !== 0 ? formatFraction(-ineq.b, ineq.a) : "";
+
+        // Segno della soluzione in forma x ⋚ valore (tenendo conto del cambio verso se a < 0)
+        const resultSign =
+            (ineq.a > 0) === (ineq.sign === ">" || ineq.sign === ">=")
+                ? (sol.type === "interval" ? (sol.leftOpen ? ">" : "\\geq") : ">")
+                : (sol.type === "interval" ? (sol.rightOpen ? "<" : "\\leq") : "<");
+
+        const steps = ineq.steps ?? [];
+        const lastStep = steps.length > 0 ? steps[steps.length - 1] : null;
+        const intermediateSteps = steps.length > 1 ? steps.slice(0, -1) : [];
 
         return (
             <StepCard
@@ -454,28 +302,67 @@ export default function SistemiDisequazioniDemo() {
                 color={i === 0 ? "red" : i === 1 ? "blue" : "green"}
                 isActive={currentStep >= i + 1}
             >
+                {/* 1) Prima riga: disequazione di partenza */}
                 <div
                     style={{
                         fontSize: 18,
                         fontWeight: 600,
                         color: COLORS[i],
-                        marginBottom: 8,
+                        marginBottom: 10,
                         padding: "8px 12px",
                         background: "#f8fafc",
                         borderRadius: 6,
-                        display: "inline-block"
+                        display: "inline-block",
                     }}
                 >
-                    <Latex>{formatInequalityNormal(ineq)}</Latex>
+                    <Latex>{ineq.original}</Latex>
                 </div>
 
+                {/* 2) Spiegazione estendibile (dentro lo step, tra prima e ultima riga) */}
+                {currentStep >= i + 1 && (
+                    <CollapsibleExplanation title={`Passaggi algebrici - Disequazione ${i + 1}`}>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                            {intermediateSteps.length > 0 ? (
+                                intermediateSteps.map((s, j) => (
+                                    <div
+                                        key={j}
+                                        style={{
+                                            padding: "6px 10px",
+                                            background: "#fff",
+                                            borderRadius: 4,
+                                            borderLeft: "3px solid #e2e8f0",
+                                            fontSize: 16,
+                                        }}
+                                    >
+                                        <Latex>{s}</Latex>
+                                    </div>
+                                ))
+                            ) : (
+                                <div style={{ fontSize: 13, color: "#64748b" }}>
+                                    Nessun passaggio intermedio (si passa direttamente al risultato).
+                                </div>
+                            )}
+                        </div>
+                    </CollapsibleExplanation>
+                )}
+
+                {/* 3) Ultima riga: risultato + insieme soluzione */}
                 {ineq.a === 0 ? (
-                    <div style={{ fontSize: 14, color: "#64748b", marginTop: 8 }}>
-                        {sol.type === "all" ? "✓ Sempre vera" : "✗ Mai vera"}
+                    <div
+                        style={{
+                            fontSize: 14,
+                            padding: "8px 12px",
+                            background: sol.type === "all" ? "#f0fdf4" : "#fef2f2",
+                            borderRadius: 6,
+                            color: sol.type === "all" ? "#166534" : "#991b1b",
+                            fontWeight: 600,
+                            marginTop: 8,
+                        }}
+                    >
+                        {sol.type === "all" ? "✓ Sempre vera → S = ℝ" : "✗ Mai vera → S = ∅"}
                     </div>
                 ) : (
                     <div style={{ fontSize: 14, color: "#475569", marginTop: 8 }}>
-                        <div style={{ marginBottom: 4 }}><strong>Isolo x:</strong></div>
                         <div
                             style={{
                                 padding: "8px 12px",
@@ -483,24 +370,30 @@ export default function SistemiDisequazioniDemo() {
                                 borderRadius: 6,
                                 borderLeft: `3px solid ${COLORS[i]}`,
                                 marginBottom: 8,
-                                fontSize: 18
+                                fontSize: 18,
                             }}
                         >
-                            <Latex>{`x ${(ineq.a > 0) === (ineq.sign === ">" || ineq.sign === ">=")
-                                ? (sol.leftOpen ? ">" : "\\geq")
-                                : (sol.rightOpen ? "<" : "\\leq")} ${frac}`}</Latex>
+                            {/* Se ho i passaggi, mostro come ultima riga l'ultimo passaggio;
+                                altrimenti mostro la soluzione sintetica */}
+                            <Latex>{lastStep ?? `x ${resultSign} ${frac}`}</Latex>
                             {ineq.a < 0 && (
                                 <span style={{ color: "#dc2626", marginLeft: 12, fontSize: 12 }}>
-                                    ⚠️ cambio verso!
+                                    ⚠️ verso invertito
                                 </span>
                             )}
                         </div>
 
                         <div style={{ fontSize: 13, color: "#64748b" }}>
-                            <strong>S{i + 1}:</strong>{" "}
-                            {sol.type === "interval" && sol.left === -Infinity
-                                ? <Latex>{`(-\\infty, ${frac}${sol.rightOpen ? ")" : "]"}`}</Latex>
-                                : <Latex>{`${sol.leftOpen ? "(" : "["}${frac}, +\\infty)`}</Latex>}
+                            <strong>
+                                S<sub>{i + 1}</sub>:
+                            </strong>{" "}
+                            {sol.type === "interval" && sol.left === -Infinity ? (
+                                <Latex>{`(-\\infty, ${frac}${sol.rightOpen ? ")" : "]"}`}</Latex>
+                            ) : sol.type === "interval" ? (
+                                <Latex>{`${sol.leftOpen ? "(" : "["}${frac}, +\\infty)`}</Latex>
+                            ) : (
+                                <Latex>{"\\emptyset"}</Latex>
+                            )}
                         </div>
                     </div>
                 )}
@@ -509,49 +402,35 @@ export default function SistemiDisequazioniDemo() {
     });
 
     const FinalStep = (
-        <StepCard
-            stepNumber={currentExercise.inequalities.length + 1}
-            title="Soluzione"
-            color={intersection.type === "none" ? "red" : "green"}
-            isActive={currentStep >= currentExercise.inequalities.length + 1}
-        >
+        <StepCard stepNumber={currentExercise.inequalities.length + 1} title="Soluzione" color={intersection.type === "none" ? "red" : "green"} isActive={currentStep >= currentExercise.inequalities.length + 1}>
             <div style={{ fontSize: 14, color: "#64748b", marginBottom: 12 }}>
-                Intersezione: {solutions
-                .map((_, i) => (
-                    <span key={i} style={{ color: COLORS[i], fontWeight: 600 }}>
-                            S{i + 1}
-                        </span>
-                ))
-                .reduce((a, b) => <>{a} ∩ {b}</> as any)}
+                Intersezione: {solutions.map((_, i) => <span key={i} style={{ color: COLORS[i], fontWeight: 600 }}>S<sub>{i + 1}</sub></span>).reduce((a, b) => <>{a} ∩ {b}</> as any)}
             </div>
-
-            <div style={{ background: intersection.type === "none" ? "#fef2f2" : "#f0fdf4", borderRadius: 8, padding: 16 }}>
-                <div
-                    style={{
-                        fontWeight: 700,
-                        marginBottom: 8,
-                        color: intersection.type === "none" ? "#991b1b" : "#166534",
-                        fontSize: 18
-                    }}
-                >
-                    {intersection.type === "none" ? "✗ Impossibile" : "✓ Soluzione"}
+            <div style={{ background: intersection.type === "none" ? "#fef2f2" : "#f0fdf4", borderRadius: 8, padding: 16, marginBottom: 12 }}>
+                <div style={{ fontWeight: 700, marginBottom: 8, color: intersection.type === "none" ? "#991b1b" : "#166534", fontSize: 18 }}>
+                    {intersection.type === "none" ? "✗ Impossibile" : intersection.type === "all" ? "✓ Sempre verificato" : "✓ Soluzione"}
                 </div>
-
-                <div
-                    style={{
-                        fontSize: 22,
-                        color: intersection.type === "none" ? "#991b1b" : "#166534",
-                        fontWeight: 500,
-                        marginBottom: 4
-                    }}
-                >
+                <div style={{ fontSize: 22, color: intersection.type === "none" ? "#991b1b" : "#166534", fontWeight: 500, marginBottom: 4 }}>
                     <Latex>{solutionFormatted.inequality}</Latex>
                 </div>
-
                 <div style={{ fontSize: 14, color: intersection.type === "none" ? "#b91c1c" : "#15803d" }}>
                     <Latex>{solutionFormatted.interval}</Latex>
                 </div>
             </div>
+            <CollapsibleExplanation title="Come si trova l'intersezione?">
+                {intersection.type === "none" ? (
+                    <p style={{ margin: 0 }}><strong>Sistema impossibile:</strong> le soluzioni non hanno valori in comune.</p>
+                ) : intersection.type === "all" ? (
+                    <p style={{ margin: 0 }}><strong>Sempre verificato:</strong> tutte le disequazioni sono "sempre vere".</p>
+                ) : (
+                    <>
+                        <p style={{ margin: "0 0 8px 0" }}>L'<strong>intersezione</strong> è dove tutti gli intervalli si sovrappongono.</p>
+                        <p style={{ margin: "0 0 4px 0" }}>• <strong>Estremo sinistro:</strong> il più grande tra gli estremi sinistri</p>
+                        <p style={{ margin: "0 0 4px 0" }}>• <strong>Estremo destro:</strong> il più piccolo tra gli estremi destri</p>
+                        <p style={{ margin: 0 }}>• <strong>Parentesi:</strong> tonda se escluso, quadra se incluso</p>
+                    </>
+                )}
+            </CollapsibleExplanation>
         </StepCard>
     );
 
@@ -560,57 +439,21 @@ export default function SistemiDisequazioniDemo() {
             <div style={{ fontWeight: 600, marginBottom: 12 }}>📊 Grafico</div>
             <svg viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`} style={{ width: "100%", height: "auto" }}>
                 <rect x={0} y={0} width={SVG_WIDTH} height={SVG_HEIGHT} fill="#fafafa" rx={8} />
-
                 {currentStep >= currentExercise.inequalities.length + 1 && intersectionBounds && (
-                    <rect
-                        x={toX(intersectionBounds.left)}
-                        y={ROW_HEIGHT}
-                        width={toX(intersectionBounds.right) - toX(intersectionBounds.left)}
-                        height={(currentExercise.inequalities.length + 1) * ROW_HEIGHT}
-                        fill="rgba(34, 197, 94, 0.2)"
-                    />
+                    <rect x={toX(intersectionBounds.left)} y={ROW_HEIGHT} width={toX(intersectionBounds.right) - toX(intersectionBounds.left)} height={(currentExercise.inequalities.length + 1) * ROW_HEIGHT} fill="rgba(34, 197, 94, 0.2)" />
                 )}
-
                 {currentExercise.inequalities.map((ineq, i) => currentStep >= i + 1 && (
-                    <SolutionRow
-                        key={i}
-                        sol={solutions[i]}
-                        y={ROW_HEIGHT * (i + 1) + 25}
-                        color={COLORS[i]}
-                        label={`D${i + 1}`}
-                        ineq={ineq}
-                        toX={toX}
-                        viewRange={viewRange}
-                        isMobile={isMobile}
-                    />
+                    <SolutionRow key={i} sol={solutions[i]} y={ROW_HEIGHT * (i + 1) + 25} color={COLORS[i]} label={`D${i + 1}`} ineq={ineq} toX={toX} viewRange={viewRange} isMobile={isMobile} />
                 ))}
-
-                <line
-                    x1={PAD_LEFT}
-                    y1={SVG_HEIGHT - 50}
-                    x2={SVG_WIDTH - PAD_RIGHT}
-                    y2={SVG_HEIGHT - 50}
-                    stroke="#374151"
-                    strokeWidth={2}
-                />
-
+                <line x1={PAD_LEFT} y1={SVG_HEIGHT - 50} x2={SVG_WIDTH - PAD_RIGHT} y2={SVG_HEIGHT - 50} stroke="#374151" strokeWidth={2} />
                 {ticks.map(v => (
                     <g key={v}>
                         <line x1={toX(v)} y1={SVG_HEIGHT - 54} x2={toX(v)} y2={SVG_HEIGHT - 46} stroke="#374151" strokeWidth={1} />
                         <text x={toX(v)} y={SVG_HEIGHT - 32} fontSize={11} textAnchor="middle" fill="#64748b">{v}</text>
                     </g>
                 ))}
-
                 {currentStep >= currentExercise.inequalities.length + 1 && (
-                    <SolutionRow
-                        sol={intersection}
-                        y={SVG_HEIGHT - 80}
-                        color="#166534"
-                        label="∩"
-                        toX={toX}
-                        viewRange={viewRange}
-                        isMobile={isMobile}
-                    />
+                    <SolutionRow sol={intersection} y={SVG_HEIGHT - 80} color="#166534" label="∩" toX={toX} viewRange={viewRange} isMobile={isMobile} />
                 )}
             </svg>
         </ResponsiveCard>
@@ -630,20 +473,8 @@ export default function SistemiDisequazioniDemo() {
         return (
             <DemoContainer title="Sistemi disequazioni" description="Risoluzione guidata">
                 {LevelSelector}
-                <NavigationButtons
-                    currentStep={currentStep}
-                    totalSteps={totalSteps}
-                    onNext={nextStep}
-                    onPrev={prevStep}
-                    onShowAll={showAll}
-                />
-                <SwipeableTabs
-                    tabs={[
-                        { id: "steps", label: "📝 Procedimento", content: StepsColumn },
-                        { id: "graph", label: "📊 Grafico", content: GraphPanel },
-                    ]}
-                    defaultTab="steps"
-                />
+                <NavigationButtons currentStep={currentStep} totalSteps={totalSteps} onNext={nextStep} onPrev={prevStep} onShowAll={showAll} />
+                <SwipeableTabs tabs={[{ id: "steps", label: "📝 Procedimento", content: StepsColumn }, { id: "graph", label: "📊 Grafico", content: GraphPanel }]} defaultTab="steps" />
             </DemoContainer>
         );
     }
@@ -652,13 +483,7 @@ export default function SistemiDisequazioniDemo() {
         return (
             <DemoContainer title="Sistemi di Disequazioni" description="Risoluzione guidata step-by-step">
                 {LevelSelector}
-                <NavigationButtons
-                    currentStep={currentStep}
-                    totalSteps={totalSteps}
-                    onNext={nextStep}
-                    onPrev={prevStep}
-                    onShowAll={showAll}
-                />
+                <NavigationButtons currentStep={currentStep} totalSteps={totalSteps} onNext={nextStep} onPrev={prevStep} onShowAll={showAll} />
                 <ResponsiveGrid columns={{ tablet: 2 }} gap={16}>
                     <div>{StepsColumn}</div>
                     <div>{GraphPanel}</div>
@@ -670,13 +495,7 @@ export default function SistemiDisequazioniDemo() {
     return (
         <DemoContainer title="Sistemi di Disequazioni Lineari" description="Risoluzione guidata step-by-step" maxWidth={1300}>
             {LevelSelector}
-            <NavigationButtons
-                currentStep={currentStep}
-                totalSteps={totalSteps}
-                onNext={nextStep}
-                onPrev={prevStep}
-                onShowAll={showAll}
-            />
+            <NavigationButtons currentStep={currentStep} totalSteps={totalSteps} onNext={nextStep} onPrev={prevStep} onShowAll={showAll} />
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
                 <div>{StepsColumn}</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
