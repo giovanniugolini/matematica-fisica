@@ -67,3 +67,7 @@ export type {
     CollapsiblePanelProps,
     SwipeableTabsProps,
 } from "./Responsive";
+
+// CollapsibleExplanation
+export { CollapsibleExplanation } from "./CollapsibleExplanation";
+export type { CollapsibleExplanationProps } from "./CollapsibleExplanation";
