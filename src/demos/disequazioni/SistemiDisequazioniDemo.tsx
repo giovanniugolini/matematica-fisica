@@ -297,8 +297,8 @@ function SolutionRow({ sol, y, color, label, ineq, toX, viewRange, isMobile }: S
         <g>
             <text x={PAD_LEFT - 10} y={y + 5} fontSize={12} textAnchor="end" fill={color} fontWeight={600}>{label}</text>
             <line x1={toX(min)} y1={y} x2={toX(max)} y2={y} stroke={color} strokeWidth={4} />
-            <polygon points={`${toX(min)},${y} ${toX(min)+10},${y-5} ${toX(min)+10},${y+5}`} fill={color} />
-            <polygon points={`${toX(max)},${y} ${toX(max)-10},${y-5} ${toX(max)-10},${y+5}`} fill={color} />
+            <polygon points={`${toX(min)},${y} ${toX(min) + 10},${y - 5} ${toX(min) + 10},${y + 5}`} fill={color} />
+            <polygon points={`${toX(max)},${y} ${toX(max) - 10},${y - 5} ${toX(max) - 10},${y + 5}`} fill={color} />
         </g>
     );
     const { left, right, leftOpen, rightOpen } = sol;
@@ -309,8 +309,8 @@ function SolutionRow({ sol, y, color, label, ineq, toX, viewRange, isMobile }: S
         <g>
             <text x={PAD_LEFT - 10} y={y + 5} fontSize={12} textAnchor="end" fill={color} fontWeight={600}>{label}</text>
             <line x1={lx} y1={y} x2={rx} y2={y} stroke={color} strokeWidth={4} />
-            {left === -Infinity && <polygon points={`${toX(min)},${y} ${toX(min)+10},${y-5} ${toX(min)+10},${y+5}`} fill={color} />}
-            {right === Infinity && <polygon points={`${toX(max)},${y} ${toX(max)-10},${y-5} ${toX(max)-10},${y+5}`} fill={color} />}
+            {left === -Infinity && <polygon points={`${toX(min)},${y} ${toX(min) + 10},${y - 5} ${toX(min) + 10},${y + 5}`} fill={color} />}
+            {right === Infinity && <polygon points={`${toX(max)},${y} ${toX(max) - 10},${y - 5} ${toX(max) - 10},${y + 5}`} fill={color} />}
             {left !== -Infinity && <>
                 <circle cx={lx} cy={y} r={r} fill={leftOpen ? "#fff" : color} stroke={color} strokeWidth={2.5} />
                 {lbl && <text x={lx} y={y - 14} fontSize={10} textAnchor="middle" fill={color}>{lbl}</text>}
@@ -330,12 +330,18 @@ export default function SistemiDisequazioniDemo() {
     const [selectedLevel, setSelectedLevel] = useState<"base" | "intermedio" | "avanzato">("base");
     const [currentExercise, setCurrentExercise] = useState<Exercise>(() => EXERCISES.filter(e => e.level === "base")[0]);
 
-    const totalSteps = currentExercise.inequalities.length + 3;
+    // Step 0: sistema
+    // Step 1..n: risoluzione singole disequazioni
+    // Step n+1: soluzione (intersezione)
+    const totalSteps = currentExercise.inequalities.length + 2;
     const { currentStep, nextStep, prevStep, showAll, reset } = useStepNavigation(totalSteps);
 
     const solutions = useMemo(() => currentExercise.inequalities.map(solveInequality), [currentExercise]);
     const intersection = useMemo(() => intersectSolutions(solutions), [solutions]);
-    const solutionFormatted = useMemo(() => formatSolutionAlgebraic(intersection, currentExercise.inequalities), [intersection, currentExercise]);
+    const solutionFormatted = useMemo(
+        () => formatSolutionAlgebraic(intersection, currentExercise.inequalities),
+        [intersection, currentExercise]
+    );
 
     const handleLevelChange = useCallback((level: "base" | "intermedio" | "avanzato") => {
         setSelectedLevel(level);
@@ -360,8 +366,11 @@ export default function SistemiDisequazioniDemo() {
         return { min: Math.floor(min), max: Math.ceil(max) };
     }, [solutions]);
 
-    const toX = (v: number) => PAD_LEFT + ((v - viewRange.min) / (viewRange.max - viewRange.min)) * (SVG_WIDTH - PAD_LEFT - PAD_RIGHT);
+    const toX = (v: number) =>
+        PAD_LEFT + ((v - viewRange.min) / (viewRange.max - viewRange.min)) * (SVG_WIDTH - PAD_LEFT - PAD_RIGHT);
+
     const SVG_HEIGHT = (currentExercise.inequalities.length + 2) * ROW_HEIGHT + 40;
+
     const ticks = useMemo(() => {
         const r: number[] = [];
         const step = Math.max(1, Math.floor((viewRange.max - viewRange.min) / 10));
@@ -383,8 +392,12 @@ export default function SistemiDisequazioniDemo() {
     const LevelSelector = (
         <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
             {(["base", "intermedio", "avanzato"] as const).map(level => (
-                <TouchButton key={level} variant={selectedLevel === level ? "primary" : "outline"}
-                             onClick={() => handleLevelChange(level)} size={isMobile ? "md" : "sm"}>
+                <TouchButton
+                    key={level}
+                    variant={selectedLevel === level ? "primary" : "outline"}
+                    onClick={() => handleLevelChange(level)}
+                    size={isMobile ? "md" : "sm"}
+                >
                     {level === "base" ? "📗 Base" : level === "intermedio" ? "📙 Intermedio" : "📕 Avanzato"}
                 </TouchButton>
             ))}
@@ -398,38 +411,33 @@ export default function SistemiDisequazioniDemo() {
         <StepCard stepNumber={0} title="Sistema di disequazioni" color="blue" isActive={true}>
             <div style={{ display: "flex", alignItems: "stretch", gap: 8, padding: "12px 0" }}>
                 <svg width="20" height={currentExercise.inequalities.length * 40 + 10} style={{ flexShrink: 0 }}>
-                    <path d={`M 18 5 Q 10 5, 10 15 L 10 ${(currentExercise.inequalities.length * 40) / 2 - 10} Q 10 ${(currentExercise.inequalities.length * 40) / 2}, 2 ${(currentExercise.inequalities.length * 40) / 2 + 5} Q 10 ${(currentExercise.inequalities.length * 40) / 2 + 10}, 10 ${(currentExercise.inequalities.length * 40) / 2 + 20} L 10 ${currentExercise.inequalities.length * 40 - 5} Q 10 ${currentExercise.inequalities.length * 40 + 5}, 18 ${currentExercise.inequalities.length * 40 + 5}`}
-                          fill="none" stroke="#334155" strokeWidth="2" strokeLinecap="round" />
+                    <path
+                        d={`M 18 5 Q 10 5, 10 15 L 10 ${(currentExercise.inequalities.length * 40) / 2 - 10} Q 10 ${(currentExercise.inequalities.length * 40) / 2}, 2 ${(currentExercise.inequalities.length * 40) / 2 + 5} Q 10 ${(currentExercise.inequalities.length * 40) / 2 + 10}, 10 ${(currentExercise.inequalities.length * 40) / 2 + 20} L 10 ${currentExercise.inequalities.length * 40 - 5} Q 10 ${currentExercise.inequalities.length * 40 + 5}, 18 ${currentExercise.inequalities.length * 40 + 5}`}
+                        fill="none"
+                        stroke="#334155"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                    />
                 </svg>
                 <div style={{ flex: 1 }}>
                     {currentExercise.inequalities.map((ineq, i) => (
-                        <div key={i} style={{ padding: "8px 0", fontSize: 18, borderLeft: `4px solid ${COLORS[i]}`, paddingLeft: 12, marginBottom: 4 }}>
+                        <div
+                            key={i}
+                            style={{
+                                padding: "8px 0",
+                                fontSize: 18,
+                                borderLeft: `4px solid ${COLORS[i]}`,
+                                paddingLeft: 12,
+                                marginBottom: 4
+                            }}
+                        >
                             <Latex>{ineq.original}</Latex>
                         </div>
                     ))}
                 </div>
             </div>
-            <div style={{ fontSize: 12, color: "#64748b" }}>Es. #{currentExercise.id} • {currentExercise.level}</div>
-        </StepCard>
-    );
-
-    const NormalFormStep = (
-        <StepCard stepNumber={1} title="Forma normale" color="amber" isActive={currentStep >= 1}>
-            <div style={{ fontSize: 13, color: "#64748b", marginBottom: 12 }}>
-                Riduci alla forma <Latex>{"ax + b \\lessgtr 0"}</Latex>
-            </div>
-            <div style={{ display: "flex", alignItems: "stretch", gap: 8 }}>
-                <svg width="20" height={currentExercise.inequalities.length * 40 + 10} style={{ flexShrink: 0 }}>
-                    <path d={`M 18 5 Q 10 5, 10 15 L 10 ${(currentExercise.inequalities.length * 40) / 2 - 10} Q 10 ${(currentExercise.inequalities.length * 40) / 2}, 2 ${(currentExercise.inequalities.length * 40) / 2 + 5} Q 10 ${(currentExercise.inequalities.length * 40) / 2 + 10}, 10 ${(currentExercise.inequalities.length * 40) / 2 + 20} L 10 ${currentExercise.inequalities.length * 40 - 5} Q 10 ${currentExercise.inequalities.length * 40 + 5}, 18 ${currentExercise.inequalities.length * 40 + 5}`}
-                          fill="none" stroke="#334155" strokeWidth="2" strokeLinecap="round" />
-                </svg>
-                <div style={{ flex: 1 }}>
-                    {currentExercise.inequalities.map((ineq, i) => (
-                        <div key={i} style={{ padding: "8px 12px", fontSize: 16, background: "#f8fafc", borderRadius: 6, borderLeft: `4px solid ${COLORS[i]}`, marginBottom: 6 }}>
-                            <Latex>{formatInequalityNormal(ineq)}</Latex>
-                        </div>
-                    ))}
-                </div>
+            <div style={{ fontSize: 12, color: "#64748b" }}>
+                Es. #{currentExercise.id} • {currentExercise.level}
             </div>
         </StepCard>
     );
@@ -437,12 +445,30 @@ export default function SistemiDisequazioniDemo() {
     const InequalitySteps = currentExercise.inequalities.map((ineq, i) => {
         const sol = solutions[i];
         const frac = ineq.a !== 0 ? formatFraction(-ineq.b, ineq.a) : "";
+
         return (
-            <StepCard key={i} stepNumber={i + 2} title={`Disequazione ${i + 1}`}
-                      color={i === 0 ? "red" : i === 1 ? "blue" : "green"} isActive={currentStep >= i + 2}>
-                <div style={{ fontSize: 18, fontWeight: 600, color: COLORS[i], marginBottom: 8, padding: "8px 12px", background: "#f8fafc", borderRadius: 6, display: "inline-block" }}>
+            <StepCard
+                key={i}
+                stepNumber={i + 1}
+                title={`Disequazione ${i + 1}`}
+                color={i === 0 ? "red" : i === 1 ? "blue" : "green"}
+                isActive={currentStep >= i + 1}
+            >
+                <div
+                    style={{
+                        fontSize: 18,
+                        fontWeight: 600,
+                        color: COLORS[i],
+                        marginBottom: 8,
+                        padding: "8px 12px",
+                        background: "#f8fafc",
+                        borderRadius: 6,
+                        display: "inline-block"
+                    }}
+                >
                     <Latex>{formatInequalityNormal(ineq)}</Latex>
                 </div>
+
                 {ineq.a === 0 ? (
                     <div style={{ fontSize: 14, color: "#64748b", marginTop: 8 }}>
                         {sol.type === "all" ? "✓ Sempre vera" : "✗ Mai vera"}
@@ -450,14 +476,31 @@ export default function SistemiDisequazioniDemo() {
                 ) : (
                     <div style={{ fontSize: 14, color: "#475569", marginTop: 8 }}>
                         <div style={{ marginBottom: 4 }}><strong>Isolo x:</strong></div>
-                        <div style={{ padding: "8px 12px", background: "#fff", borderRadius: 6, borderLeft: `3px solid ${COLORS[i]}`, marginBottom: 8, fontSize: 18 }}>
-                            <Latex>{`x ${(ineq.a > 0) === (ineq.sign === ">" || ineq.sign === ">=") ? (sol.leftOpen ? ">" : "\\geq") : (sol.rightOpen ? "<" : "\\leq")} ${frac}`}</Latex>
-                            {ineq.a < 0 && <span style={{ color: "#dc2626", marginLeft: 12, fontSize: 12 }}>⚠️ cambio verso!</span>}
+                        <div
+                            style={{
+                                padding: "8px 12px",
+                                background: "#fff",
+                                borderRadius: 6,
+                                borderLeft: `3px solid ${COLORS[i]}`,
+                                marginBottom: 8,
+                                fontSize: 18
+                            }}
+                        >
+                            <Latex>{`x ${(ineq.a > 0) === (ineq.sign === ">" || ineq.sign === ">=")
+                                ? (sol.leftOpen ? ">" : "\\geq")
+                                : (sol.rightOpen ? "<" : "\\leq")} ${frac}`}</Latex>
+                            {ineq.a < 0 && (
+                                <span style={{ color: "#dc2626", marginLeft: 12, fontSize: 12 }}>
+                                    ⚠️ cambio verso!
+                                </span>
+                            )}
                         </div>
+
                         <div style={{ fontSize: 13, color: "#64748b" }}>
-                            <strong>S{i + 1}:</strong> {sol.type === "interval" && sol.left === -Infinity
-                            ? <Latex>{`(-\\infty, ${frac}${sol.rightOpen ? ")" : "]"}`}</Latex>
-                            : <Latex>{`${sol.leftOpen ? "(" : "["}${frac}, +\\infty)`}</Latex>}
+                            <strong>S{i + 1}:</strong>{" "}
+                            {sol.type === "interval" && sol.left === -Infinity
+                                ? <Latex>{`(-\\infty, ${frac}${sol.rightOpen ? ")" : "]"}`}</Latex>
+                                : <Latex>{`${sol.leftOpen ? "(" : "["}${frac}, +\\infty)`}</Latex>}
                         </div>
                     </div>
                 )}
@@ -466,18 +509,45 @@ export default function SistemiDisequazioniDemo() {
     });
 
     const FinalStep = (
-        <StepCard stepNumber={currentExercise.inequalities.length + 2} title="Soluzione"
-                  color={intersection.type === "none" ? "red" : "green"} isActive={currentStep >= currentExercise.inequalities.length + 2}>
+        <StepCard
+            stepNumber={currentExercise.inequalities.length + 1}
+            title="Soluzione"
+            color={intersection.type === "none" ? "red" : "green"}
+            isActive={currentStep >= currentExercise.inequalities.length + 1}
+        >
             <div style={{ fontSize: 14, color: "#64748b", marginBottom: 12 }}>
-                Intersezione: {solutions.map((_, i) => <span key={i} style={{ color: COLORS[i], fontWeight: 600 }}>S{i + 1}</span>).reduce((a, b, i) => <>{a} ∩ {b}</> as any)}
+                Intersezione: {solutions
+                .map((_, i) => (
+                    <span key={i} style={{ color: COLORS[i], fontWeight: 600 }}>
+                            S{i + 1}
+                        </span>
+                ))
+                .reduce((a, b) => <>{a} ∩ {b}</> as any)}
             </div>
+
             <div style={{ background: intersection.type === "none" ? "#fef2f2" : "#f0fdf4", borderRadius: 8, padding: 16 }}>
-                <div style={{ fontWeight: 700, marginBottom: 8, color: intersection.type === "none" ? "#991b1b" : "#166534", fontSize: 18 }}>
+                <div
+                    style={{
+                        fontWeight: 700,
+                        marginBottom: 8,
+                        color: intersection.type === "none" ? "#991b1b" : "#166534",
+                        fontSize: 18
+                    }}
+                >
                     {intersection.type === "none" ? "✗ Impossibile" : "✓ Soluzione"}
                 </div>
-                <div style={{ fontSize: 22, color: intersection.type === "none" ? "#991b1b" : "#166534", fontWeight: 500, marginBottom: 4 }}>
+
+                <div
+                    style={{
+                        fontSize: 22,
+                        color: intersection.type === "none" ? "#991b1b" : "#166534",
+                        fontWeight: 500,
+                        marginBottom: 4
+                    }}
+                >
                     <Latex>{solutionFormatted.inequality}</Latex>
                 </div>
+
                 <div style={{ fontSize: 14, color: intersection.type === "none" ? "#b91c1c" : "#15803d" }}>
                     <Latex>{solutionFormatted.interval}</Latex>
                 </div>
@@ -490,23 +560,57 @@ export default function SistemiDisequazioniDemo() {
             <div style={{ fontWeight: 600, marginBottom: 12 }}>📊 Grafico</div>
             <svg viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`} style={{ width: "100%", height: "auto" }}>
                 <rect x={0} y={0} width={SVG_WIDTH} height={SVG_HEIGHT} fill="#fafafa" rx={8} />
-                {currentStep >= currentExercise.inequalities.length + 2 && intersectionBounds && (
-                    <rect x={toX(intersectionBounds.left)} y={ROW_HEIGHT} width={toX(intersectionBounds.right) - toX(intersectionBounds.left)}
-                          height={(currentExercise.inequalities.length + 1) * ROW_HEIGHT} fill="rgba(34, 197, 94, 0.2)" />
+
+                {currentStep >= currentExercise.inequalities.length + 1 && intersectionBounds && (
+                    <rect
+                        x={toX(intersectionBounds.left)}
+                        y={ROW_HEIGHT}
+                        width={toX(intersectionBounds.right) - toX(intersectionBounds.left)}
+                        height={(currentExercise.inequalities.length + 1) * ROW_HEIGHT}
+                        fill="rgba(34, 197, 94, 0.2)"
+                    />
                 )}
-                {currentExercise.inequalities.map((ineq, i) => currentStep >= i + 2 && (
-                    <SolutionRow key={i} sol={solutions[i]} y={ROW_HEIGHT * (i + 1) + 25} color={COLORS[i]}
-                                 label={`D${i + 1}`} ineq={ineq} toX={toX} viewRange={viewRange} isMobile={isMobile} />
+
+                {currentExercise.inequalities.map((ineq, i) => currentStep >= i + 1 && (
+                    <SolutionRow
+                        key={i}
+                        sol={solutions[i]}
+                        y={ROW_HEIGHT * (i + 1) + 25}
+                        color={COLORS[i]}
+                        label={`D${i + 1}`}
+                        ineq={ineq}
+                        toX={toX}
+                        viewRange={viewRange}
+                        isMobile={isMobile}
+                    />
                 ))}
-                <line x1={PAD_LEFT} y1={SVG_HEIGHT - 50} x2={SVG_WIDTH - PAD_RIGHT} y2={SVG_HEIGHT - 50} stroke="#374151" strokeWidth={2} />
+
+                <line
+                    x1={PAD_LEFT}
+                    y1={SVG_HEIGHT - 50}
+                    x2={SVG_WIDTH - PAD_RIGHT}
+                    y2={SVG_HEIGHT - 50}
+                    stroke="#374151"
+                    strokeWidth={2}
+                />
+
                 {ticks.map(v => (
                     <g key={v}>
                         <line x1={toX(v)} y1={SVG_HEIGHT - 54} x2={toX(v)} y2={SVG_HEIGHT - 46} stroke="#374151" strokeWidth={1} />
                         <text x={toX(v)} y={SVG_HEIGHT - 32} fontSize={11} textAnchor="middle" fill="#64748b">{v}</text>
                     </g>
                 ))}
-                {currentStep >= currentExercise.inequalities.length + 2 && (
-                    <SolutionRow sol={intersection} y={SVG_HEIGHT - 80} color="#166534" label="∩" toX={toX} viewRange={viewRange} isMobile={isMobile} />
+
+                {currentStep >= currentExercise.inequalities.length + 1 && (
+                    <SolutionRow
+                        sol={intersection}
+                        y={SVG_HEIGHT - 80}
+                        color="#166534"
+                        label="∩"
+                        toX={toX}
+                        viewRange={viewRange}
+                        isMobile={isMobile}
+                    />
                 )}
             </svg>
         </ResponsiveCard>
@@ -515,9 +619,8 @@ export default function SistemiDisequazioniDemo() {
     const StepsColumn = (
         <div style={{ display: "grid", gap: 12 }}>
             {SystemStep}
-            {currentStep >= 1 && NormalFormStep}
-            {InequalitySteps.map((s, i) => currentStep >= i + 2 && <React.Fragment key={i}>{s}</React.Fragment>)}
-            {currentStep >= currentExercise.inequalities.length + 2 && FinalStep}
+            {InequalitySteps.map((s, i) => currentStep >= i + 1 && <React.Fragment key={i}>{s}</React.Fragment>)}
+            {currentStep >= currentExercise.inequalities.length + 1 && FinalStep}
         </div>
     );
 
@@ -527,11 +630,20 @@ export default function SistemiDisequazioniDemo() {
         return (
             <DemoContainer title="Sistemi disequazioni" description="Risoluzione guidata">
                 {LevelSelector}
-                <NavigationButtons currentStep={currentStep} totalSteps={totalSteps} onNext={nextStep} onPrev={prevStep} onShowAll={showAll} />
-                <SwipeableTabs tabs={[
-                    { id: "steps", label: "📝 Procedimento", content: StepsColumn },
-                    { id: "graph", label: "📊 Grafico", content: GraphPanel },
-                ]} defaultTab="steps" />
+                <NavigationButtons
+                    currentStep={currentStep}
+                    totalSteps={totalSteps}
+                    onNext={nextStep}
+                    onPrev={prevStep}
+                    onShowAll={showAll}
+                />
+                <SwipeableTabs
+                    tabs={[
+                        { id: "steps", label: "📝 Procedimento", content: StepsColumn },
+                        { id: "graph", label: "📊 Grafico", content: GraphPanel },
+                    ]}
+                    defaultTab="steps"
+                />
             </DemoContainer>
         );
     }
@@ -540,7 +652,13 @@ export default function SistemiDisequazioniDemo() {
         return (
             <DemoContainer title="Sistemi di Disequazioni" description="Risoluzione guidata step-by-step">
                 {LevelSelector}
-                <NavigationButtons currentStep={currentStep} totalSteps={totalSteps} onNext={nextStep} onPrev={prevStep} onShowAll={showAll} />
+                <NavigationButtons
+                    currentStep={currentStep}
+                    totalSteps={totalSteps}
+                    onNext={nextStep}
+                    onPrev={prevStep}
+                    onShowAll={showAll}
+                />
                 <ResponsiveGrid columns={{ tablet: 2 }} gap={16}>
                     <div>{StepsColumn}</div>
                     <div>{GraphPanel}</div>
@@ -552,14 +670,19 @@ export default function SistemiDisequazioniDemo() {
     return (
         <DemoContainer title="Sistemi di Disequazioni Lineari" description="Risoluzione guidata step-by-step" maxWidth={1300}>
             {LevelSelector}
-            <NavigationButtons currentStep={currentStep} totalSteps={totalSteps} onNext={nextStep} onPrev={prevStep} onShowAll={showAll} />
+            <NavigationButtons
+                currentStep={currentStep}
+                totalSteps={totalSteps}
+                onNext={nextStep}
+                onPrev={prevStep}
+                onShowAll={showAll}
+            />
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
                 <div>{StepsColumn}</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                     {GraphPanel}
                     <InfoBox title="Come funziona:">
                         <ol style={{ margin: "8px 0 0 0", paddingLeft: 20 }}>
-                            <li>Riduci ogni disequazione in <strong>forma normale</strong></li>
                             <li>Risolvi ogni disequazione singolarmente</li>
                             <li>Rappresenta le soluzioni sulla retta</li>
                             <li>La soluzione è l'<strong>intersezione</strong></li>
