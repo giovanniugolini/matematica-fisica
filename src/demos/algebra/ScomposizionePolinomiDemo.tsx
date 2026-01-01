@@ -1392,7 +1392,7 @@ export default function ScomposizionePolinomiDemo() {
                         { id: "method", label: "🎯 Metodo", content: MethodSelector },
                         { id: "formulas", label: "📖 Formule", content: FormulaReference },
                     ]}
-                    defaultTab="steps"
+                    defaultTab="method"
                 />
             </DemoContainer>
         );
