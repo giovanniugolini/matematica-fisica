@@ -1106,6 +1106,7 @@ interface PresentationViewProps {
 function PresentationView({ lezione, boardStyle, onExit }: PresentationViewProps): React.ReactElement {
     const slides = buildSlides(lezione);
     const [currentSlide, setCurrentSlide] = useState(0);
+    const [zoomLevel, setZoomLevel] = useState(1);
     const theme = boardThemes[boardStyle];
 
     const canPrev = currentSlide > 0;
@@ -1131,6 +1132,10 @@ function PresentationView({ lezione, boardStyle, onExit }: PresentationViewProps
 
     const slide = slides[currentSlide];
     const metadati = lezione.metadati;
+
+    const resetZoom = () => {
+        setZoomLevel(1);
+    };
 
     return (
         <div
@@ -1200,114 +1205,124 @@ function PresentationView({ lezione, boardStyle, onExit }: PresentationViewProps
                     alignItems: "center",
                     justifyContent: "center",
                     padding: 32,
-                    overflow: "auto",
+                    overflow: "hidden",
                 }}
             >
-                {/* Board/Slide */}
+                {/* Container per lo zoom */}
                 <div
                     style={{
+                        transform: `scale(${zoomLevel})`,
+                        transformOrigin: "top center",
+                        transition: "transform 0.3s ease",
                         width: "100%",
                         maxWidth: 1000,
-                        minHeight: 500,
-                        background: theme.bg,
-                        borderRadius: 16,
-                        boxShadow: theme.shadow,
-                        border: `2px solid ${theme.border}`,
-                        padding: 40,
-                        color: theme.text,
-                        position: "relative",
                     }}
                 >
-                    {/* Slide content */}
-                    {slide.type === "intro" && (
-                        <div style={{ textAlign: "center" }}>
-                            <div style={{ display: "flex", gap: 8, justifyContent: "center", marginBottom: 24 }}>
-                                <span
-                                    style={{
-                                        padding: "4px 12px",
-                                        background: theme.accent + "20",
-                                        color: theme.accent,
-                                        borderRadius: 12,
-                                        fontSize: 12,
-                                        fontWeight: 500,
-                                    }}
-                                >
-                                    {metadati.materia}
-                                </span>
-                                <span
-                                    style={{
-                                        padding: "4px 12px",
-                                        background: theme.accent + "20",
-                                        color: theme.accent,
-                                        borderRadius: 12,
-                                        fontSize: 12,
-                                        fontWeight: 500,
-                                    }}
-                                >
-                                    {metadati.argomento}
-                                </span>
+                    {/* Board/Slide */}
+                    <div
+                        style={{
+                            width: "100%",
+                            minHeight: 500,
+                            background: theme.bg,
+                            borderRadius: 16,
+                            boxShadow: theme.shadow,
+                            border: `2px solid ${theme.border}`,
+                            padding: 40,
+                            color: theme.text,
+                            position: "relative",
+                        }}
+                    >
+                        {/* Slide content */}
+                        {slide.type === "intro" && (
+                            <div style={{ textAlign: "center" }}>
+                                <div style={{ display: "flex", gap: 8, justifyContent: "center", marginBottom: 24 }}>
+                                    <span
+                                        style={{
+                                            padding: "4px 12px",
+                                            background: theme.accent + "20",
+                                            color: theme.accent,
+                                            borderRadius: 12,
+                                            fontSize: 12,
+                                            fontWeight: 500,
+                                        }}
+                                    >
+                                        {metadati.materia}
+                                    </span>
+                                    <span
+                                        style={{
+                                            padding: "4px 12px",
+                                            background: theme.accent + "20",
+                                            color: theme.accent,
+                                            borderRadius: 12,
+                                            fontSize: 12,
+                                            fontWeight: 500,
+                                        }}
+                                    >
+                                        {metadati.argomento}
+                                    </span>
+                                </div>
+                                <h1 style={{ fontSize: 42, fontWeight: 700, marginBottom: 16 }}>{metadati.titolo}</h1>
+                                {metadati.sottotitolo && (
+                                    <p style={{ fontSize: 20, opacity: 0.8, marginBottom: 24 }}>{metadati.sottotitolo}</p>
+                                )}
+                                {metadati.durata && (
+                                    <p style={{ fontSize: 16, opacity: 0.6 }}>⏱️ Durata: {metadati.durata} minuti</p>
+                                )}
                             </div>
-                            <h1 style={{ fontSize: 42, fontWeight: 700, marginBottom: 16 }}>{metadati.titolo}</h1>
-                            {metadati.sottotitolo && (
-                                <p style={{ fontSize: 20, opacity: 0.8, marginBottom: 24 }}>{metadati.sottotitolo}</p>
-                            )}
-                            {metadati.durata && (
-                                <p style={{ fontSize: 16, opacity: 0.6 }}>⏱️ Durata: {metadati.durata} minuti</p>
-                            )}
-                        </div>
-                    )}
+                        )}
 
-                    {slide.type === "section-title" && (
-                        <div style={{ textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", minHeight: 300 }}>
-                            <h2 style={{ fontSize: 36, fontWeight: 700 }}>{slide.title}</h2>
-                        </div>
-                    )}
+                        {slide.type === "section-title" && (
+                            <div style={{ textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", minHeight: 300 }}>
+                                <h2 style={{ fontSize: 36, fontWeight: 700 }}>{slide.title}</h2>
+                            </div>
+                        )}
 
-                    {slide.type === "content" && slide.blocchi && (
-                        <div>
-                            {slide.title && slide.title !== "Introduzione" && (
-                                <h3 style={{ fontSize: 24, fontWeight: 600, marginBottom: 24, color: theme.accent }}>
-                                    {slide.title}
+                        {slide.type === "content" && slide.blocchi && (
+                            <div>
+                                {slide.title && slide.title !== "Introduzione" && (
+                                    <h3 style={{ fontSize: 24, fontWeight: 600, marginBottom: 24, color: theme.accent }}>
+                                        {slide.title}
+                                    </h3>
+                                )}
+                                {slide.blocchi.map((b: Blocco, i: number) => renderBlocco(b, i))}
+                            </div>
+                        )}
+
+                        {slide.type === "conclusion" && slide.blocchi && (
+                            <div>
+                                <h3 style={{ fontSize: 28, fontWeight: 600, marginBottom: 24, textAlign: "center" }}>
+                                    🎯 {slide.title}
                                 </h3>
-                            )}
-                            {slide.blocchi.map((b: Blocco, i: number) => renderBlocco(b, i))}
-                        </div>
-                    )}
+                                {slide.blocchi.map((b: Blocco, i: number) => renderBlocco(b, i))}
+                            </div>
+                        )}
 
-                    {slide.type === "conclusion" && slide.blocchi && (
-                        <div>
-                            <h3 style={{ fontSize: 28, fontWeight: 600, marginBottom: 24, textAlign: "center" }}>
-                                🎯 {slide.title}
-                            </h3>
-                            {slide.blocchi.map((b: Blocco, i: number) => renderBlocco(b, i))}
-                        </div>
-                    )}
-
-                    {slide.type === "resources" && (
-                        <div>
-                            <h3 style={{ fontSize: 28, fontWeight: 600, marginBottom: 24, textAlign: "center" }}>
-                                📚 Risorse
-                            </h3>
-                            <ul style={{ listStyle: "none", padding: 0 }}>
-                                {(slide.data as Risorsa[]).map((r: Risorsa, i: number) => (
-                                    <li key={i} style={{ padding: "12px 0", borderBottom: `1px solid ${theme.border}` }}>
-                                        {r.url ? (
-                                            <a href={r.url} target="_blank" rel="noopener noreferrer" style={{ color: theme.accent }}>
-                                                {r.titolo} ↗
-                                            </a>
-                                        ) : (
-                                            <span>{r.titolo}</span>
-                                        )}
-                                        {r.descrizione && <p style={{ fontSize: 14, opacity: 0.7, marginTop: 4 }}>{r.descrizione}</p>}
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
+                        {slide.type === "resources" && (
+                            <div>
+                                <h3 style={{ fontSize: 28, fontWeight: 600, marginBottom: 24, textAlign: "center" }}>
+                                    📚 Risorse
+                                </h3>
+                                <ul style={{ listStyle: "none", padding: 0 }}>
+                                    {(slide.data as Risorsa[]).map((r: Risorsa, i: number) => (
+                                        <li key={i} style={{ padding: "12px 0", borderBottom: `1px solid ${theme.border}` }}>
+                                            {r.url ? (
+                                                <a href={r.url} target="_blank" rel="noopener noreferrer" style={{ color: theme.accent }}>
+                                                    {r.titolo} ↗
+                                                </a>
+                                            ) : (
+                                                <span>{r.titolo}</span>
+                                            )}
+                                            {r.descrizione && <p style={{ fontSize: 14, opacity: 0.7, marginTop: 4 }}>{r.descrizione}</p>}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 
-            {/* Bottom navigation */}
+            {/* Bottom navigation con controlli zoom */}
             <div
                 style={{
                     padding: "16px 24px",
@@ -1370,6 +1385,54 @@ function PresentationView({ lezione, boardStyle, onExit }: PresentationViewProps
                 >
                     Successivo →
                 </button>
+
+                {/* Controlli zoom */}
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: 16 }}>
+                    <button
+                        onClick={() => setZoomLevel(Math.max(1, zoomLevel - 0.25))}
+                        style={{
+                            padding: "8px 12px",
+                            borderRadius: 8,
+                            border: `1px solid ${theme.border}`,
+                            background: theme.bg,
+                            color: theme.text,
+                            cursor: "pointer",
+                            fontSize: 14,
+                        }}
+                    >
+                        - Zoom
+                    </button>
+
+                    <button
+                        onClick={() => setZoomLevel(zoomLevel + 0.25)}
+                        style={{
+                            padding: "8px 12px",
+                            borderRadius: 8,
+                            border: `1px solid ${theme.border}`,
+                            background: theme.bg,
+                            color: theme.text,
+                            cursor: "pointer",
+                            fontSize: 14,
+                        }}
+                    >
+                        + Zoom
+                    </button>
+
+                    <button
+                        onClick={resetZoom}
+                        style={{
+                            padding: "8px 12px",
+                            borderRadius: 8,
+                            border: `1px solid ${theme.border}`,
+                            background: theme.bg,
+                            color: theme.text,
+                            cursor: "pointer",
+                            fontSize: 14,
+                        }}
+                    >
+                        Reset Zoom
+                    </button>
+                </div>
             </div>
 
             {/* Keyboard hint */}

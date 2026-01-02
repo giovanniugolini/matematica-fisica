@@ -1,0 +1,33 @@
+{
+  "_template": "base",
+  "_descrizione": "Template standard per lezioni concettuali (primo biennio)",
+  "metadati": {
+    "titolo": "TITOLO LEZIONE",
+    "materia": "fisica",
+    "argomento": "ARGOMENTO",
+    "livello": "primo-biennio"
+  },
+  "introduzione": [
+    { "tipo": "testo", "contenuto": "Perché questo argomento è importante?" }
+  ],
+  "sezioni": [
+    {
+      "id": "concetto",
+      "titolo": "Idea fondamentale",
+      "blocchi": [
+        {
+          "tipo": "sequenza",
+          "titolo": "Capire il concetto",
+          "steps": []
+        }
+      ]
+    }
+  ],
+  "conclusione": [
+    {
+      "tipo": "step-by-step",
+      "titolo": "Riepilogo",
+      "step": []
+    }
+  ]
+}

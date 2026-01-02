@@ -1,0 +1,120 @@
+{
+  "_template": "procedurale",
+  "_descrizione": "Template per lezioni procedurali: come si fa, passo dopo passo",
+  "metadati": {
+    "id": "TEMPLATE-ID",
+    "titolo": "TITOLO LEZIONE",
+    "sottotitolo": "Come risolvere un problema passo dopo passo",
+    "materia": "fisica",
+    "argomento": "ARGOMENTO",
+    "livello": "primo-biennio",
+    "durata": 45
+  },
+
+  "introduzione": [
+    {
+      "tipo": "testo",
+      "contenuto": "In questa lezione impariamo **come risolvere** un certo tipo di problema seguendo una procedura chiara."
+    },
+    {
+      "tipo": "nota",
+      "variante": "ricorda",
+      "contenuto": "Seguire sempre i passaggi nello stesso ordine aiuta a evitare errori."
+    }
+  ],
+
+  "sezioni": [
+    {
+      "id": "concetto",
+      "titolo": "Idea di base",
+      "blocchi": [
+        {
+          "tipo": "definizione",
+          "termine": "Concetto chiave",
+          "definizione": "Qui va spiegato **che cosa** stiamo calcolando e **perché**."
+        }
+      ]
+    },
+
+    {
+      "id": "procedura",
+      "titolo": "Procedura di risoluzione",
+      "blocchi": [
+        {
+          "tipo": "sequenza",
+          "titolo": "Passaggi fondamentali",
+          "steps": [
+            {
+              "titolo": "Individua i dati",
+              "blocchi": [
+                { "tipo": "testo", "contenuto": "Scrivi chiaramente i dati forniti dal problema." }
+              ]
+            },
+            {
+              "titolo": "Scegli la formula",
+              "blocchi": [
+                { "tipo": "formula", "latex": "FORMULA", "display": true }
+              ]
+            },
+            {
+              "titolo": "Esegui i calcoli",
+              "blocchi": [
+                { "tipo": "testo", "contenuto": "Sostituisci i valori e calcola." }
+              ]
+            },
+            {
+              "titolo": "Scrivi il risultato",
+              "blocchi": [
+                { "tipo": "nota", "variante": "attenzione", "contenuto": "Ricorda unità di misura e cifre significative." }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "esempio",
+      "titolo": "Esempio svolto",
+      "blocchi": [
+        {
+          "tipo": "sequenza",
+          "titolo": "Risoluzione guidata",
+          "steps": [
+            {
+              "titolo": "Testo del problema",
+              "blocchi": [
+                { "tipo": "testo", "contenuto": "Testo dell’esercizio." }
+              ]
+            },
+            {
+              "titolo": "Calcoli",
+              "blocchi": [
+                { "tipo": "formula", "latex": "CALCOLI", "display": true }
+              ]
+            },
+            {
+              "titolo": "Risultato finale",
+              "blocchi": [
+                { "tipo": "testo", "contenuto": "Risultato commentato." }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+
+  "conclusione": [
+    {
+      "tipo": "step-by-step",
+      "titolo": "Procedura da ricordare",
+      "step": [
+        { "titolo": "1", "contenuto": "Individua i dati" },
+        { "titolo": "2", "contenuto": "Scrivi la formula" },
+        { "titolo": "3", "contenuto": "Sostituisci e calcola" },
+        { "titolo": "4", "contenuto": "Controlla il risultato" }
+      ]
+    }
+  ]
+}

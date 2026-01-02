@@ -1,0 +1,93 @@
+{
+  "_template": "laboratoriale",
+  "_descrizione": "Template per lezioni di tipo esplorativo e laboratoriale",
+  "metadati": {
+    "id": "TEMPLATE-ID",
+    "titolo": "TITOLO LEZIONE",
+    "sottotitolo": "Osserviamo e capiamo insieme",
+    "materia": "fisica",
+    "argomento": "ARGOMENTO",
+    "livello": "primo-biennio",
+    "durata": 50
+  },
+
+  "introduzione": [
+    {
+      "tipo": "testo",
+      "contenuto": "In questa attività **osserviamo un fenomeno** e cerchiamo di capirlo attraverso esempi e simulazioni."
+    }
+  ],
+
+  "sezioni": [
+    {
+      "id": "ipotesi",
+      "titolo": "Cosa ci aspettiamo?",
+      "blocchi": [
+        {
+          "tipo": "callout",
+          "variante": "attivita",
+          "contenuto": "Secondo te, cosa succede se cambiamo questo parametro?"
+        }
+      ]
+    },
+
+    {
+      "id": "osservazione",
+      "titolo": "Osserviamo il fenomeno",
+      "blocchi": [
+        {
+          "tipo": "demo",
+          "componente": "NOME_DEMO",
+          "titolo": "Simulazione interattiva",
+          "descrizione": "Usa i controlli e osserva cosa cambia."
+        }
+      ]
+    },
+
+    {
+      "id": "analisi",
+      "titolo": "Analizziamo insieme",
+      "blocchi": [
+        {
+          "tipo": "sequenza",
+          "titolo": "Cosa notiamo",
+          "steps": [
+            {
+              "titolo": "Prima osservazione",
+              "blocchi": [
+                { "tipo": "testo", "contenuto": "Descrizione qualitativa." }
+              ]
+            },
+            {
+              "titolo": "Seconda osservazione",
+              "blocchi": [
+                { "tipo": "testo", "contenuto": "Relazione tra grandezze." }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "formalizzazione",
+      "titolo": "Formalizziamo",
+      "blocchi": [
+        {
+          "tipo": "formula",
+          "latex": "FORMULA",
+          "display": true,
+          "descrizione": "La legge che descrive ciò che abbiamo osservato."
+        }
+      ]
+    }
+  ],
+
+  "conclusione": [
+    {
+      "tipo": "nota",
+      "variante": "ricorda",
+      "contenuto": "Le formule nascono sempre dall’osservazione dei fenomeni."
+    }
+  ]
+}
