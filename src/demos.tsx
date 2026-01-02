@@ -167,10 +167,16 @@ export const demos: DemoInfo[] = [
         title: "Il Condensatore: Capacità, Carica ed Energia",
         Component: React.lazy(() => import("./demos/elettromagnetismo/./CondensatoreDemo")),
     },
-    // ============ NUOVE DEMO ELETTROMAGNETISMO ============
+    // ============ NUOVE DEMO VETTORE COMPONENTI CARTESIANE ============
     {
         slug: "componenti-cartesiane-vettore",
         title: "Componenti Cartesiane di un vettore",
         Component: React.lazy(() => import("./demos/vettori-piano/./ComponentiCartesianeVettoreDemo")),
+    },
+    // ============ NUOVE DEMO FORZE ============
+    {
+        slug: "forze",
+        title: "Le Forze (Forza peso, Forza elastica e di Attrito",
+        Component: React.lazy(() => import("./demos/forze/./ForzeDemo")),
     },
 ];

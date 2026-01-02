@@ -78,7 +78,8 @@ const categories: Category[] = [
                 slugs: [
                     "vettori-punta-coda",
                     "vettore-per-escalare",
-                    "componenti-cartesiane-vettore"
+                    "componenti-cartesiane-vettore",
+                    "forze"
                 ]
             },
             {
