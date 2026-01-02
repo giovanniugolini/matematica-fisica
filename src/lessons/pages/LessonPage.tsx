@@ -1,5 +1,5 @@
 /**
- * LessonPage - Pagina esempio per visualizzare una lezione
+ * LessonPage - Pagina per visualizzare una lezione
  */
 
 import React from "react";

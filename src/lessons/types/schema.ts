@@ -102,7 +102,24 @@ export interface BloccoImmagine {
     src: string;
     alt: string;
     didascalia?: string;
+    larghezza?: number; // percentuale 0-100
+}
+
+/** ✅ NUOVO: Blocco Video */
+export interface BloccoVideo {
+    tipo: "video";
+    /** URL YouTube, Vimeo, o file locale */
+    src: string;
+    /** Titolo del video */
+    titolo?: string;
+    /** Didascalia sotto il video */
+    didascalia?: string;
+    /** Larghezza in percentuale (default 100) */
     larghezza?: number;
+    /** Altezza in pixel (default 400) */
+    altezza?: number;
+    /** Autoplay (default false) */
+    autoplay?: boolean;
 }
 
 export interface BloccoDemo {
@@ -180,7 +197,7 @@ export interface BloccoCollegamento {
 }
 
 /**
- * ✅ NUOVO: Sequenza a step “veri”
+ * Sequenza a step "veri"
  * Ogni step può contenere qualsiasi Blocco.
  */
 export interface SequenzaStep {
@@ -193,9 +210,9 @@ export interface BloccoSequenza {
     tipo: "sequenza";
     titolo?: string;
     steps: SequenzaStep[];
-    startAt?: number;          // default 0
-    showProgress?: boolean;    // default true
-    allowJump?: boolean;       // default true (click su pallini)
+    startAt?: number;
+    showProgress?: boolean;
+    allowJump?: boolean;
 }
 
 export type Blocco =
@@ -208,6 +225,7 @@ export type Blocco =
     | BloccoNota
     | BloccoElenco
     | BloccoImmagine
+    | BloccoVideo
     | BloccoDemo
     | BloccoQuiz
     | BloccoStepByStep

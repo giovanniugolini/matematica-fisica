@@ -1,8 +1,9 @@
 /**
  * LessonRenderer - Componente che renderizza una lezione da JSON
+ * Supporta modalità documento e presentazione
  */
 
-import React, { useState, Suspense, lazy, useEffect } from "react";
+import React, { useState, Suspense, lazy, useEffect, useCallback } from "react";
 import {
     Lezione,
     Blocco,
@@ -14,6 +15,8 @@ import {
     BloccoEsempio,
     BloccoNota,
     BloccoElenco,
+    BloccoImmagine,
+    BloccoVideo,
     BloccoDemo,
     BloccoQuiz,
     BloccoStepByStep,
@@ -55,10 +58,52 @@ const demoComponents: Record<
 };
 
 // ============================================================================
+// TIPI STILE LAVAGNA
+// ============================================================================
+
+export type BoardStyle = "white" | "green" | "dark";
+
+interface BoardTheme {
+    bg: string;
+    text: string;
+    border: string;
+    shadow: string;
+    accent: string;
+    secondaryBg: string;
+}
+
+const boardThemes: Record<BoardStyle, BoardTheme> = {
+    white: {
+        bg: "#ffffff",
+        text: "#1f2937",
+        border: "#e5e7eb",
+        shadow: "0 4px 20px rgba(0,0,0,0.08)",
+        accent: "#3b82f6",
+        secondaryBg: "#f8fafc",
+    },
+    green: {
+        bg: "#1a4d2e",
+        text: "#f0fdf4",
+        border: "#2d5a3d",
+        shadow: "0 4px 20px rgba(0,0,0,0.3)",
+        accent: "#86efac",
+        secondaryBg: "#15803d",
+    },
+    dark: {
+        bg: "#1e293b",
+        text: "#f1f5f9",
+        border: "#334155",
+        shadow: "0 4px 20px rgba(0,0,0,0.4)",
+        accent: "#60a5fa",
+        secondaryBg: "#0f172a",
+    },
+};
+
+// ============================================================================
 // HELPERS
 // ============================================================================
 
-function renderTesto(testo: string): React.ReactNode {
+function renderTesto(testo: string, textColor?: string): React.ReactNode {
     const parts = testo.split(/(\$[^$]+\$)/g);
 
     return parts.map((part: string, i: number) => {
@@ -72,8 +117,26 @@ function renderTesto(testo: string): React.ReactNode {
             .replace(/\*([^*]+)\*/g, "<em>$1</em>")
             .replace(/`([^`]+)`/g, "<code>$1</code>");
 
-        return <span key={i} dangerouslySetInnerHTML={{ __html: html }} />;
+        return <span key={i} dangerouslySetInnerHTML={{ __html: html }} style={{ color: textColor }} />;
     });
+}
+
+/** Estrae video ID da URL YouTube o Vimeo */
+function getVideoEmbedUrl(src: string): { type: "youtube" | "vimeo" | "file"; url: string } {
+    // YouTube
+    const ytMatch = src.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    if (ytMatch) {
+        return { type: "youtube", url: `https://www.youtube.com/embed/${ytMatch[1]}` };
+    }
+
+    // Vimeo
+    const vimeoMatch = src.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+    if (vimeoMatch) {
+        return { type: "vimeo", url: `https://player.vimeo.com/video/${vimeoMatch[1]}` };
+    }
+
+    // File locale o altro URL
+    return { type: "file", url: src };
 }
 
 // ============================================================================
@@ -121,8 +184,8 @@ function FormulaBlock({ blocco }: { blocco: BloccoFormula }): React.ReactElement
             <Latex display={blocco.display}>{blocco.latex}</Latex>
             {blocco.etichetta && (
                 <span style={{ float: "right", color: "#6b7280", fontSize: 14 }}>
-          {blocco.etichetta}
-        </span>
+                    {blocco.etichetta}
+                </span>
             )}
             {blocco.descrizione && (
                 <p style={{ fontSize: 14, color: "#6b7280", textAlign: "center", marginTop: 8 }}>
@@ -286,10 +349,7 @@ function EsempioBlock({ blocco }: { blocco: BloccoEsempio }): React.ReactElement
 }
 
 function NotaBlock({ blocco }: { blocco: BloccoNota }): React.ReactElement {
-    const stili: Record<
-        NotaVariante,
-        { bg: string; border: string; icon: string; color: string }
-    > = {
+    const stili: Record<NotaVariante, { bg: string; border: string; icon: string; color: string }> = {
         info: { bg: "#eff6ff", border: "#3b82f6", icon: "ℹ️", color: "#1e40af" },
         attenzione: { bg: "#fef2f2", border: "#ef4444", icon: "⚠️", color: "#991b1b" },
         suggerimento: { bg: "#f0fdf4", border: "#22c55e", icon: "💡", color: "#166534" },
@@ -326,6 +386,80 @@ function ElencoBlock({ blocco }: { blocco: BloccoElenco }): React.ReactElement {
         <ol style={{ margin: "16px 0", paddingLeft: 24, lineHeight: 1.7 }}>{items}</ol>
     ) : (
         <ul style={{ margin: "16px 0", paddingLeft: 24, lineHeight: 1.7 }}>{items}</ul>
+    );
+}
+
+/** ✅ NUOVO: Blocco Immagine */
+function ImmagineBlock({ blocco }: { blocco: BloccoImmagine }): React.ReactElement {
+    return (
+        <figure style={{ margin: "24px 0", textAlign: "center" }}>
+            <img
+                src={blocco.src}
+                alt={blocco.alt}
+                style={{
+                    maxWidth: blocco.larghezza ? `${blocco.larghezza}%` : "100%",
+                    height: "auto",
+                    borderRadius: 8,
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                }}
+            />
+            {blocco.didascalia && (
+                <figcaption style={{ marginTop: 8, fontSize: 14, color: "#6b7280", fontStyle: "italic" }}>
+                    {blocco.didascalia}
+                </figcaption>
+            )}
+        </figure>
+    );
+}
+
+/** ✅ NUOVO: Blocco Video */
+function VideoBlock({ blocco }: { blocco: BloccoVideo }): React.ReactElement {
+    const { type, url } = getVideoEmbedUrl(blocco.src);
+    const width = blocco.larghezza ?? 100;
+    const height = blocco.altezza ?? 400;
+
+    return (
+        <figure style={{ margin: "24px 0", textAlign: "center" }}>
+            {blocco.titolo && (
+                <div style={{ fontWeight: 600, marginBottom: 12, fontSize: 16, color: "#374151" }}>
+                    🎬 {blocco.titolo}
+                </div>
+            )}
+            <div
+                style={{
+                    maxWidth: `${width}%`,
+                    margin: "0 auto",
+                    borderRadius: 12,
+                    overflow: "hidden",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                }}
+            >
+                {type === "file" ? (
+                    <video
+                        src={url}
+                        controls
+                        autoPlay={blocco.autoplay}
+                        style={{ width: "100%", display: "block" }}
+                    />
+                ) : (
+                    <iframe
+                        src={url + (blocco.autoplay ? "?autoplay=1" : "")}
+                        width="100%"
+                        height={height}
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        title={blocco.titolo || "Video"}
+                        style={{ display: "block" }}
+                    />
+                )}
+            </div>
+            {blocco.didascalia && (
+                <figcaption style={{ marginTop: 8, fontSize: 14, color: "#6b7280", fontStyle: "italic" }}>
+                    {blocco.didascalia}
+                </figcaption>
+            )}
+        </figure>
     );
 }
 
@@ -450,9 +584,9 @@ function QuizBlock({ blocco }: { blocco: BloccoQuiz }): React.ReactElement {
                                 transition: "all 0.2s",
                             }}
                         >
-              <span style={{ fontWeight: 600, marginRight: 8 }}>
-                {String.fromCharCode(65 + i)}.
-              </span>
+                            <span style={{ fontWeight: 600, marginRight: 8 }}>
+                                {String.fromCharCode(65 + i)}.
+                            </span>
                             {renderTesto(opt.testo)}
                         </button>
                     );
@@ -531,8 +665,8 @@ function StepByStepBlock({ blocco }: { blocco: BloccoStepByStep }): React.ReactE
                             height: 32,
                             borderRadius: "50%",
                             border: "none",
-                            background: (showAll || i <= currentStep) ? "#3b82f6" : "#e5e7eb",
-                            color: (showAll || i <= currentStep) ? "white" : "#6b7280",
+                            background: showAll || i <= currentStep ? "#3b82f6" : "#e5e7eb",
+                            color: showAll || i <= currentStep ? "white" : "#6b7280",
                             fontWeight: 600,
                             cursor: "pointer",
                         }}
@@ -615,17 +749,18 @@ function StepByStepBlock({ blocco }: { blocco: BloccoStepByStep }): React.ReactE
 }
 
 function CalloutBlock({ blocco }: { blocco: BloccoCallout }): React.ReactElement {
-    const stili: Record<CalloutVariante, { bg: string; border: string; icon: string; title: string }> =
-        {
-            obiettivo: { bg: "#fdf4ff", border: "#a855f7", icon: "🎯", title: "Obiettivi" },
-            prerequisiti: { bg: "#fff7ed", border: "#f97316", icon: "📚", title: "Prerequisiti" },
-            materiali: { bg: "#f0fdfa", border: "#14b8a6", icon: "🛠️", title: "Materiali" },
-            tempo: { bg: "#fefce8", border: "#eab308", icon: "⏱️", title: "Tempo stimato" },
-        };
+    const stili: Record<CalloutVariante, { bg: string; border: string; icon: string; title: string }> = {
+        obiettivo: { bg: "#fdf4ff", border: "#a855f7", icon: "🎯", title: "Obiettivi" },
+        prerequisiti: { bg: "#fff7ed", border: "#f97316", icon: "📚", title: "Prerequisiti" },
+        materiali: { bg: "#f0fdfa", border: "#14b8a6", icon: "🛠️", title: "Materiali" },
+        tempo: { bg: "#fefce8", border: "#eab308", icon: "⏱️", title: "Tempo stimato" },
+    };
     const s = stili[blocco.variante];
 
     return (
-        <div style={{ background: s.bg, border: `1px solid ${s.border}`, borderRadius: 8, padding: 16, margin: "16px 0" }}>
+        <div
+            style={{ background: s.bg, border: `1px solid ${s.border}`, borderRadius: 8, padding: 16, margin: "16px 0" }}
+        >
             <div style={{ fontWeight: 600, marginBottom: 8 }}>
                 {s.icon} {blocco.titolo || s.title}
             </div>
@@ -681,7 +816,7 @@ function TabellaBlock({ blocco }: { blocco: BloccoTabella }): React.ReactElement
 }
 
 // ============================================================================
-// ✅ NUOVO: SEQUENZA A STEP (transizioni)
+// SEQUENZA A STEP
 // ============================================================================
 
 function SequenzaBlock({ blocco }: { blocco: BloccoSequenza }): React.ReactElement {
@@ -690,19 +825,16 @@ function SequenzaBlock({ blocco }: { blocco: BloccoSequenza }): React.ReactEleme
 
     const safeStart = Math.min(Math.max(blocco.startAt ?? 0, 0), Math.max(0, total - 1));
     const [idx, setIdx] = useState(safeStart);
-
-    // animazione semplice: togglo una “chiave” per far ripartire la transition
     const [animKey, setAnimKey] = useState(0);
+
     useEffect(() => {
         setAnimKey((k) => k + 1);
     }, [idx]);
 
     const canPrev = idx > 0;
     const canNext = idx < total - 1;
-
     const allowJump = blocco.allowJump ?? true;
     const showProgress = blocco.showProgress ?? true;
-
     const current: SequenzaStep | undefined = steps[idx];
 
     if (total === 0) {
@@ -715,7 +847,6 @@ function SequenzaBlock({ blocco }: { blocco: BloccoSequenza }): React.ReactEleme
 
     return (
         <div style={{ margin: "24px 0" }}>
-            {/* header */}
             <div
                 style={{
                     border: "1px solid #e2e8f0",
@@ -780,11 +911,10 @@ function SequenzaBlock({ blocco }: { blocco: BloccoSequenza }): React.ReactEleme
                     </div>
                 </div>
 
-                {/* progress dots */}
                 {showProgress && (
                     <div style={{ padding: "10px 14px", borderBottom: "1px solid #e2e8f0" }}>
                         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                            {steps.map((s, i) => {
+                            {steps.map((s: SequenzaStep, i: number) => {
                                 const active = i === idx;
                                 const done = i < idx;
                                 return (
@@ -809,7 +939,6 @@ function SequenzaBlock({ blocco }: { blocco: BloccoSequenza }): React.ReactEleme
                     </div>
                 )}
 
-                {/* content with transition */}
                 <div style={{ padding: "14px 14px 6px" }}>
                     {current?.titolo && (
                         <div style={{ fontWeight: 700, color: "#1f2937", marginBottom: 10 }}>
@@ -825,22 +954,20 @@ function SequenzaBlock({ blocco }: { blocco: BloccoSequenza }): React.ReactEleme
                             animation: "lessonStepIn 220ms ease-out forwards",
                         }}
                     >
-                        {current?.blocchi?.map((b, i) => renderBlocco(b, i))}
+                        {current?.blocchi?.map((b: Blocco, i: number) => renderBlocco(b, i))}
                     </div>
 
-                    {/* spacer */}
                     <div style={{ height: 8 }} />
                 </div>
             </div>
 
-            {/* CSS keyframes inline */}
             <style>
                 {`
-          @keyframes lessonStepIn {
-            from { opacity: 0; transform: translateY(6px); }
-            to   { opacity: 1; transform: translateY(0px); }
-          }
-        `}
+                    @keyframes lessonStepIn {
+                        from { opacity: 0; transform: translateY(6px); }
+                        to   { opacity: 1; transform: translateY(0px); }
+                    }
+                `}
             </style>
         </div>
     );
@@ -870,6 +997,10 @@ function renderBlocco(blocco: Blocco, index: number): React.ReactNode {
             return <NotaBlock key={key} blocco={blocco} />;
         case "elenco":
             return <ElencoBlock key={key} blocco={blocco} />;
+        case "immagine":
+            return <ImmagineBlock key={key} blocco={blocco} />;
+        case "video":
+            return <VideoBlock key={key} blocco={blocco} />;
         case "demo":
             return <DemoBlock key={key} blocco={blocco} />;
         case "quiz":
@@ -886,19 +1017,367 @@ function renderBlocco(blocco: Blocco, index: number): React.ReactNode {
             return <TabellaBlock key={key} blocco={blocco} />;
         default:
             return (
-                <div
-                    key={key}
-                    style={{
-                        padding: 12,
-                        background: "#fef2f2",
-                        borderRadius: 8,
-                        color: "#991b1b",
-                    }}
-                >
+                <div key={key} style={{ padding: 12, background: "#fef2f2", borderRadius: 8, color: "#991b1b" }}>
                     Blocco non supportato
                 </div>
             );
     }
+}
+
+// ============================================================================
+// PRESENTAZIONE - Stile Lavagna
+// ============================================================================
+
+interface Slide {
+    type: "intro" | "section-title" | "content" | "conclusion" | "resources";
+    title?: string;
+    sectionIndex?: number;
+    blocchi?: Blocco[];
+    data?: unknown;
+}
+
+function buildSlides(lezione: Lezione): Slide[] {
+    const slides: Slide[] = [];
+    const { metadati, introduzione, sezioni, conclusione, risorse } = lezione;
+
+    // Slide intro
+    slides.push({
+        type: "intro",
+        title: metadati.titolo,
+        data: metadati,
+    });
+
+    // Introduzione
+    if (introduzione && introduzione.length > 0) {
+        slides.push({
+            type: "content",
+            title: "Introduzione",
+            blocchi: introduzione,
+        });
+    }
+
+    // Sezioni
+    sezioni.forEach((sez, sezIdx) => {
+        // Titolo sezione
+        slides.push({
+            type: "section-title",
+            title: `${sezIdx + 1}. ${sez.titolo}`,
+            sectionIndex: sezIdx,
+        });
+
+        // Contenuto sezione - ogni blocco è una slide (o gruppi logici)
+        if (sez.blocchi.length > 0) {
+            slides.push({
+                type: "content",
+                title: sez.titolo,
+                sectionIndex: sezIdx,
+                blocchi: sez.blocchi,
+            });
+        }
+    });
+
+    // Conclusione
+    if (conclusione && conclusione.length > 0) {
+        slides.push({
+            type: "conclusion",
+            title: "Conclusione",
+            blocchi: conclusione,
+        });
+    }
+
+    // Risorse
+    if (risorse && risorse.length > 0) {
+        slides.push({
+            type: "resources",
+            title: "Risorse",
+            data: risorse,
+        });
+    }
+
+    return slides;
+}
+
+interface PresentationViewProps {
+    lezione: Lezione;
+    boardStyle: BoardStyle;
+    onExit: () => void;
+}
+
+function PresentationView({ lezione, boardStyle, onExit }: PresentationViewProps): React.ReactElement {
+    const slides = buildSlides(lezione);
+    const [currentSlide, setCurrentSlide] = useState(0);
+    const theme = boardThemes[boardStyle];
+
+    const canPrev = currentSlide > 0;
+    const canNext = currentSlide < slides.length - 1;
+
+    const handleKeyDown = useCallback(
+        (e: KeyboardEvent) => {
+            if (e.key === "ArrowRight" || e.key === " ") {
+                if (canNext) setCurrentSlide((s) => s + 1);
+            } else if (e.key === "ArrowLeft") {
+                if (canPrev) setCurrentSlide((s) => s - 1);
+            } else if (e.key === "Escape") {
+                onExit();
+            }
+        },
+        [canNext, canPrev, onExit]
+    );
+
+    useEffect(() => {
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [handleKeyDown]);
+
+    const slide = slides[currentSlide];
+    const metadati = lezione.metadati;
+
+    return (
+        <div
+            style={{
+                position: "fixed",
+                inset: 0,
+                background: theme.secondaryBg,
+                zIndex: 9999,
+                display: "flex",
+                flexDirection: "column",
+                fontFamily: "system-ui, -apple-system, sans-serif",
+            }}
+        >
+            {/* Top bar */}
+            <div
+                style={{
+                    padding: "12px 24px",
+                    background: theme.bg,
+                    borderBottom: `1px solid ${theme.border}`,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                }}
+            >
+                <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                    <button
+                        onClick={onExit}
+                        style={{
+                            padding: "8px 16px",
+                            background: "transparent",
+                            border: `1px solid ${theme.border}`,
+                            borderRadius: 8,
+                            color: theme.text,
+                            cursor: "pointer",
+                            fontSize: 14,
+                        }}
+                    >
+                        ✕ Esci
+                    </button>
+                    <span style={{ color: theme.text, fontWeight: 600 }}>{metadati.titolo}</span>
+                </div>
+
+                <div style={{ display: "flex", alignItems: "center", gap: 8, color: theme.text }}>
+                    <span style={{ fontSize: 14 }}>
+                        {currentSlide + 1} / {slides.length}
+                    </span>
+                </div>
+            </div>
+
+            {/* Progress bar */}
+            <div style={{ height: 4, background: theme.border }}>
+                <div
+                    style={{
+                        height: "100%",
+                        width: `${((currentSlide + 1) / slides.length) * 100}%`,
+                        background: theme.accent,
+                        transition: "width 0.3s ease",
+                    }}
+                />
+            </div>
+
+            {/* Main content */}
+            <div
+                style={{
+                    flex: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: 32,
+                    overflow: "auto",
+                }}
+            >
+                {/* Board/Slide */}
+                <div
+                    style={{
+                        width: "100%",
+                        maxWidth: 1000,
+                        minHeight: 500,
+                        background: theme.bg,
+                        borderRadius: 16,
+                        boxShadow: theme.shadow,
+                        border: `2px solid ${theme.border}`,
+                        padding: 40,
+                        color: theme.text,
+                        position: "relative",
+                    }}
+                >
+                    {/* Slide content */}
+                    {slide.type === "intro" && (
+                        <div style={{ textAlign: "center" }}>
+                            <div style={{ display: "flex", gap: 8, justifyContent: "center", marginBottom: 24 }}>
+                                <span
+                                    style={{
+                                        padding: "4px 12px",
+                                        background: theme.accent + "20",
+                                        color: theme.accent,
+                                        borderRadius: 12,
+                                        fontSize: 12,
+                                        fontWeight: 500,
+                                    }}
+                                >
+                                    {metadati.materia}
+                                </span>
+                                <span
+                                    style={{
+                                        padding: "4px 12px",
+                                        background: theme.accent + "20",
+                                        color: theme.accent,
+                                        borderRadius: 12,
+                                        fontSize: 12,
+                                        fontWeight: 500,
+                                    }}
+                                >
+                                    {metadati.argomento}
+                                </span>
+                            </div>
+                            <h1 style={{ fontSize: 42, fontWeight: 700, marginBottom: 16 }}>{metadati.titolo}</h1>
+                            {metadati.sottotitolo && (
+                                <p style={{ fontSize: 20, opacity: 0.8, marginBottom: 24 }}>{metadati.sottotitolo}</p>
+                            )}
+                            {metadati.durata && (
+                                <p style={{ fontSize: 16, opacity: 0.6 }}>⏱️ Durata: {metadati.durata} minuti</p>
+                            )}
+                        </div>
+                    )}
+
+                    {slide.type === "section-title" && (
+                        <div style={{ textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", minHeight: 300 }}>
+                            <h2 style={{ fontSize: 36, fontWeight: 700 }}>{slide.title}</h2>
+                        </div>
+                    )}
+
+                    {slide.type === "content" && slide.blocchi && (
+                        <div>
+                            {slide.title && slide.title !== "Introduzione" && (
+                                <h3 style={{ fontSize: 24, fontWeight: 600, marginBottom: 24, color: theme.accent }}>
+                                    {slide.title}
+                                </h3>
+                            )}
+                            {slide.blocchi.map((b: Blocco, i: number) => renderBlocco(b, i))}
+                        </div>
+                    )}
+
+                    {slide.type === "conclusion" && slide.blocchi && (
+                        <div>
+                            <h3 style={{ fontSize: 28, fontWeight: 600, marginBottom: 24, textAlign: "center" }}>
+                                🎯 {slide.title}
+                            </h3>
+                            {slide.blocchi.map((b: Blocco, i: number) => renderBlocco(b, i))}
+                        </div>
+                    )}
+
+                    {slide.type === "resources" && (
+                        <div>
+                            <h3 style={{ fontSize: 28, fontWeight: 600, marginBottom: 24, textAlign: "center" }}>
+                                📚 Risorse
+                            </h3>
+                            <ul style={{ listStyle: "none", padding: 0 }}>
+                                {(slide.data as Risorsa[]).map((r: Risorsa, i: number) => (
+                                    <li key={i} style={{ padding: "12px 0", borderBottom: `1px solid ${theme.border}` }}>
+                                        {r.url ? (
+                                            <a href={r.url} target="_blank" rel="noopener noreferrer" style={{ color: theme.accent }}>
+                                                {r.titolo} ↗
+                                            </a>
+                                        ) : (
+                                            <span>{r.titolo}</span>
+                                        )}
+                                        {r.descrizione && <p style={{ fontSize: 14, opacity: 0.7, marginTop: 4 }}>{r.descrizione}</p>}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Bottom navigation */}
+            <div
+                style={{
+                    padding: "16px 24px",
+                    background: theme.bg,
+                    borderTop: `1px solid ${theme.border}`,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 16,
+                }}
+            >
+                <button
+                    onClick={() => canPrev && setCurrentSlide((s) => s - 1)}
+                    disabled={!canPrev}
+                    style={{
+                        padding: "12px 24px",
+                        borderRadius: 8,
+                        border: `1px solid ${theme.border}`,
+                        background: canPrev ? theme.bg : theme.secondaryBg,
+                        color: canPrev ? theme.text : theme.border,
+                        cursor: canPrev ? "pointer" : "not-allowed",
+                        fontSize: 16,
+                        fontWeight: 600,
+                    }}
+                >
+                    ← Precedente
+                </button>
+
+                <div style={{ display: "flex", gap: 4 }}>
+                    {slides.map((_, i) => (
+                        <button
+                            key={i}
+                            onClick={() => setCurrentSlide(i)}
+                            style={{
+                                width: i === currentSlide ? 24 : 8,
+                                height: 8,
+                                borderRadius: 4,
+                                border: "none",
+                                background: i === currentSlide ? theme.accent : theme.border,
+                                cursor: "pointer",
+                                transition: "all 0.2s",
+                            }}
+                        />
+                    ))}
+                </div>
+
+                <button
+                    onClick={() => canNext && setCurrentSlide((s) => s + 1)}
+                    disabled={!canNext}
+                    style={{
+                        padding: "12px 24px",
+                        borderRadius: 8,
+                        border: "none",
+                        background: canNext ? theme.accent : theme.secondaryBg,
+                        color: canNext ? "#fff" : theme.border,
+                        cursor: canNext ? "pointer" : "not-allowed",
+                        fontSize: 16,
+                        fontWeight: 600,
+                    }}
+                >
+                    Successivo →
+                </button>
+            </div>
+
+            {/* Keyboard hint */}
+            <div style={{ padding: "8px 24px", textAlign: "center", fontSize: 12, color: theme.text, opacity: 0.5 }}>
+                Usa ← → per navigare • Spazio per avanzare • Esc per uscire
+            </div>
+        </div>
+    );
 }
 
 // ============================================================================
@@ -910,11 +1389,14 @@ interface LessonRendererProps {
     showTableOfContents?: boolean;
 }
 
-export function LessonRenderer({
-                                   lezione,
-                                   showTableOfContents = true,
-                               }: LessonRendererProps): React.ReactElement {
+export function LessonRenderer({ lezione, showTableOfContents = true }: LessonRendererProps): React.ReactElement {
     const { metadati, introduzione, sezioni, conclusione, risorse } = lezione;
+    const [mode, setMode] = useState<"document" | "presentation">("document");
+    const [boardStyle, setBoardStyle] = useState<BoardStyle>("white");
+
+    if (mode === "presentation") {
+        return <PresentationView lezione={lezione} boardStyle={boardStyle} onExit={() => setMode("document")} />;
+    }
 
     return (
         <div
@@ -925,21 +1407,111 @@ export function LessonRenderer({
                 fontFamily: "system-ui, -apple-system, sans-serif",
             }}
         >
+            {/* Toolbar */}
+            <div
+                style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginBottom: 24,
+                    padding: "12px 16px",
+                    background: "#f8fafc",
+                    borderRadius: 12,
+                    border: "1px solid #e2e8f0",
+                    flexWrap: "wrap",
+                    gap: 12,
+                }}
+            >
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: 14, color: "#64748b" }}>Modalità:</span>
+                    <button
+                        onClick={() => setMode("document")}
+                        style={{
+                            padding: "6px 12px",
+                            borderRadius: 6,
+                            border: "none",
+                            background: "#3b82f6",
+                            color: "#fff",
+                            cursor: "pointer",
+                            fontSize: 13,
+                            fontWeight: 500,
+                        }}
+                    >
+                        📄 Documento
+                    </button>
+                    <button
+                        onClick={() => setMode("presentation")}
+                        style={{
+                            padding: "6px 12px",
+                            borderRadius: 6,
+                            border: "none",
+                            background: "#e2e8f0",
+                            color: "#64748b",
+                            cursor: "pointer",
+                            fontSize: 13,
+                            fontWeight: 500,
+                        }}
+                    >
+                        🎬 Presentazione
+                    </button>
+                </div>
+
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: 14, color: "#64748b" }}>Stile lavagna:</span>
+                    <button
+                        onClick={() => setBoardStyle("white")}
+                        title="Bianca"
+                        style={{
+                            width: 28,
+                            height: 28,
+                            borderRadius: 6,
+                            border: boardStyle === "white" ? "2px solid #3b82f6" : "1px solid #d1d5db",
+                            background: "#ffffff",
+                            cursor: "pointer",
+                        }}
+                    />
+                    <button
+                        onClick={() => setBoardStyle("green")}
+                        title="Verde classica"
+                        style={{
+                            width: 28,
+                            height: 28,
+                            borderRadius: 6,
+                            border: boardStyle === "green" ? "2px solid #3b82f6" : "1px solid #d1d5db",
+                            background: "#1a4d2e",
+                            cursor: "pointer",
+                        }}
+                    />
+                    <button
+                        onClick={() => setBoardStyle("dark")}
+                        title="Scura moderna"
+                        style={{
+                            width: 28,
+                            height: 28,
+                            borderRadius: 6,
+                            border: boardStyle === "dark" ? "2px solid #3b82f6" : "1px solid #d1d5db",
+                            background: "#1e293b",
+                            cursor: "pointer",
+                        }}
+                    />
+                </div>
+            </div>
+
             {/* Header */}
             <header style={{ marginBottom: 32 }}>
                 <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
-          <span
-              style={{
-                  padding: "4px 10px",
-                  background: "#dbeafe",
-                  color: "#1d4ed8",
-                  borderRadius: 12,
-                  fontSize: 12,
-                  fontWeight: 500,
-              }}
-          >
-            {metadati.materia}
-          </span>
+                    <span
+                        style={{
+                            padding: "4px 10px",
+                            background: "#dbeafe",
+                            color: "#1d4ed8",
+                            borderRadius: 12,
+                            fontSize: 12,
+                            fontWeight: 500,
+                        }}
+                    >
+                        {metadati.materia}
+                    </span>
                     <span
                         style={{
                             padding: "4px 10px",
@@ -950,8 +1522,8 @@ export function LessonRenderer({
                             fontWeight: 500,
                         }}
                     >
-            {metadati.argomento}
-          </span>
+                        {metadati.argomento}
+                    </span>
                     {metadati.durata && (
                         <span
                             style={{
@@ -963,14 +1535,12 @@ export function LessonRenderer({
                                 fontWeight: 500,
                             }}
                         >
-              ⏱️ {metadati.durata} min
-            </span>
+                            ⏱️ {metadati.durata} min
+                        </span>
                     )}
                 </div>
 
-                <h1 style={{ fontSize: 32, fontWeight: 700, color: "#111827", marginBottom: 8 }}>
-                    {metadati.titolo}
-                </h1>
+                <h1 style={{ fontSize: 32, fontWeight: 700, color: "#111827", marginBottom: 8 }}>{metadati.titolo}</h1>
 
                 {metadati.sottotitolo && <p style={{ fontSize: 18, color: "#6b7280" }}>{metadati.sottotitolo}</p>}
 
@@ -1007,9 +1577,7 @@ export function LessonRenderer({
                             borderRadius: 8,
                         }}
                     >
-                        <div style={{ fontWeight: 600, marginBottom: 8, color: "#c2410c" }}>
-                            📚 Prerequisiti
-                        </div>
+                        <div style={{ fontWeight: 600, marginBottom: 8, color: "#c2410c" }}>📚 Prerequisiti</div>
                         <ul style={{ margin: 0, paddingLeft: 20, color: "#9a3412" }}>
                             {metadati.prerequisiti.map((pre: string, i: number) => (
                                 <li key={i} style={{ marginBottom: 4 }}>
@@ -1107,9 +1675,7 @@ export function LessonRenderer({
                                     )}
                                 </div>
                                 {r.descrizione && (
-                                    <div style={{ fontSize: 14, color: "#6b7280", marginTop: 4 }}>
-                                        {r.descrizione}
-                                    </div>
+                                    <div style={{ fontSize: 14, color: "#6b7280", marginTop: 4 }}>{r.descrizione}</div>
                                 )}
                             </li>
                         ))}
