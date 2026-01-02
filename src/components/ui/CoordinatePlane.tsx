@@ -189,11 +189,22 @@ function polarToCartesian(cx: number, cy: number, r: number, angleDeg: number) {
     };
 }
 
-function describeArc(cx: number, cy: number, r: number, startAngle: number, endAngle: number): string {
-    const start = polarToCartesian(cx, cy, r, endAngle);
-    const end = polarToCartesian(cx, cy, r, startAngle);
-    const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
-    return `M ${start.x} ${start.y} A ${r} ${r} 0 ${largeArcFlag} 0 ${end.x} ${end.y}`;
+/**
+ * Costruisce un arco come polyline (serie di segmenti) invece del comando SVG "A".
+ * Motivo: evitare ambiguità dei flag large-arc/sweep e gestire bene angoli negativi.
+ */
+function buildArcPath(cx: number, cy: number, r: number, startAngle: number, endAngle: number, steps: number = 48): string {
+    const total = endAngle - startAngle;
+    const n = Math.max(8, Math.min(256, steps));
+    let d = "";
+
+    for (let i = 0; i <= n; i++) {
+        const t = i / n;
+        const a = startAngle + total * t;
+        const p = polarToCartesian(cx, cy, r, a);
+        d += (i === 0) ? `M ${p.x} ${p.y} ` : `L ${p.x} ${p.y} `;
+    }
+    return d.trim();
 }
 
 // ============================================================================
@@ -734,7 +745,11 @@ export const CoordinatePlane: React.FC<CoordinatePlaneProps> = ({
                 // Raggio in pixel (scala x)
                 const radiusPx = (arc.radius / (xMax - xMin)) * drawWidth;
 
-                const path = describeArc(cx, cy, radiusPx, arc.startAngle, arc.endAngle);
+                const path = buildArcPath(cx, cy, radiusPx, arc.startAngle, arc.endAngle);
+
+                // Posizione label: circa sulla bisettrice dell'arco (più naturale e "centrata")
+                const midAngle = (arc.startAngle + arc.endAngle) / 2;
+                const labelPos = polarToCartesian(cx, cy, radiusPx * 0.85, midAngle);
 
                 return (
                     <g key={`arc-${i}`}>
@@ -746,8 +761,8 @@ export const CoordinatePlane: React.FC<CoordinatePlaneProps> = ({
                         />
                         {arc.label && (
                             <text
-                                x={cx + radiusPx + 10}
-                                y={cy}
+                                x={labelPos.x + 4}
+                                y={labelPos.y - 4}
                                 fontSize={11}
                                 fill={arc.color || defaultLineColor}
                             >
