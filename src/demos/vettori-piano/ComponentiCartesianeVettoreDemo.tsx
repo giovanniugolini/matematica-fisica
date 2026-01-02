@@ -9,6 +9,9 @@
  * - Per rendere leggibile il disegno, l’arco viene sempre mostrato come "arco minore":
  *   θ_eff ∈ (-180°, 180°], con θ_eff = θ se θ ≤ 180°, altrimenti θ_eff = θ - 360°.
  * - In modalità "modulo-angolo" usiamo e MOSTRIAMO θ_eff anche dentro sin/cos.
+ *
+ * Extra:
+ * - MiniQuiz integrato a fine pagina (10 domande).
  */
 
 import React, { useMemo, useState } from "react";
@@ -42,6 +45,15 @@ type ComputedComponenti = ComputedBase & {
 
 type Computed = ComputedModuloAngolo | ComputedComponenti;
 
+type QuizOptionKey = "A" | "B" | "C" | "D";
+
+type QuizQuestion = {
+    question: string;
+    options: Record<QuizOptionKey, string>;
+    correct: QuizOptionKey;
+    explanation: string;
+};
+
 // ============ COSTANTI ============
 
 const VECTOR_COLOR = "#dc2626"; // rosso - vettore principale
@@ -53,6 +65,132 @@ const TRIANGLE_COLOR = "#94a3b8"; // grigio - triangolo tratteggiato
 // Valori iniziali (Reset)
 const INITIAL_MODULO = 4;
 const INITIAL_ANGOLO_DEG = 30;
+
+// ============ QUIZ DATA ============
+
+const QUIZ_QUESTIONS: QuizQuestion[] = [
+    {
+        question:
+            "Cosa rappresentano le coordinate Ax e Ay della punta di un vettore A quando la sua coda è nell'origine degli assi?",
+        options: {
+            A: "Il modulo e il verso",
+            B: "Le componenti cartesiane del vettore",
+            C: "La pendenza della retta",
+            D: "Le funzioni goniometriche del vettore",
+        },
+        correct: "B",
+        explanation:
+            "Le coordinate Ax e Ay del punto della punta del vettore A sono chiamate componenti cartesiane del vettore.",
+    },
+    {
+        question: "In un triangolo rettangolo come viene definita la funzione coseno (cos θ)?",
+        options: {
+            A: "Rapporto tra cateto opposto e ipotenusa",
+            B: "Rapporto tra cateto adiacente e ipotenusa",
+            C: "Rapporto tra cateto opposto e cateto adiacente",
+            D: "Prodotto tra i due cateti",
+        },
+        correct: "B",
+        explanation:
+            "Il coseno di un angolo è il rapporto fra la lunghezza del cateto adiacente all'angolo e la lunghezza dell'ipotenusa.",
+    },
+    {
+        question: "Qual è la formula per trovare la componente verticale Ay conoscendo il modulo A e l'angolo θ?",
+        options: {
+            A: "Ay = A * cos θ",
+            B: "Ay = A / sin θ",
+            C: "Ay = A * sin θ",
+            D: "Ay = A * tg θ",
+        },
+        correct: "C",
+        explanation:
+            "Dalla definizione di seno (sen θ = b/a) segue che il cateto opposto (Ay) è uguale all'ipotenusa (A) per il seno dell'angolo.",
+    },
+    {
+        question:
+            "Se un vettore si trova nel secondo quadrante del sistema cartesiano quali sono i segni delle sue componenti?",
+        options: {
+            A: "Ax > 0 e Ay > 0",
+            B: "Ax < 0 e Ay < 0",
+            C: "Ax < 0 e Ay > 0",
+            D: "Ax > 0 e Ay < 0",
+        },
+        correct: "C",
+        explanation:
+            "Nel secondo quadrante la componente Ax (asse x) è negativa mentre la componente Ay (asse y) è positiva.",
+    },
+    {
+        question: "Quale relazione lega la tangente di un angolo al seno e al coseno?",
+        options: {
+            A: "tg θ = cos θ / sen θ",
+            B: "tg θ = sen θ * cos θ",
+            C: "tg θ = sen θ / cos θ",
+            D: "tg θ = sen^2 θ + cos^2 θ",
+        },
+        correct: "C",
+        explanation:
+            "Dividendo numeratore e denominatore per l’ipotenusa si ottiene tg θ = sen θ / cos θ.",
+    },
+    {
+        question: "Quale valore non possono mai superare il seno e il coseno di un angolo?",
+        options: {
+            A: "Sempre minori o uguali a 1",
+            B: "Sempre maggiori di 1",
+            C: "Sempre pari a 0",
+            D: "Sempre uguali alla tangente",
+        },
+        correct: "A",
+        explanation: "Seno e coseno assumono valori compresi tra -1 e 1, quindi in valore assoluto non superano 1.",
+    },
+    {
+        question: "Cosa indica l'identità fondamentale sen^2 θ + cos^2 θ = 1?",
+        options: {
+            A: "La legge della tangente",
+            B: "Il teorema di Pitagora applicato a un triangolo con ipotenusa unitaria",
+            C: "La somma dei moduli di due vettori",
+            D: "La pendenza di un vettore",
+        },
+        correct: "B",
+        explanation:
+            "È una conseguenza del teorema di Pitagora nel cerchio goniometrico (ipotenusa unitaria): sen^2 θ + cos^2 θ = 1.",
+    },
+    {
+        question: "Per calcolare l'angolo conoscendo il valore della tangente quale funzione della calcolatrice si deve usare?",
+        options: {
+            A: "sin",
+            B: "cos",
+            C: "tan^-1 (o tasto INV/SHIFT + tan)",
+            D: "RAD",
+        },
+        correct: "C",
+        explanation:
+            "Se si conosce il valore della tangente e si vuole determinare l'angolo si applica la funzione inversa (tan^-1).",
+    },
+    {
+        question: "Quale impostazione deve essere visibile sulla calcolatrice scientifica per lavorare con gli angoli in gradi?",
+        options: {
+            A: "RAD",
+            B: "GRAD",
+            C: "DEG o D",
+            D: "FIX",
+        },
+        correct: "C",
+        explanation:
+            "Prima di utilizzare le funzioni goniometriche bisogna accertarsi che sulla calcolatrice compaia DEG o D.",
+    },
+    {
+        question: "Dati il modulo A e l'angolo θ la componente Ax è calcolata come?",
+        options: {
+            A: "Ax = A * sen θ",
+            B: "Ax = A * cos θ",
+            C: "Ax = A * tg θ",
+            D: "Ax = A^2",
+        },
+        correct: "B",
+        explanation:
+            "La componente Ax corrisponde al cateto adiacente all'angolo θ e quindi si calcola come ipotenusa per il coseno dell'angolo.",
+    },
+];
 
 // ============ HELPERS ============
 
@@ -88,6 +226,214 @@ function getQuadrant(ax: number, ay: number): number {
 function getQuadrantName(q: number): string {
     const names = ["", "I quadrante", "II quadrante", "III quadrante", "IV quadrante"];
     return names[q] ?? "";
+}
+
+// ============ MINI QUIZ (INLINE) ============
+
+function MiniQuiz({ questions }: { questions: QuizQuestion[] }) {
+    const [idx, setIdx] = useState(0);
+    const [selected, setSelected] = useState<QuizOptionKey | null>(null);
+    const [showAnswer, setShowAnswer] = useState(false);
+    const [score, setScore] = useState(0);
+
+    const current = questions[idx];
+    const isLast = idx === questions.length - 1;
+    const correct = current.correct;
+
+    const resetQuiz = () => {
+        setIdx(0);
+        setSelected(null);
+        setShowAnswer(false);
+        setScore(0);
+    };
+
+    const pick = (k: QuizOptionKey) => {
+        if (showAnswer) return;
+        setSelected(k);
+    };
+
+    const check = () => {
+        if (!selected) return;
+        if (showAnswer) return;
+        setShowAnswer(true);
+        if (selected === correct) setScore((s) => s + 1);
+    };
+
+    const next = () => {
+        if (!showAnswer) return;
+        if (isLast) return;
+        setIdx((i) => i + 1);
+        setSelected(null);
+        setShowAnswer(false);
+    };
+
+    const buttonStyle = (k: QuizOptionKey): React.CSSProperties => {
+        const base: React.CSSProperties = {
+            width: "100%",
+            textAlign: "left",
+            padding: "12px 12px",
+            borderRadius: 10,
+            border: "1px solid #e2e8f0",
+            background: "#fff",
+            cursor: showAnswer ? "default" : "pointer",
+            transition: "transform 0.05s ease",
+            fontSize: 14,
+            lineHeight: 1.2,
+        };
+
+        const isSel = selected === k;
+
+        if (!showAnswer) {
+            return {
+                ...base,
+                border: isSel ? "2px solid #3b82f6" : base.border,
+                background: isSel ? "#eff6ff" : base.background,
+            };
+        }
+
+        // showAnswer
+        if (k === correct) {
+            return { ...base, border: "2px solid #16a34a", background: "#f0fdf4" };
+        }
+        if (isSel && k !== correct) {
+            return { ...base, border: "2px solid #ef4444", background: "#fef2f2" };
+        }
+        return { ...base, opacity: 0.9 };
+    };
+
+    const progressPct = Math.round(((idx + 1) / questions.length) * 100);
+    const isCorrect = showAnswer && selected === correct;
+
+    return (
+        <div style={{ display: "grid", gap: 12 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                <div style={{ fontSize: 13, color: "#475569" }}>
+                    Domanda <strong>{idx + 1}</strong> / {questions.length}
+                </div>
+                <div style={{ fontSize: 13, color: "#475569" }}>
+                    Punteggio: <strong>{score}</strong> / {questions.length}
+                </div>
+            </div>
+
+            <div style={{ height: 8, background: "#e2e8f0", borderRadius: 999 }}>
+                <div
+                    style={{
+                        width: `${progressPct}%`,
+                        height: "100%",
+                        background: "#3b82f6",
+                        borderRadius: 999,
+                        transition: "width 0.2s ease",
+                    }}
+                />
+            </div>
+
+            <div style={{ padding: 12, background: "#fff", borderRadius: 12, border: "1px solid #e2e8f0" }}>
+                <div style={{ fontWeight: 700, fontSize: 15, color: "#0f172a", marginBottom: 10 }}>
+                    {current.question}
+                </div>
+
+                <div style={{ display: "grid", gap: 10 }}>
+                    {(["A", "B", "C", "D"] as QuizOptionKey[]).map((k) => (
+                        <button key={k} onClick={() => pick(k)} style={buttonStyle(k)}>
+                            <strong style={{ marginRight: 10 }}>{k}.</strong> {current.options[k]}
+                        </button>
+                    ))}
+                </div>
+
+                <div style={{ display: "flex", gap: 10, marginTop: 12, flexWrap: "wrap" }}>
+                    <button
+                        onClick={check}
+                        disabled={!selected || showAnswer}
+                        style={{
+                            padding: "10px 14px",
+                            borderRadius: 10,
+                            border: "1px solid #d1d5db",
+                            background: !selected || showAnswer ? "#f1f5f9" : "#111827",
+                            color: !selected || showAnswer ? "#64748b" : "#fff",
+                            cursor: !selected || showAnswer ? "not-allowed" : "pointer",
+                            fontWeight: 700,
+                            fontSize: 13,
+                        }}
+                    >
+                        Verifica
+                    </button>
+
+                    <button
+                        onClick={next}
+                        disabled={!showAnswer || isLast}
+                        style={{
+                            padding: "10px 14px",
+                            borderRadius: 10,
+                            border: "1px solid #d1d5db",
+                            background: !showAnswer || isLast ? "#f1f5f9" : "#3b82f6",
+                            color: !showAnswer || isLast ? "#64748b" : "#fff",
+                            cursor: !showAnswer || isLast ? "not-allowed" : "pointer",
+                            fontWeight: 700,
+                            fontSize: 13,
+                        }}
+                    >
+                        Prossima
+                    </button>
+
+                    <button
+                        onClick={resetQuiz}
+                        style={{
+                            padding: "10px 14px",
+                            borderRadius: 10,
+                            border: "1px solid #d1d5db",
+                            background: "#fff",
+                            cursor: "pointer",
+                            fontWeight: 700,
+                            fontSize: 13,
+                        }}
+                    >
+                        Ricomincia quiz
+                    </button>
+                </div>
+
+                {showAnswer && (
+                    <div style={{ marginTop: 14 }}>
+                        <div
+                            style={{
+                                padding: "10px 12px",
+                                borderRadius: 10,
+                                background: isCorrect ? "#f0fdf4" : "#fef2f2",
+                                border: `1px solid ${isCorrect ? "#bbf7d0" : "#fecaca"}`,
+                                color: "#0f172a",
+                                fontSize: 13,
+                                fontWeight: 600,
+                            }}
+                        >
+                            {isCorrect ? "✅ Risposta corretta!" : `❌ Risposta errata. La risposta corretta è ${correct}.`}
+                        </div>
+
+                        <div style={{ marginTop: 10, padding: 12, borderRadius: 10, background: "#f8fafc", border: "1px solid #e2e8f0" }}>
+                            <div style={{ fontWeight: 800, color: "#334155", marginBottom: 6 }}>Spiegazione</div>
+                            <div style={{ color: "#334155", fontSize: 13, lineHeight: 1.35 }}>{current.explanation}</div>
+                        </div>
+
+                        {isLast && (
+                            <div
+                                style={{
+                                    marginTop: 12,
+                                    padding: 12,
+                                    borderRadius: 12,
+                                    background: "#eff6ff",
+                                    border: "1px solid #bfdbfe",
+                                    color: "#0f172a",
+                                }}
+                            >
+                                <div style={{ fontWeight: 900, marginBottom: 4 }}>Quiz completato 🎉</div>
+                                <div style={{ fontSize: 13 }}>
+                                    Punteggio finale: <strong>{score}</strong> / {questions.length}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
 }
 
 // ============ COMPONENTE PRINCIPALE ============
@@ -232,7 +578,7 @@ export default function ComponentiCartesianeVettoreDemo() {
         center: { x: 0, y: 0 },
         radius: Math.min(1.2, computed.modulo * 0.3),
         startAngle: 0,
-        endAngle: computed.thetaEffDeg, // può essere negativo → arco minore sotto asse x
+        endAngle: computed.thetaEffDeg, // può essere negativo → arco minore
         color: ANGLE_COLOR,
         strokeWidth: 2,
         label: "θ",
@@ -646,16 +992,32 @@ export default function ComponentiCartesianeVettoreDemo() {
         </ResponsiveCard>
     );
 
+    // ============ QUIZ PANEL ============
+
+    const quizPanel = (
+        <ResponsiveCard style={{ marginTop: 16 }}>
+            <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 10, color: "#0f172a" }}>🧩 MiniQuiz</div>
+            <div style={{ fontSize: 13, color: "#475569", marginBottom: 12 }}>
+                Rispondi alle domande per verificare se hai capito bene componenti, seno/coseno e quadranti.
+            </div>
+            <MiniQuiz questions={QUIZ_QUESTIONS} />
+        </ResponsiveCard>
+    );
+
     // ============ LAYOUT RESPONSIVE ============
 
     if (isMobile) {
         return (
-            <DemoContainer title="Componenti cartesiane di un vettore" description="Scomponi un vettore nelle sue componenti x e y">
+            <DemoContainer
+                title="Componenti cartesiane di un vettore"
+                description="Scomponi un vettore nelle sue componenti x e y"
+            >
                 {modeSelector}
                 {graphPanel}
                 {inputPanel}
                 {resultsPanel}
                 {formulasPanel}
+                {quizPanel}
             </DemoContainer>
         );
     }
@@ -675,6 +1037,7 @@ export default function ComponentiCartesianeVettoreDemo() {
                     </div>
                 </div>
                 {formulasPanel}
+                {quizPanel}
             </DemoContainer>
         );
     }
@@ -693,6 +1056,7 @@ export default function ComponentiCartesianeVettoreDemo() {
                     {formulasPanel}
                 </div>
             </div>
+            {quizPanel}
         </DemoContainer>
     );
 }
