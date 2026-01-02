@@ -73,11 +73,12 @@ const categories: Category[] = [
         icon: "⚛️",
         subcategories: [
             {
-                id:"fisica-geometria",
-                name:"Geometria",
+                id:"fisica-vettori-forze",
+                name:"Vettori e Forze",
                 slugs: [
                     "vettori-punta-coda",
                     "vettore-per-escalare",
+                    "componenti-cartesiane-vettore"
                 ]
             },
             {
