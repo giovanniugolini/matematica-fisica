@@ -1,46 +1,126 @@
-# Getting Started with Create React App
+# 📐 Demo Interattive di Matematica e Fisica
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Una piattaforma di **demo interattive per l’insegnamento di Matematica e Fisica**, pensata per accompagnare i curricoli della scuola secondaria di secondo grado.
 
-## Available Scripts
+Il progetto nasce con l’obiettivo di **rendere visibili i concetti**, guidare il procedimento passo–passo e favorire un apprendimento attivo, anche attraverso la sperimentazione e la visualizzazione dinamica.
 
-In the project directory, you can run:
+🌐 **Sito online (GitHub Pages)**  
+👉 https://giovanniugolini.github.io/matematica-fisica/
 
-### `npm start`
+---
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## 🎯 Obiettivi didattici
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+- Supportare lo studio dei principali **contenuti curricolari** di matematica e fisica
+- Rendere più accessibili concetti astratti tramite:
+    - visualizzazioni
+    - rappresentazioni grafiche
+    - procedimenti guidati
+- Favorire:
+    - comprensione concettuale
+    - autonomia nello studio
+    - uso corretto del linguaggio matematico e scientifico
 
-### `npm test`
+Le demo non sostituiscono il libro di testo, ma lo **integrano** come strumento operativo.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+---
 
-### `npm run build`
+## 🧠 Caratteristiche principali
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- ✅ **Procedimento step-by-step**  
+  I passaggi logici vengono mostrati in modo progressivo e controllabile
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+- ✅ **Visualizzazioni dinamiche**  
+  Grafici, schemi, rette, curve, vettori, traiettorie e grandezze fisiche
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+- ✅ **Responsive**  
+  Utilizzabile da PC, tablet e smartphone
 
-### `npm run eject`
+- ✅ **Notazione matematica corretta**  
+  Tutte le formule sono renderizzate in **LaTeX**
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+- ✅ **Approccio esplorativo**  
+  Parametri modificabili per osservare variazioni e casi particolari
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+---
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+## 📚 Ambiti disciplinari
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+La piattaforma è progettata per coprire, in modo progressivo, i **contenuti di matematica e fisica previsti dai curricoli delle scuole superiori**, tra cui:
 
-## Learn More
+### Matematica
+- algebra
+- equazioni e disequazioni
+- funzioni e loro rappresentazioni
+- geometria analitica
+- trigonometria
+- limiti e introduzione all’analisi matematica
+- probabilità e statistica
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### Fisica
+- cinematica
+- dinamica
+- lavoro ed energia
+- elettrostatica ed elettromagnetismo
+- termologia e termodinamica
+- onde e ottica
+- elementi di fisica moderna (in prospettiva)
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Gli argomenti vengono affrontati con un livello di formalizzazione **adatto alla scuola**, ma con attenzione alla correttezza concettuale.
+
+---
+
+## 🧪 Approccio didattico
+
+Il progetto è pensato per essere utilizzato:
+
+- 🧑‍🏫 **in classe**, durante la spiegazione
+- 🧑‍🎓 **a casa**, come supporto allo studio
+- 🧪 **in laboratorio**, per attività esplorative
+- ♿ **in modo inclusivo**, grazie a:
+    - visualizzazioni esplicite
+    - riduzione del carico simbolico
+    - controllo dei tempi e dei passaggi
+
+Le demo favoriscono un apprendimento **attivo e consapevole**, non meccanico.
+
+---
+
+## 🛠️ Tecnologie utilizzate
+
+- **React + TypeScript**
+- **Vite**
+- **KaTeX** per il rendering matematico
+- **Tailwind CSS**
+- SVG e Canvas per grafici e animazioni
+
+L’architettura è modulare e pensata per una crescita progressiva del progetto.
+
+---
+
+## 🚀 Sviluppi futuri
+
+L’obiettivo è coprire **l’intero curricolo di matematica e fisica della scuola secondaria di secondo grado**, attraverso:
+
+- ampliamento sistematico delle demo esistenti
+- introduzione di nuovi moduli per tutti gli argomenti curricolari
+- componenti grafici riutilizzabili (retta numerica, piano cartesiano, sistemi di riferimento)
+- maggiore integrazione tra matematica e fisica
+- sviluppo di strumenti per **lezioni interattive** e percorsi guidati
+
+La piattaforma è pensata come un **laboratorio digitale in continua evoluzione**.
+
+---
+
+## 👨‍🏫 Autore
+
+Progetto sviluppato da  
+**Giovanni Ugolini**  
+Docente di Matematica e Fisica
+
+---
+
+## 📄 Licenza
+
+Il progetto è pensato per **uso didattico e divulgativo**.  
+Il codice è pubblico e riutilizzabile citando la fonte.
