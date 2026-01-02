@@ -1,0 +1,486 @@
+{
+  "metadati": {
+    "id": "vettori-componenti-cartesiane",
+    "titolo": "Componenti cartesiane di un vettore",
+    "sottotitolo": "Come scomporre un vettore nelle sue componenti x e y",
+    "materia": "fisica",
+    "argomento": "vettori",
+    "livello": "primo-biennio",
+    "durata": 45,
+    "autore": "Prof. Giovanni Ugolini",
+    "dataCreazione": "2025-01-02",
+    "dataModifica": "2025-01-02",
+    "versione": "1.0",
+    "tags": ["vettori", "trigonometria", "componenti", "seno", "coseno"],
+    "prerequisiti": [
+      "Concetto di vettore (modulo, direzione, verso)",
+      "Funzioni goniometriche base (seno, coseno, tangente)",
+      "Coordinate cartesiane nel piano"
+    ],
+    "obiettivi": [
+      "Comprendere il significato delle componenti cartesiane di un vettore",
+      "Calcolare le componenti Aₓ e Aᵧ dato il modulo e l'angolo",
+      "Calcolare modulo e angolo date le componenti",
+      "Riconoscere i segni delle componenti nei quattro quadranti"
+    ]
+  },
+
+  "introduzione": [
+    {
+      "tipo": "sequenza",
+      "titolo": "Introduzione (BENVENUTO)",
+      "showProgress": true,
+      "allowJump": true,
+      "steps": [
+        {
+          "titolo": "Perché servono le componenti",
+          "blocchi": [
+            {
+              "tipo": "testo",
+              "contenuto": "In fisica spesso è necessario lavorare con i vettori in modo analitico. Per farlo, è fondamentale saper **scomporre** un vettore nelle sue **componenti cartesiane**."
+            }
+          ]
+        },
+        {
+          "titolo": "Idea chiave",
+          "blocchi": [
+            {
+              "tipo": "nota",
+              "variante": "info",
+              "contenuto": "Le componenti cartesiane permettono di trasformare operazioni geometriche sui vettori in semplici operazioni algebriche sui numeri."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+
+  "sezioni": [
+    {
+      "id": "scomposizione",
+      "titolo": "Scomposizione di un vettore",
+      "blocchi": [
+        {
+          "tipo": "sequenza",
+          "titolo": "Scomposizione passo-passo",
+          "showProgress": true,
+          "allowJump": true,
+          "steps": [
+            {
+              "titolo": "Punto (Ax, Ay)",
+              "blocchi": [
+                {
+                  "tipo": "testo",
+                  "contenuto": "Consideriamo un vettore $\\vec{A}$ con la coda nell'origine degli assi cartesiani. La **punta** del vettore individua un punto di coordinate $(A_x, A_y)$."
+                }
+              ]
+            },
+            {
+              "titolo": "Definizione di componenti",
+              "blocchi": [
+                {
+                  "tipo": "definizione",
+                  "termine": "Componenti cartesiane",
+                  "definizione": "Le coordinate $A_x$ e $A_y$ della punta del vettore $\\vec{A}$ (quando la coda è nell'origine) sono dette **componenti cartesiane** del vettore.",
+                  "nota": "Le componenti sono numeri con segno, non vettori!"
+                }
+              ]
+            },
+            {
+              "titolo": "Somma di due contributi perpendicolari",
+              "blocchi": [
+                {
+                  "tipo": "testo",
+                  "contenuto": "Possiamo esprimere il vettore $\\vec{A}$ come somma di due vettori perpendicolari, uno lungo l'asse $x$ e uno lungo l'asse $y$:"
+                }
+              ]
+            },
+            {
+              "titolo": "Formula di scomposizione",
+              "blocchi": [
+                {
+                  "tipo": "formula",
+                  "latex": "\\vec{A} = \\vec{A}_x + \\vec{A}_y",
+                  "display": true,
+                  "descrizione": "Scomposizione del vettore nelle sue componenti vettoriali"
+                }
+              ]
+            },
+            {
+              "titolo": "Attenzione alla notazione",
+              "blocchi": [
+                {
+                  "tipo": "nota",
+                  "variante": "attenzione",
+                  "contenuto": "Non confondere le **componenti cartesiane** $A_x$ e $A_y$ (che sono numeri) con i **vettori componenti** $\\vec{A}_x$ e $\\vec{A}_y$ (che sono vettori)."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "funzioni-goniometriche",
+      "titolo": "Le funzioni goniometriche",
+      "blocchi": [
+        {
+          "tipo": "sequenza",
+          "titolo": "Ripasso goniometria (solo ciò che serve)",
+          "showProgress": true,
+          "allowJump": true,
+          "steps": [
+            {
+              "titolo": "Perché entrano seno e coseno",
+              "blocchi": [
+                {
+                  "tipo": "testo",
+                  "contenuto": "Per calcolare le componenti di un vettore utilizziamo le **funzioni goniometriche**: seno, coseno e tangente."
+                }
+              ]
+            },
+            {
+              "titolo": "Seno",
+              "blocchi": [
+                {
+                  "tipo": "definizione",
+                  "termine": "Seno (sin)",
+                  "definizione": "In un triangolo rettangolo, il **seno** di un angolo $\\theta$ è il rapporto tra il cateto opposto all'angolo e l'ipotenusa: $\\sin\\theta = \\frac{\\text{cateto opposto}}{\\text{ipotenusa}}$"
+                }
+              ]
+            },
+            {
+              "titolo": "Coseno",
+              "blocchi": [
+                {
+                  "tipo": "definizione",
+                  "termine": "Coseno (cos)",
+                  "definizione": "In un triangolo rettangolo, il **coseno** di un angolo $\\theta$ è il rapporto tra il cateto adiacente all'angolo e l'ipotenusa: $\\cos\\theta = \\frac{\\text{cateto adiacente}}{\\text{ipotenusa}}$"
+                }
+              ]
+            },
+            {
+              "titolo": "Tangente",
+              "blocchi": [
+                {
+                  "tipo": "definizione",
+                  "termine": "Tangente (tan)",
+                  "definizione": "In un triangolo rettangolo, la **tangente** di un angolo $\\theta$ è il rapporto tra il cateto opposto e il cateto adiacente: $\\tan\\theta = \\frac{\\text{cateto opposto}}{\\text{cateto adiacente}} = \\frac{\\sin\\theta}{\\cos\\theta}$"
+                }
+              ]
+            },
+            {
+              "titolo": "Promemoria utile",
+              "blocchi": [
+                {
+                  "tipo": "nota",
+                  "variante": "ricorda",
+                  "contenuto": "Il seno e il coseno di un angolo sono sempre compresi tra $-1$ e $1$. Inoltre vale sempre l'identità: $\\sin^2\\theta + \\cos^2\\theta = 1$"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "calcolo-componenti",
+      "titolo": "Da modulo e angolo alle componenti",
+      "blocchi": [
+        {
+          "tipo": "sequenza",
+          "titolo": "Da (A, θ) a (Ax, Ay)",
+          "showProgress": true,
+          "allowJump": true,
+          "steps": [
+            {
+              "titolo": "Dati → obiettivo",
+              "blocchi": [
+                {
+                  "tipo": "testo",
+                  "contenuto": "Se conosciamo il **modulo** $|\\vec{A}| = A$ e l'**angolo** $\\theta$ che il vettore forma con l'asse $x$ positivo, possiamo calcolare le componenti usando seno e coseno."
+                }
+              ]
+            },
+            {
+              "titolo": "Formule fondamentali",
+              "blocchi": [
+                {
+                  "tipo": "teorema",
+                  "nome": "Formule per le componenti",
+                  "enunciato": "Date il modulo $A$ e l'angolo $\\theta$ di un vettore, le componenti cartesiane sono:\n\n$A_x = A \\cdot \\cos\\theta$\n\n$A_y = A \\cdot \\sin\\theta$"
+                }
+              ]
+            },
+            {
+              "titolo": "Esempio svolto",
+              "blocchi": [
+                {
+                  "tipo": "esempio",
+                  "titolo": "Calcolo delle componenti",
+                  "problema": "Un vettore $\\vec{r}$ ha modulo $r = 1{,}50$ m e forma un angolo $\\theta = 25°$ con l'asse $x$ positivo. Calcola le componenti cartesiane.",
+                  "soluzione": "Applichiamo le formule:\n\n$r_x = r \\cdot \\cos\\theta = 1{,}50 \\text{ m} \\cdot \\cos(25°) = 1{,}50 \\cdot 0{,}9063 = 1{,}36 \\text{ m}$\n\n$r_y = r \\cdot \\sin\\theta = 1{,}50 \\text{ m} \\cdot \\sin(25°) = 1{,}50 \\cdot 0{,}4226 = 0{,}634 \\text{ m}$",
+                  "nota": "Sulla calcolatrice, assicurati che sia impostata in modalità DEG (gradi)!"
+                }
+              ]
+            },
+            {
+              "titolo": "Prova tu (demo)",
+              "blocchi": [
+                {
+                  "tipo": "demo",
+                  "componente": "ComponentiCartesianeVettoreDemo",
+                  "props": {},
+                  "titolo": "Prova tu!",
+                  "descrizione": "Usa gli slider per cambiare modulo e angolo e osserva come variano le componenti."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "calcolo-inverso",
+      "titolo": "Dalle componenti a modulo e angolo",
+      "blocchi": [
+        {
+          "tipo": "sequenza",
+          "titolo": "Da (Ax, Ay) a (A, θ)",
+          "showProgress": true,
+          "allowJump": true,
+          "steps": [
+            {
+              "titolo": "Problema inverso",
+              "blocchi": [
+                {
+                  "tipo": "testo",
+                  "contenuto": "A volte conosciamo le componenti $A_x$ e $A_y$ e vogliamo trovare il modulo e la direzione del vettore. Questo è il problema **inverso**."
+                }
+              ]
+            },
+            {
+              "titolo": "Formule inverse (Pitagora + arctan)",
+              "blocchi": [
+                {
+                  "tipo": "teorema",
+                  "nome": "Formule inverse",
+                  "enunciato": "Date le componenti $A_x$ e $A_y$, il modulo si calcola con il teorema di Pitagora:\n\n$|\\vec{A}| = \\sqrt{A_x^2 + A_y^2}$\n\nL'angolo $\\theta$ si trova con l'arcotangente:\n\n$\\theta = \\arctan\\left(\\frac{|A_y|}{|A_x|}\\right)$",
+                  "dimostrazione": "Il modulo segue direttamente dal teorema di Pitagora, dato che il vettore è l'ipotenusa di un triangolo rettangolo con cateti $|A_x|$ e $|A_y|$.\n\nPer l'angolo, dalla definizione di tangente: $\\tan\\theta = \\frac{A_y}{A_x}$, quindi $\\theta = \\arctan\\left(\\frac{A_y}{A_x}\\right)$."
+                }
+              ]
+            },
+            {
+              "titolo": "Attenzione: il quadrante",
+              "blocchi": [
+                {
+                  "tipo": "nota",
+                  "variante": "attenzione",
+                  "contenuto": "L'arcotangente restituisce un angolo acuto (nel primo quadrante). Per trovare l'angolo corretto devi considerare il **quadrante** in cui si trova il vettore, basandoti sui segni di $A_x$ e $A_y$."
+                }
+              ]
+            },
+            {
+              "titolo": "Esempio completo (con quadrante)",
+              "blocchi": [
+                {
+                  "tipo": "esempio",
+                  "titolo": "Calcolo del modulo e dell'angolo",
+                  "problema": "Un vettore ha componenti $r_x = 1{,}67$ m e $r_y = -1{,}15$ m. Calcola modulo e direzione.",
+                  "soluzione": "**Modulo:**\n$r = \\sqrt{r_x^2 + r_y^2} = \\sqrt{(1{,}67)^2 + (-1{,}15)^2} = \\sqrt{2{,}79 + 1{,}32} = 2{,}03 \\text{ m}$\n\n**Angolo acuto:**\n$\\tan\\theta = \\frac{|r_y|}{|r_x|} = \\frac{1{,}15}{1{,}67} = 0{,}689$\n$\\theta_{acuto} = \\arctan(0{,}689) = 35°$\n\n**Quadrante:**\n$r_x > 0$ e $r_y < 0$ → IV quadrante\n\nL'angolo rispetto all'asse x positivo è: $\\theta = 360° - 35° = 325°$ (oppure $-35°$)",
+                  "nota": "Nel IV quadrante, $A_x$ è positivo e $A_y$ è negativo."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "quadranti",
+      "titolo": "I segni nei quattro quadranti",
+      "blocchi": [
+        {
+          "tipo": "sequenza",
+          "titolo": "Segni delle componenti",
+          "showProgress": true,
+          "allowJump": true,
+          "steps": [
+            {
+              "titolo": "Idea",
+              "blocchi": [
+                {
+                  "tipo": "testo",
+                  "contenuto": "I segni delle componenti dipendono dal **quadrante** in cui si trova il vettore:"
+                }
+              ]
+            },
+            {
+              "titolo": "Tabella dei quadranti",
+              "blocchi": [
+                {
+                  "tipo": "tabella",
+                  "intestazione": ["Quadrante", "$A_x$", "$A_y$", "Angolo $\\theta$"],
+                  "righe": [
+                    ["I", "$> 0$", "$> 0$", "$0° < \\theta < 90°$"],
+                    ["II", "$< 0$", "$> 0$", "$90° < \\theta < 180°$"],
+                    ["III", "$< 0$", "$< 0$", "$180° < \\theta < 270°$"],
+                    ["IV", "$> 0$", "$< 0$", "$270° < \\theta < 360°$"]
+                  ],
+                  "didascalia": "Segni delle componenti cartesiane nei quattro quadranti"
+                }
+              ]
+            },
+            {
+              "titolo": "Trucco mnemonico",
+              "blocchi": [
+                {
+                  "tipo": "nota",
+                  "variante": "suggerimento",
+                  "contenuto": "Un trucco per ricordare: nel **I quadrante** entrambe positive, nel **III** entrambe negative. Nel **II** e **IV** hanno segni opposti (\"x\" e \"y\" alternati)."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "quiz",
+      "titolo": "Verifica le tue conoscenze",
+      "blocchi": [
+        {
+          "tipo": "sequenza",
+          "titolo": "Quiz a step",
+          "showProgress": true,
+          "allowJump": true,
+          "steps": [
+            {
+              "titolo": "Quiz 1",
+              "blocchi": [
+                {
+                  "tipo": "quiz",
+                  "domanda": "Qual è la formula corretta per calcolare la componente $A_x$ di un vettore?",
+                  "opzioni": [
+                    { "testo": "$A_x = A \\cdot \\sin\\theta$", "corretta": false },
+                    { "testo": "$A_x = A \\cdot \\cos\\theta$", "corretta": true },
+                    { "testo": "$A_x = A \\cdot \\tan\\theta$", "corretta": false },
+                    { "testo": "$A_x = A / \\cos\\theta$", "corretta": false }
+                  ],
+                  "spiegazione": "La componente $A_x$ è il cateto **adiacente** all'angolo $\\theta$, quindi si calcola con il **coseno**: $A_x = A \\cdot \\cos\\theta$.",
+                  "difficolta": "facile"
+                }
+              ]
+            },
+            {
+              "titolo": "Quiz 2",
+              "blocchi": [
+                {
+                  "tipo": "quiz",
+                  "domanda": "Se un vettore si trova nel II quadrante, quali sono i segni delle sue componenti?",
+                  "opzioni": [
+                    { "testo": "$A_x > 0$ e $A_y > 0$", "corretta": false },
+                    { "testo": "$A_x < 0$ e $A_y > 0$", "corretta": true },
+                    { "testo": "$A_x < 0$ e $A_y < 0$", "corretta": false },
+                    { "testo": "$A_x > 0$ e $A_y < 0$", "corretta": false }
+                  ],
+                  "spiegazione": "Nel II quadrante, il vettore punta verso sinistra ($A_x < 0$) e verso l'alto ($A_y > 0$).",
+                  "difficolta": "media"
+                }
+              ]
+            },
+            {
+              "titolo": "Quiz 3",
+              "blocchi": [
+                {
+                  "tipo": "quiz",
+                  "domanda": "L'identità $\\sin^2\\theta + \\cos^2\\theta = 1$ deriva da:",
+                  "opzioni": [
+                    { "testo": "La definizione di tangente", "corretta": false },
+                    { "testo": "Il teorema di Pitagora", "corretta": true },
+                    { "testo": "La legge dei seni", "corretta": false },
+                    { "testo": "La proprietà commutativa", "corretta": false }
+                  ],
+                  "spiegazione": "L'identità fondamentale è una conseguenza diretta del **teorema di Pitagora** applicato a un triangolo rettangolo con ipotenusa unitaria (cerchio goniometrico).",
+                  "difficolta": "media"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+
+  "conclusione": [
+    {
+      "tipo": "sequenza",
+      "titolo": "Riepilogo a step",
+      "showProgress": true,
+      "allowJump": true,
+      "steps": [
+        {
+          "titolo": "Riepilogo",
+          "blocchi": [
+            { "tipo": "titolo", "livello": 2, "testo": "Riepilogo" }
+          ]
+        },
+        {
+          "titolo": "1) Identifica i dati",
+          "blocchi": [
+            {
+              "tipo": "testo",
+              "contenuto": "Stabilisci se conosci **modulo e angolo** oppure le **componenti**."
+            }
+          ]
+        },
+        {
+          "titolo": "2) Da modulo/angolo a componenti",
+          "blocchi": [
+            {
+              "tipo": "testo",
+              "contenuto": "Usa le formule: $A_x = A \\cos\\theta$ e $A_y = A \\sin\\theta$"
+            }
+          ]
+        },
+        {
+          "titolo": "3) Da componenti a modulo/angolo",
+          "blocchi": [
+            {
+              "tipo": "testo",
+              "contenuto": "Calcola $A = \\sqrt{A_x^2 + A_y^2}$ e $\\theta_{acuto} = \\arctan(|A_y|/|A_x|)$"
+            }
+          ]
+        },
+        {
+          "titolo": "4) Verifica il quadrante",
+          "blocchi": [
+            {
+              "tipo": "testo",
+              "contenuto": "Controlla i segni di $A_x$ e $A_y$ per determinare il quadrante e l'angolo corretto."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+
+  "risorse": [
+    {
+      "tipo": "libro",
+      "titolo": "Capitolo 3 - I vettori",
+      "descrizione": "Libro di testo, paragrafo sulle componenti cartesiane"
+    },
+    {
+      "tipo": "video",
+      "titolo": "Componenti di un vettore",
+      "url": "https://www.youtube.com/watch?v=esempio",
+      "descrizione": "Video esplicativo con esempi"
+    }
+  ]
+}
