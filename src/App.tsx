@@ -88,6 +88,7 @@ const categories: Category[] = [
                     "velocita-media-secante",
                     "moto-uniformemente-accelerato",
                     "caduta-libera",
+                    "moto-circolare-uniforme"
                 ],
             },
             {
