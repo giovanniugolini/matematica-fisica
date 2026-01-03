@@ -38,6 +38,13 @@
             {
               "tipo": "testo",
               "contenuto": "In fisica spesso è necessario lavorare con i vettori in modo analitico. Per farlo, è fondamentale saper **scomporre** un vettore nelle sue **componenti cartesiane**."
+            },
+            {
+              "tipo": "immagine",
+              "src": "images/lezioni/vettori/img.png",
+              "alt": "Scomposizione di un vettore...",
+              "didascalia": "Figura: Sistema di riferimento cartesiano",
+              "larghezza": 60
             }
           ]
         },
@@ -72,6 +79,13 @@
                 {
                   "tipo": "testo",
                   "contenuto": "Consideriamo un vettore $\\vec{A}$ con la coda nell'origine degli assi cartesiani. La **punta** del vettore individua un punto di coordinate $(A_x, A_y)$."
+                },
+                {
+                  "tipo": "immagine",
+                  "assetId": "vettori/scomposizione",
+                  "alt": "Scomposizione di un vettore nelle componenti cartesiane",
+                  "didascalia": "Figura 1: Scomposizione di un vettore A nelle componenti Ax e Ay",
+                  "larghezza": 80
                 }
               ]
             },
@@ -83,6 +97,13 @@
                   "termine": "Componenti cartesiane",
                   "definizione": "Le coordinate $A_x$ e $A_y$ della punta del vettore $\\vec{A}$ (quando la coda è nell'origine) sono dette **componenti cartesiane** del vettore.",
                   "nota": "Le componenti sono numeri con segno, non vettori!"
+                },
+                {
+                  "tipo": "immagine",
+                  "assetId": "vettori/componenti-xy",
+                  "alt": "Componenti Ax e Ay di un vettore",
+                  "didascalia": "Figura 2: Le componenti cartesiane Ax e Ay",
+                  "larghezza": 70
                 }
               ]
             },
@@ -147,6 +168,13 @@
                   "tipo": "definizione",
                   "termine": "Seno (sin)",
                   "definizione": "In un triangolo rettangolo, il **seno** di un angolo $\\theta$ è il rapporto tra il cateto opposto all'angolo e l'ipotenusa: $\\sin\\theta = \\frac{\\text{cateto opposto}}{\\text{ipotenusa}}$"
+                },
+                {
+                  "tipo": "immagine",
+                  "assetId": "vettori/triangolo-rettangolo",
+                  "alt": "Triangolo rettangolo formato dal vettore e le componenti",
+                  "didascalia": "Figura 3: Triangolo rettangolo per definire seno e coseno",
+                  "larghezza": 65
                 }
               ]
             },
@@ -211,6 +239,13 @@
                   "tipo": "teorema",
                   "nome": "Formule per le componenti",
                   "enunciato": "Date il modulo $A$ e l'angolo $\\theta$ di un vettore, le componenti cartesiane sono:\n\n$A_x = A \\cdot \\cos\\theta$\n\n$A_y = A \\cdot \\sin\\theta$"
+                },
+                {
+                  "tipo": "immagine",
+                  "assetId": "vettori/angolo-theta",
+                  "alt": "Angolo theta formato dal vettore con l'asse x",
+                  "didascalia": "Figura 4: Angolo θ tra il vettore e l'asse x",
+                  "larghezza": 60
                 }
               ]
             },
@@ -332,6 +367,13 @@
                     ["IV", "$> 0$", "$< 0$", "$270° < \\theta < 360°$"]
                   ],
                   "didascalia": "Segni delle componenti cartesiane nei quattro quadranti"
+                },
+                {
+                  "tipo": "immagine",
+                  "assetId": "vettori/quadranti",
+                  "alt": "Segni delle componenti nei quattro quadranti",
+                  "didascalia": "Figura 5: I quattro quadranti e i segni delle componenti",
+                  "larghezza": 70
                 }
               ]
             },
@@ -427,7 +469,14 @@
         {
           "titolo": "Riepilogo",
           "blocchi": [
-            { "tipo": "titolo", "livello": 2, "testo": "Riepilogo" }
+            { "tipo": "titolo", "livello": 2, "testo": "Riepilogo" },
+            {
+              "tipo": "immagine",
+              "assetId": "shared/assi-cartesiani",
+              "alt": "Sistema di assi cartesiani x-y",
+              "didascalia": "Sistema di riferimento per lavorare con i vettori",
+              "larghezza": 50
+            }
           ]
         },
         {
@@ -463,6 +512,13 @@
             {
               "tipo": "testo",
               "contenuto": "Controlla i segni di $A_x$ e $A_y$ per determinare il quadrante e l'angolo corretto."
+            },
+            {
+              "tipo": "immagine",
+              "assetId": "vettori/quadranti",
+              "alt": "Segni delle componenti nei quattro quadranti",
+              "didascalia": "Ricorda i segni nei quattro quadranti!",
+              "larghezza": 60
             }
           ]
         }
@@ -481,6 +537,12 @@
       "titolo": "Componenti di un vettore",
       "url": "https://www.youtube.com/watch?v=esempio",
       "descrizione": "Video esplicativo con esempi"
+    },
+    {
+      "tipo": "sito",
+      "titolo": "Khan Academy - Vectors",
+      "url": "https://www.khanacademy.org/math/vectors",
+      "descrizione": "Esercizi interattivi sui vettori"
     }
   ]
 }

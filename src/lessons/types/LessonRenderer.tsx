@@ -33,6 +33,30 @@ import {
     SequenzaStep,
 } from "./schema";
 import { Latex } from "../../components/ui/Latex";
+import { AssetManager } from "../../assets";
+
+
+// ============================================================================
+// PUBLIC URL HELPERS (GitHub Pages / basename safe)
+// ============================================================================
+
+const publicUrl = process.env.PUBLIC_URL || "";
+
+function resolvePublicSrc(src: string): string {
+    // URL esterni: lascia invariato
+    if (/^https?:\/\//.test(src)) return src;
+
+    // già prefissato correttamente
+    if (publicUrl && src.startsWith(publicUrl)) return src;
+
+    // path assoluto "/images/..." -> "/<PUBLIC_URL>/images/..."
+    if (src.startsWith("/")) return `${publicUrl}${src}`;
+
+    // path relativo "images/..." -> "/<PUBLIC_URL>/images/..."
+    return `${publicUrl}/${src}`;
+}
+
+
 
 // ============================================================================
 // DEMO LOADER
@@ -391,10 +415,40 @@ function ElencoBlock({ blocco }: { blocco: BloccoElenco }): React.ReactElement {
 
 /** ✅ NUOVO: Blocco Immagine */
 function ImmagineBlock({ blocco }: { blocco: BloccoImmagine }): React.ReactElement {
+    console.log("🎯 ImmagineBlock ricevuto:", JSON.stringify(blocco, null, 2));
+
+    let imageUrl: string | null = null;
+
+    // 1. Cerca assetId prima
+    if (blocco.assetId) {
+        imageUrl = AssetManager.getUrl(blocco.assetId);
+    }
+    // 2. Se non c'è assetId, usa src
+    else if (blocco.src) {
+        imageUrl = resolvePublicSrc(blocco.src);
+    }
+
+    // 3. Se nessuno dei due, mostra errore
+    if (!imageUrl) {
+        return (
+            <div style={{
+                padding: 20,
+                background: "#fef2f2",
+                border: "1px solid #fecaca",
+                borderRadius: 8,
+                color: "#991b1b",
+                margin: "20px 0",
+            }}>
+                ⚠️ Image source is missing. Please provide either src or assetId.
+                {blocco.assetId && ` (assetId: ${blocco.assetId} not found)`}
+            </div>
+        );
+    }
+
     return (
         <figure style={{ margin: "24px 0", textAlign: "center" }}>
             <img
-                src={blocco.src}
+                src={imageUrl}
                 alt={blocco.alt}
                 style={{
                     maxWidth: blocco.larghezza ? `${blocco.larghezza}%` : "100%",
@@ -414,7 +468,35 @@ function ImmagineBlock({ blocco }: { blocco: BloccoImmagine }): React.ReactEleme
 
 /** ✅ NUOVO: Blocco Video */
 function VideoBlock({ blocco }: { blocco: BloccoVideo }): React.ReactElement {
-    const { type, url } = getVideoEmbedUrl(blocco.src);
+    let videoUrl: string | null = null;
+
+    // 1. Cerca assetId prima
+    if (blocco.assetId) {
+        videoUrl = AssetManager.getUrl(blocco.assetId);
+    }
+    // 2. Se non c'è assetId, usa src
+    else if (blocco.src) {
+        videoUrl = resolvePublicSrc(blocco.src);
+    }
+
+    // 3. Se nessuno dei due, mostra errore
+    if (!videoUrl) {
+        return (
+            <div style={{
+                padding: 20,
+                background: "#fef2f2",
+                border: "1px solid #fecaca",
+                borderRadius: 8,
+                color: "#991b1b",
+                margin: "20px 0",
+            }}>
+                ⚠️ Video source is missing. Please provide either src or assetId.
+                {blocco.assetId && ` (assetId: ${blocco.assetId} not found)`}
+            </div>
+        );
+    }
+
+    const { type, url } = getVideoEmbedUrl(videoUrl);
     const width = blocco.larghezza ?? 100;
     const height = blocco.altezza ?? 400;
 

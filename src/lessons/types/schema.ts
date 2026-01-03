@@ -99,17 +99,25 @@ export interface BloccoElenco {
 
 export interface BloccoImmagine {
     tipo: "immagine";
-    src: string;
+    /** URL diretto dell'immagine (legacy) */
+    src?: string;
+    /** ID asset dal registry (preferito) */
+    assetId?: string;
+    /** Alt text per accessibilità */
     alt: string;
+    /** Didascalia sotto l'immagine */
     didascalia?: string;
-    larghezza?: number; // percentuale 0-100
+    /** Larghezza in percentuale 0-100 */
+    larghezza?: number;
 }
 
-/** ✅ NUOVO: Blocco Video */
+/** Blocco Video */
 export interface BloccoVideo {
     tipo: "video";
-    /** URL YouTube, Vimeo, o file locale */
-    src: string;
+    /** URL diretto del video (legacy) */
+    src?: string;
+    /** ID asset dal registry (preferito) */
+    assetId?: string;
     /** Titolo del video */
     titolo?: string;
     /** Didascalia sotto il video */
