@@ -273,7 +273,7 @@ function LessonCategoryCard({
                 boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
                 overflow: "hidden",
                 marginBottom: 16,
-                border: "2px solid #c4b5fd",
+                border: "1px solid #e2e8f0",
             }}
         >
             {/* Header categoria */}
@@ -282,16 +282,16 @@ function LessonCategoryCard({
                 style={{
                     width: "100%",
                     padding: "14px 16px",
-                    background: expanded ? "#f5f3ff" : "#faf5ff",
+                    background: expanded ? "#f8fafc" : "#fff",
                     border: "none",
-                    borderBottom: expanded ? "1px solid #ddd6fe" : "none",
+                    borderBottom: expanded ? "1px solid #e2e8f0" : "none",
                     cursor: "pointer",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
                     fontSize: 16,
                     fontWeight: 600,
-                    color: "#5b21b6",
+                    color: "#1e293b",
                     transition: "background 0.2s",
                 }}
             >
@@ -342,7 +342,7 @@ function LessonCategoryCard({
                                                 padding: "10px 12px",
                                                 background: "#f5f3ff",
                                                 borderRadius: 10,
-                                                color: "#5b21b6",
+                                                color: "#1e293b",
                                                 textDecoration: "none",
                                                 fontSize: 13,
                                                 transition: "all 0.15s",
@@ -457,7 +457,7 @@ function Home() {
                                 background: "#ede9fe",
                                 borderRadius: 20,
                                 fontSize: 13,
-                                color: "#5b21b6",
+                                color: "#1e293b",
                                 fontWeight: 500,
                             }}
                         >
@@ -557,7 +557,64 @@ function Home() {
                         onToggle={() => toggleCategory(category.id)}
                     />
                 ))}
+                {/* ===== LEZIONI INTERATTIVE (BETA) ===== */}
+                {lessons.length > 0 && (
+                    <>
+                        <div
+                            style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 10,
+                                marginBottom: 16,
+                                marginTop: 18,
+                            }}
+                        >
+                            <h2
+                                style={{
+                                    fontSize: 20,
+                                    fontWeight: 600,
+                                    color: "#1e40af",
+                                    margin: 0,
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 8,
+                                }}
+                            >
+                                📖 Lezioni Interattive
+                                <span
+                                    style={{
+                                        fontSize: 11,
+                                        padding: "2px 8px",
+                                        borderRadius: 999,
+                                        background: "#e0f2fe",
+                                        color: "#075985",
+                                        fontWeight: 800,
+                                        letterSpacing: "0.3px",
+                                    }}
+                                >
+                                    BETA
+                                </span>
+                            </h2>
+                            <div
+                                style={{
+                                    flex: 1,
+                                    height: 2,
+                                    background: "linear-gradient(to right, #93c5fd, transparent)",
+                                }}
+                            />
+                        </div>
 
+                        {/* Categorie Lezioni */}
+                        {lessonCategories.map((category) => (
+                            <LessonCategoryCard
+                                key={category.id}
+                                category={category}
+                                expanded={!!expanded[category.id]}
+                                onToggle={() => toggleCategory(category.id)}
+                            />
+                        ))}
+                    </>
+                )}
                 {/* Footer */}
                 <div
                     style={{
@@ -572,68 +629,7 @@ function Home() {
                 </div>
             </div>
 
-            {/* ===== LEZIONI INTERATTIVE (BETA) - FLOATING BOTTOM RIGHT ===== */}
-            {lessons.length > 0 && (
-                <div
-                    style={{
-                        position: "fixed",
-                        bottom: 20,
-                        right: 20,
-                        width: 340,
-                        maxWidth: "90vw",
-                        maxHeight: "70vh",
-                        overflowY: "auto",
-                        background: "#faf5ff",
-                        border: "2px solid #c4b5fd",
-                        borderRadius: 16,
-                        boxShadow: "0 10px 28px rgba(0,0,0,0.18)",
-                        zIndex: 1000,
-                    }}
-                >
-                    {/* Header */}
-                    <div
-                        style={{
-                            padding: "12px 14px",
-                            borderBottom: "1px solid #ddd6fe",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                            background: "#f5f3ff",
-                            borderTopLeftRadius: 14,
-                            borderTopRightRadius: 14,
-                        }}
-                    >
-                        <div style={{ fontWeight: 700, color: "#5b21b6", fontSize: 14 }}>
-                            📖 Lezioni interattive
-                        </div>
-                        <span
-                            style={{
-                                fontSize: 11,
-                                padding: "2px 8px",
-                                borderRadius: 999,
-                                background: "#ede9fe",
-                                color: "#6d28d9",
-                                fontWeight: 800,
-                                letterSpacing: "0.3px",
-                            }}
-                        >
-              BETA
-            </span>
-                    </div>
 
-                    {/* Contenuto */}
-                    <div style={{ padding: "12px 12px 4px" }}>
-                        {lessonCategories.map((category) => (
-                            <LessonCategoryCard
-                                key={category.id}
-                                category={category}
-                                expanded={!!expanded[category.id]}
-                                onToggle={() => toggleCategory(category.id)}
-                            />
-                        ))}
-                    </div>
-                </div>
-            )}
         </div>
     );
 }
