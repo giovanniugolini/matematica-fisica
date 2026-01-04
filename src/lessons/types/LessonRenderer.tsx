@@ -1802,8 +1802,7 @@ function PresentationView({ lezione, boardStyle, onExit }: PresentationViewProps
                         borderRadius: 8,
                         border: "none",
                         background: canNext ? theme.accent : theme.secondaryBg,
-                        color: canNext ? "#fff" : theme.border,
-                        cursor: canNext ? "pointer" : "not-allowed",
+                        color: canNext ? "#fff" : theme.border, cursor: canNext ? "pointer" : "not-allowed",
                         fontSize: 16,
                         fontWeight: 600,
                     }}
