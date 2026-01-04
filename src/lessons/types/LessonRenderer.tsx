@@ -1814,7 +1814,7 @@ function PresentationView({ lezione, boardStyle, onExit }: PresentationViewProps
                 {/* Controlli zoom */}
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: 16 }}>
                     <button
-                        onClick={() => setZoomLevel(Math.max(1, zoomLevel - 0.25))}
+                        onClick={() => setZoomLevel(Math.max(0.5, zoomLevel - 0.25))} // Limite minimo: 0.5
                         style={{
                             padding: "8px 12px",
                             borderRadius: 8,
@@ -1823,7 +1823,7 @@ function PresentationView({ lezione, boardStyle, onExit }: PresentationViewProps
                             color: theme.text,
                             cursor: "pointer",
                             fontSize: 14,
-                        }}
+                        }
                     >
                         - Zoom
                     </button>
