@@ -211,6 +211,21 @@ export interface BloccoCollegamento {
 export interface SequenzaStep {
     id?: string;
     titolo?: string;
+    /**
+     * Transizioni "a frammenti" in stile slide.
+     *
+     * - Gli step (SequenzaStep) restano dei cambi-slide: quando passi allo step successivo,
+     *   sparisce tutto ciò che era nello step precedente.
+     * - Le transitions invece sono *interne* allo step: rivelano progressivamente i blocchi,
+     *   mantenendo visibile ciò che è già comparso.
+     *
+     * Valori ammessi: indici (0..blocchi.length-1) che indicano l'inizio di un nuovo frammento.
+     * Esempio: blocchi=[A,B,C,D], transitions=[0,2]
+     *   - frammento 0: (vuoto)     -> end=0
+     *   - frammento 1: A,B         -> end=2
+     *   - frammento 2: A,B,C,D     -> end=4
+     */
+    transitions?: number[];
     blocchi: Blocco[];
 }
 

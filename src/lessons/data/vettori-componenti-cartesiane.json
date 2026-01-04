@@ -11,7 +11,13 @@
     "dataCreazione": "2025-01-02",
     "dataModifica": "2025-01-02",
     "versione": "1.0",
-    "tags": ["vettori", "trigonometria", "componenti", "seno", "coseno"],
+    "tags": [
+      "vettori",
+      "trigonometria",
+      "componenti",
+      "seno",
+      "coseno"
+    ],
     "prerequisiti": [
       "Concetto di vettore (modulo, direzione, verso)",
       "Funzioni goniometriche base (seno, coseno, tangente)",
@@ -24,7 +30,6 @@
       "Riconoscere i segni delle componenti nei quattro quadranti"
     ]
   },
-
   "introduzione": [
     {
       "tipo": "sequenza",
@@ -46,6 +51,10 @@
               "didascalia": "Figura: Sistema di riferimento cartesiano",
               "larghezza": 60
             }
+          ],
+          "transitions": [
+            0,
+            1
           ]
         },
         {
@@ -61,7 +70,6 @@
       ]
     }
   ],
-
   "sezioni": [
     {
       "id": "scomposizione",
@@ -141,7 +149,6 @@
         }
       ]
     },
-
     {
       "id": "funzioni-goniometriche",
       "titolo": "Le funzioni goniometriche",
@@ -212,7 +219,6 @@
         }
       ]
     },
-
     {
       "id": "calcolo-componenti",
       "titolo": "Da modulo e angolo alle componenti",
@@ -277,7 +283,6 @@
         }
       ]
     },
-
     {
       "id": "calcolo-inverso",
       "titolo": "Dalle componenti a modulo e angolo",
@@ -334,7 +339,6 @@
         }
       ]
     },
-
     {
       "id": "quadranti",
       "titolo": "I segni nei quattro quadranti",
@@ -359,12 +363,37 @@
               "blocchi": [
                 {
                   "tipo": "tabella",
-                  "intestazione": ["Quadrante", "$A_x$", "$A_y$", "Angolo $\\theta$"],
+                  "intestazione": [
+                    "Quadrante",
+                    "$A_x$",
+                    "$A_y$",
+                    "Angolo $\\theta$"
+                  ],
                   "righe": [
-                    ["I", "$> 0$", "$> 0$", "$0° < \\theta < 90°$"],
-                    ["II", "$< 0$", "$> 0$", "$90° < \\theta < 180°$"],
-                    ["III", "$< 0$", "$< 0$", "$180° < \\theta < 270°$"],
-                    ["IV", "$> 0$", "$< 0$", "$270° < \\theta < 360°$"]
+                    [
+                      "I",
+                      "$> 0$",
+                      "$> 0$",
+                      "$0° < \\theta < 90°$"
+                    ],
+                    [
+                      "II",
+                      "$< 0$",
+                      "$> 0$",
+                      "$90° < \\theta < 180°$"
+                    ],
+                    [
+                      "III",
+                      "$< 0$",
+                      "$< 0$",
+                      "$180° < \\theta < 270°$"
+                    ],
+                    [
+                      "IV",
+                      "$> 0$",
+                      "$< 0$",
+                      "$270° < \\theta < 360°$"
+                    ]
                   ],
                   "didascalia": "Segni delle componenti cartesiane nei quattro quadranti"
                 },
@@ -391,7 +420,6 @@
         }
       ]
     },
-
     {
       "id": "quiz",
       "titolo": "Verifica le tue conoscenze",
@@ -409,10 +437,22 @@
                   "tipo": "quiz",
                   "domanda": "Qual è la formula corretta per calcolare la componente $A_x$ di un vettore?",
                   "opzioni": [
-                    { "testo": "$A_x = A \\cdot \\sin\\theta$", "corretta": false },
-                    { "testo": "$A_x = A \\cdot \\cos\\theta$", "corretta": true },
-                    { "testo": "$A_x = A \\cdot \\tan\\theta$", "corretta": false },
-                    { "testo": "$A_x = A / \\cos\\theta$", "corretta": false }
+                    {
+                      "testo": "$A_x = A \\cdot \\sin\\theta$",
+                      "corretta": false
+                    },
+                    {
+                      "testo": "$A_x = A \\cdot \\cos\\theta$",
+                      "corretta": true
+                    },
+                    {
+                      "testo": "$A_x = A \\cdot \\tan\\theta$",
+                      "corretta": false
+                    },
+                    {
+                      "testo": "$A_x = A / \\cos\\theta$",
+                      "corretta": false
+                    }
                   ],
                   "spiegazione": "La componente $A_x$ è il cateto **adiacente** all'angolo $\\theta$, quindi si calcola con il **coseno**: $A_x = A \\cdot \\cos\\theta$.",
                   "difficolta": "facile"
@@ -426,10 +466,22 @@
                   "tipo": "quiz",
                   "domanda": "Se un vettore si trova nel II quadrante, quali sono i segni delle sue componenti?",
                   "opzioni": [
-                    { "testo": "$A_x > 0$ e $A_y > 0$", "corretta": false },
-                    { "testo": "$A_x < 0$ e $A_y > 0$", "corretta": true },
-                    { "testo": "$A_x < 0$ e $A_y < 0$", "corretta": false },
-                    { "testo": "$A_x > 0$ e $A_y < 0$", "corretta": false }
+                    {
+                      "testo": "$A_x > 0$ e $A_y > 0$",
+                      "corretta": false
+                    },
+                    {
+                      "testo": "$A_x < 0$ e $A_y > 0$",
+                      "corretta": true
+                    },
+                    {
+                      "testo": "$A_x < 0$ e $A_y < 0$",
+                      "corretta": false
+                    },
+                    {
+                      "testo": "$A_x > 0$ e $A_y < 0$",
+                      "corretta": false
+                    }
                   ],
                   "spiegazione": "Nel II quadrante, il vettore punta verso sinistra ($A_x < 0$) e verso l'alto ($A_y > 0$).",
                   "difficolta": "media"
@@ -443,10 +495,22 @@
                   "tipo": "quiz",
                   "domanda": "L'identità $\\sin^2\\theta + \\cos^2\\theta = 1$ deriva da:",
                   "opzioni": [
-                    { "testo": "La definizione di tangente", "corretta": false },
-                    { "testo": "Il teorema di Pitagora", "corretta": true },
-                    { "testo": "La legge dei seni", "corretta": false },
-                    { "testo": "La proprietà commutativa", "corretta": false }
+                    {
+                      "testo": "La definizione di tangente",
+                      "corretta": false
+                    },
+                    {
+                      "testo": "Il teorema di Pitagora",
+                      "corretta": true
+                    },
+                    {
+                      "testo": "La legge dei seni",
+                      "corretta": false
+                    },
+                    {
+                      "testo": "La proprietà commutativa",
+                      "corretta": false
+                    }
                   ],
                   "spiegazione": "L'identità fondamentale è una conseguenza diretta del **teorema di Pitagora** applicato a un triangolo rettangolo con ipotenusa unitaria (cerchio goniometrico).",
                   "difficolta": "media"
@@ -458,7 +522,6 @@
       ]
     }
   ],
-
   "conclusione": [
     {
       "tipo": "sequenza",
@@ -469,7 +532,11 @@
         {
           "titolo": "Riepilogo",
           "blocchi": [
-            { "tipo": "titolo", "livello": 2, "testo": "Riepilogo" },
+            {
+              "tipo": "titolo",
+              "livello": 2,
+              "testo": "Riepilogo"
+            },
             {
               "tipo": "immagine",
               "assetId": "shared/assi-cartesiani",
@@ -525,7 +592,6 @@
       ]
     }
   ],
-
   "risorse": [
     {
       "tipo": "libro",

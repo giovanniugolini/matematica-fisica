@@ -907,9 +907,11 @@ function SequenzaBlock({ blocco }: { blocco: BloccoSequenza }): React.ReactEleme
 
     const safeStart = Math.min(Math.max(blocco.startAt ?? 0, 0), Math.max(0, total - 1));
     const [idx, setIdx] = useState(safeStart);
+    const [frag, setFrag] = useState(0);
     const [animKey, setAnimKey] = useState(0);
 
     useEffect(() => {
+        setFrag(0);
         setAnimKey((k) => k + 1);
     }, [idx]);
 
@@ -918,6 +920,28 @@ function SequenzaBlock({ blocco }: { blocco: BloccoSequenza }): React.ReactEleme
     const allowJump = blocco.allowJump ?? true;
     const showProgress = blocco.showProgress ?? true;
     const current: SequenzaStep | undefined = steps[idx];
+
+
+    // --- Transizioni interne (frammenti) ---
+    const rawTransitions = (current?.transitions ?? []).slice();
+    const len = current?.blocchi?.length ?? 0;
+    const boundaries = Array.from(
+        new Set(
+            rawTransitions
+                .map((n) => Math.trunc(n))
+                .filter((n) => Number.isFinite(n) && n >= 0 && n <= len)
+                .sort((a, b) => a - b)
+        )
+    );
+    // aggiungo sempre il boundary finale (=len) per arrivare alla visibilità completa
+    if (!boundaries.includes(len)) boundaries.push(len);
+    const totalFragments = Math.max(1, boundaries.length);
+    const safeFrag = Math.min(Math.max(frag, 0), totalFragments - 1);
+    const visibleCount = boundaries[safeFrag] ?? len;
+    const visibleBlocchi = (current?.blocchi ?? []).slice(0, visibleCount);
+
+    const canPrevFrag = safeFrag > 0;
+    const canNextFrag = safeFrag < totalFragments - 1;
 
     if (total === 0) {
         return (
@@ -955,36 +979,48 @@ function SequenzaBlock({ blocco }: { blocco: BloccoSequenza }): React.ReactEleme
                             {blocco.titolo ? `🧭 ${blocco.titolo}` : "🧭 Step"}
                         </div>
                         <div style={{ fontSize: 13, color: "#64748b" }}>
-                            Step {idx + 1}/{total}
+                            Step {idx + 1}/{total}{totalFragments > 1 ? ` · Transizione ${safeFrag + 1}/${totalFragments}` : ""}
                         </div>
                     </div>
 
                     <div style={{ display: "flex", gap: 8 }}>
                         <button
-                            onClick={() => canPrev && setIdx(idx - 1)}
-                            disabled={!canPrev}
+                            onClick={() => {
+                                if (canPrevFrag) {
+                                    setFrag(safeFrag - 1);
+                                    return;
+                                }
+                                if (canPrev) setIdx(idx - 1);
+                            }}
+                            disabled={!canPrev && !canPrevFrag}
                             style={{
                                 padding: "8px 12px",
                                 borderRadius: 8,
                                 border: "1px solid #d1d5db",
-                                background: canPrev ? "#fff" : "#f3f4f6",
-                                color: canPrev ? "#111827" : "#9ca3af",
-                                cursor: canPrev ? "pointer" : "not-allowed",
+                                background: (canPrev || canPrevFrag) ? "#fff" : "#f3f4f6",
+                                color: (canPrev || canPrevFrag) ? "#111827" : "#9ca3af",
+                                cursor: (canPrev || canPrevFrag) ? "pointer" : "not-allowed",
                                 fontWeight: 600,
                             }}
                         >
                             ←
                         </button>
                         <button
-                            onClick={() => canNext && setIdx(idx + 1)}
-                            disabled={!canNext}
+                            onClick={() => {
+                                if (canNextFrag) {
+                                    setFrag(safeFrag + 1);
+                                    return;
+                                }
+                                if (canNext) setIdx(idx + 1);
+                            }}
+                            disabled={!canNext && !canNextFrag}
                             style={{
                                 padding: "8px 12px",
                                 borderRadius: 8,
                                 border: "none",
-                                background: canNext ? "#3b82f6" : "#e5e7eb",
-                                color: canNext ? "white" : "#9ca3af",
-                                cursor: canNext ? "pointer" : "not-allowed",
+                                background: (canNext || canNextFrag) ? "#3b82f6" : "#e5e7eb",
+                                color: (canNext || canNextFrag) ? "white" : "#9ca3af",
+                                cursor: (canNext || canNextFrag) ? "pointer" : "not-allowed",
                                 fontWeight: 700,
                             }}
                         >
@@ -1002,7 +1038,11 @@ function SequenzaBlock({ blocco }: { blocco: BloccoSequenza }): React.ReactEleme
                                 return (
                                     <button
                                         key={s.id ?? i}
-                                        onClick={() => allowJump && setIdx(i)}
+                                        onClick={() => {
+                                            if (!allowJump) return;
+                                            setIdx(i);
+                                            setFrag(0);
+                                        }}
                                         disabled={!allowJump}
                                         title={s.titolo ? `Step ${i + 1}: ${s.titolo}` : `Step ${i + 1}`}
                                         style={{
@@ -1012,6 +1052,34 @@ function SequenzaBlock({ blocco }: { blocco: BloccoSequenza }): React.ReactEleme
                                             border: active ? "2px solid #1d4ed8" : "1px solid #cbd5e1",
                                             background: active ? "#3b82f6" : done ? "#93c5fd" : "#e2e8f0",
                                             cursor: allowJump ? "pointer" : "default",
+                                            padding: 0,
+                                        }}
+                                    />
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+
+                {totalFragments > 1 && (
+                    <div style={{ padding: "10px 14px", borderBottom: "1px solid #e2e8f0" }}>
+                        <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+
+                            {Array.from({ length: totalFragments }).map((_, i) => {
+                                const active = i === safeFrag;
+                                const done = i < safeFrag;
+                                return (
+                                    <button
+                                        key={i}
+                                        onClick={() => setFrag(i)}
+                                        title={`Transizione ${i + 1}/${totalFragments}`}
+                                        style={{
+                                            width: 10,
+                                            height: 10,
+                                            borderRadius: 999,
+                                            border: active ? "2px solid #1d4ed8" : "1px solid #cbd5e1",
+                                            background: active ? "#3b82f6" : done ? "#93c5fd" : "#e2e8f0",
+                                            cursor: "pointer",
                                             padding: 0,
                                         }}
                                     />
@@ -1036,7 +1104,7 @@ function SequenzaBlock({ blocco }: { blocco: BloccoSequenza }): React.ReactEleme
                             animation: "lessonStepIn 220ms ease-out forwards",
                         }}
                     >
-                        {current?.blocchi?.map((b: Blocco, i: number) => renderBlocco(b, i))}
+                        {visibleBlocchi.map((b: Blocco, i: number) => renderBlocco(b, i))}
                     </div>
 
                     <div style={{ height: 8 }} />
