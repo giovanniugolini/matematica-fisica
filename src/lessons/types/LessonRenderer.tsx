@@ -32,7 +32,8 @@ import {
     BloccoSequenza,
     SequenzaStep,
     BloccoAttivita,
-    BrainstormingBlock,
+    BloccoQuestion,
+
 } from "./schema";
 import type { BloccoBrainstorming } from "./schema";
 import { Latex } from "../../components/ui/Latex";
@@ -433,19 +434,15 @@ function ActivityBlock({ blocco }: { blocco: BloccoAttivita }): React.ReactEleme
     );
 }
 
-function BrainstormingBlockRenderer({
-                                        block,
-                                    }: {
-    block: BrainstormingBlock;
-}): React.ReactElement {
-    const height = block.heightPx ?? 280;
+function BrainstormingBlockRenderer({ blocco }: { blocco: BloccoBrainstorming }): React.ReactElement {
+    const height = blocco.heightPx ?? 280;
 
-    const storageKey = block.persistId
-        ? `lesson:brainstorming:${block.persistId}`
+    const storageKey = blocco.persistId
+        ? `lesson:brainstorming:${blocco.persistId}`
         : null;
 
     const defaultPersist =
-        storageKey ? block.persistDefault ?? true : false;
+        storageKey ? blocco.persistDefault ?? true : false;
 
     const [persistEnabled, setPersistEnabled] =
         React.useState<boolean>(defaultPersist);
@@ -529,7 +526,7 @@ function BrainstormingBlockRenderer({
                     alignItems: "center",
                 }}
             >
-                <span>🧠 {block.title}</span>
+                <span>🧠 {blocco.title}</span>
 
                 {storageKey && (
                     <label style={{ fontSize: 12, cursor: "pointer" }}>
@@ -559,7 +556,7 @@ function BrainstormingBlockRenderer({
                     fontFamily: "monospace",
                     whiteSpace: "pre-wrap",
                 }}
-                data-placeholder={block.placeholder ?? "Write here..."}
+                data-placeholder={blocco.placeholder ?? "Write here..."}
                 suppressContentEditableWarning
             />
 
@@ -583,6 +580,91 @@ function BrainstormingBlockRenderer({
         </div>
     );
 }
+
+function QuestionBlockRenderer({ blocco }: { blocco: BloccoQuestion }): React.ReactElement {
+    const [isAnswerVisible, setIsAnswerVisible] = React.useState<boolean>(blocco.defaultExpanded ?? false);
+
+    const showLabel = blocco.showAnswerLabel ?? "Show answer";
+    const hideLabel = blocco.hideAnswerLabel ?? "Hide answer";
+
+    return (
+        <div
+            style={{
+                background: "#faf5ff",
+                borderLeft: "4px solid #8b5cf6",
+                borderRadius: "0 8px 8px 0",
+                padding: 16,
+                margin: "20px 0",
+            }}
+        >
+            {/* Header */}
+            <div
+                style={{
+                    fontWeight: 700,
+                    color: "#6b21a8",
+                    marginBottom: 8,
+                    fontSize: 15,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 12,
+                    flexWrap: "wrap",
+                }}
+            >
+                <span>❓ {blocco.title ?? "Question"}</span>
+
+                <button
+                    onClick={() => setIsAnswerVisible((v) => !v)}
+                    style={{
+                        padding: "6px 10px",
+                        fontSize: 12,
+                        borderRadius: 8,
+                        border: "1px solid #c4b5fd",
+                        background: isAnswerVisible ? "#ede9fe" : "#ffffff",
+                        color: "#4c1d95",
+                        cursor: "pointer",
+                        fontWeight: 700,
+                    }}
+                >
+                    {isAnswerVisible ? hideLabel : showLabel}
+                </button>
+            </div>
+
+            {/* Question */}
+            <div style={{ color: "#4c1d95", lineHeight: 1.6 }}>
+                {renderTesto(blocco.question)}
+            </div>
+
+            {/* Answer */}
+            {isAnswerVisible && (
+                <div
+                    style={{
+                        marginTop: 12,
+                        padding: 12,
+                        background: "#ede9fe",
+                        borderRadius: 10,
+                        color: "#4c1d95",
+                        border: "1px solid #c4b5fd",
+                        animation: "questionAnswerIn 180ms ease-out",
+                    }}
+                >
+                    <div style={{ fontWeight: 800, marginBottom: 6 }}>Answer</div>
+                    <div style={{ lineHeight: 1.6 }}>{renderTesto(blocco.answer)}</div>
+                </div>
+            )}
+
+            <style>
+                {`
+          @keyframes questionAnswerIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to   { opacity: 1; transform: translateY(0px); }
+          }
+        `}
+            </style>
+        </div>
+    );
+}
+
 
 
 function ElencoBlock({ blocco }: { blocco: BloccoElenco }): React.ReactElement {
@@ -1354,7 +1436,10 @@ function renderBlocco(blocco: Blocco, index: number): React.ReactNode {
         case "tabella":
             return <TabellaBlock key={key} blocco={blocco} />;
         case "brainstorming":
-            return <BrainstormingBlockRenderer block={block as BrainstormingBlock} />;
+            return <BrainstormingBlockRenderer key={key} blocco={blocco as BloccoBrainstorming} />;
+        case "question":
+            return <QuestionBlockRenderer key={key} blocco={blocco as BloccoQuestion} />;
+
         default:
             return (
                 <div key={key} style={{ padding: 12, background: "#fef2f2", borderRadius: 8, color: "#991b1b" }}>

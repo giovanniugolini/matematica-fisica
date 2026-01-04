@@ -44,13 +44,26 @@
               "tipo": "testo",
               "contenuto": "In fisica spesso è necessario lavorare con i vettori in modo analitico. Per farlo, è fondamentale saper **scomporre** un vettore nelle sue **componenti cartesiane**."
             },
+
             {
               "tipo": "immagine",
               "src": "images/lezioni/vettori/img.png",
               "alt": "Scomposizione di un vettore...",
               "didascalia": "Figura: Sistema di riferimento cartesiano",
               "larghezza": 60
+            },
+            {
+              "tipo": "question",
+              "title": "Quick check",
+              "question": "Why do we decompose a vector into components?",
+              "answer": "Because we can analyze motion/forces along each axis independently.",
+              "showAnswerLabel": "Mostra Risposta",
+              "hideAnswerLabel": "Nascondi risposta",
+              "defaultExpanded": false
             }
+
+
+
           ],
           "transitions": [
             0,
@@ -69,6 +82,7 @@
         }
       ]
     }
+
   ],
   "sezioni": [
     {
@@ -94,9 +108,18 @@
                   "alt": "Scomposizione di un vettore nelle componenti cartesiane",
                   "didascalia": "Figura 1: Scomposizione di un vettore A nelle componenti Ax e Ay",
                   "larghezza": 80
+                },
+                {
+                  "tipo": "brainstorming",
+                  "titolo": "Brainstorming: cosa sappiamo sui vettori?",
+                  "placeholder": "Scrivi qui idee/definizioni/esempi...",
+                  "persistId": "vectors-intro",
+                  "persistDefault": true,
+                  "altezzaPx": 280
                 }
               ]
             },
+
             {
               "titolo": "Definizione di componenti",
               "blocchi": [
@@ -119,6 +142,7 @@
                   "consegna": "Disegna un vettore \\(\\vec{A}\\) e indica le sue componenti \\(A_x\\) e \\(A_y\\).",
                   "nota": "Suggerimento: usa un triangolo rettangolo e ragiona con seno/coseno."
                 }
+
               ]
             },
             {

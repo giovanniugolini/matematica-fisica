@@ -261,6 +261,7 @@ export type Blocco =
     | BloccoAttivita
     | BloccoSequenza
     | BloccoBrainstorming
+    | BloccoQuestion
 
 
 // ============================================================================
@@ -316,13 +317,23 @@ export interface Lezione {
     risorse?: Risorsa[];
 }
 
-export export interface BloccoBrainstorming {
+export interface BloccoBrainstorming {
     tipo: "brainstorming";
-    titolo: string;             // tema in alto
-    placeholder?: string;       // testo suggerito
-    altezzaPx?: number;         // altezza area lavagna (default nel renderer)
+    title: string;
+    placeholder?: string;
+    heightPx?: number;
 
-    // persistence (optional)
-    persistId?: string;         // chiave di persistenza (localStorage)
-    persistDefault?: boolean;   // default true se persistId esiste
+    // persistence
+    persistId?: string;        // abilita persistenza
+    persistDefault?: boolean;  // default true se persistId esiste
+}
+export interface BloccoQuestion {
+    tipo: "question";
+    title?: string;
+    question: string;
+    answer: string;
+
+    showAnswerLabel?: string; // default: "Show answer"
+    hideAnswerLabel?: string; // default: "Hide answer"
+    defaultExpanded?: boolean; // default: false
 }
