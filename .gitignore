@@ -23,3 +23,5 @@ yarn-debug.log*
 yarn-error.log*
 BACKriassunto_commit.txt
 /public/images/
+/lesson-compiler/node_modules/
+/leeson-compiler/node_modules/*

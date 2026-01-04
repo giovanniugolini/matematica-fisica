@@ -1,0 +1,336 @@
+{
+  "metadati": {
+    "id": "vettori-componenti-cartesiane",
+    "titolo": "Componenti cartesiane di un vettore",
+    "sottotitolo": "Dalla forma polare alla forma cartesiana",
+    "materia": "fisica",
+    "argomento": "vettori",
+    "livello": "secondo-biennio",
+    "durata": 45,
+    "autore": "Prof. Rossi",
+    "versione": "1.0.0",
+    "tags": [
+      "trigonometria",
+      "vettori",
+      "componenti"
+    ],
+    "prerequisiti": [
+      "trigonometria-base",
+      "concetto-vettore"
+    ],
+    "obiettivi": [
+      "Scomporre un vettore nelle componenti cartesiane",
+      "Ricostruire un vettore dalle sue componenti",
+      "Applicare le formule in problemi concreti"
+    ]
+  },
+  "sezioni": [
+    {
+      "id": "slide-1",
+      "titolo": "Obiettivo della lezione",
+      "blocchi": [
+        {
+          "tipo": "titolo",
+          "livello": 2,
+          "testo": "Obiettivo della lezione"
+        },
+        {
+          "tipo": "testo",
+          "contenuto": "Imparare a **scomporre un vettore** nelle sue **componenti cartesiane**,\ne a ricostruirlo a partire da esse."
+        },
+        {
+          "tipo": "testo",
+          "contenuto": "::: callout prerequisiti"
+        },
+        {
+          "tipo": "elenco",
+          "ordinato": false,
+          "elementi": [
+            "Funzioni trigonometriche seno e coseno",
+            "Concetto di vettore e modulo",
+            "Coordinate cartesiane nel piano\n:::"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "slide-2",
+      "titolo": "Dal vettore alle componenti",
+      "blocchi": [
+        {
+          "tipo": "titolo",
+          "livello": 2,
+          "testo": "Dal vettore alle componenti"
+        },
+        {
+          "tipo": "testo",
+          "contenuto": "Un vettore $\\vec{v}$ nel piano può essere descritto in due modi equivalenti:"
+        },
+        {
+          "tipo": "elenco",
+          "ordinato": false,
+          "elementi": [
+            "tramite **modulo e direzione** (forma polare)",
+            "tramite le sue **componenti lungo gli assi** (forma cartesiana)"
+          ]
+        },
+        {
+          "tipo": "testo",
+          "contenuto": "::: note info\nIl passaggio tra le due forme è fondamentale in fisica:\nci permette di scomporre forze, velocità e altre grandezze vettoriali.\n:::"
+        }
+      ],
+      "transitions": [
+        3
+      ]
+    },
+    {
+      "id": "slide-3",
+      "titolo": "Proiezioni sugli assi",
+      "blocchi": [
+        {
+          "tipo": "titolo",
+          "livello": 2,
+          "testo": "Proiezioni sugli assi"
+        },
+        {
+          "tipo": "testo",
+          "contenuto": "Dato un vettore $\\vec{v}$ che forma un angolo $\\theta$ con l'asse $x$ positivo,\nle sue componenti sono:"
+        },
+        {
+          "tipo": "formula",
+          "latex": "v_x = |\\vec{v}| \\cos\\theta",
+          "display": true
+        },
+        {
+          "tipo": "formula",
+          "latex": "v_y = |\\vec{v}| \\sin\\theta",
+          "display": true
+        },
+        {
+          "tipo": "testo",
+          "contenuto": "::: image\nsrc: /images/lezioni/vettori/triangolo-rettangolo.svg\nalt: Triangolo rettangolo formato dal vettore\ncaption: Il vettore e le sue componenti formano un triangolo rettangolo\nwidth: 80\n:::"
+        }
+      ],
+      "transitions": [
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "id": "slide-4",
+      "titolo": "Definizione formale",
+      "blocchi": [
+        {
+          "tipo": "titolo",
+          "livello": 2,
+          "testo": "Definizione formale"
+        },
+        {
+          "tipo": "testo",
+          "contenuto": "::: definition\nterm: Componenti cartesiane"
+        },
+        {
+          "tipo": "testo",
+          "contenuto": "Le **componenti cartesiane** di un vettore $\\vec{v}$ sono le sue proiezioni\nortogonali sugli assi coordinati. Nel piano:"
+        },
+        {
+          "tipo": "elenco",
+          "ordinato": false,
+          "elementi": [
+            "$v_x = |\\vec{v}| \\cos\\theta$ (componente lungo $x$)",
+            "$v_y = |\\vec{v}| \\sin\\theta$ (componente lungo $y$)"
+          ]
+        },
+        {
+          "tipo": "testo",
+          "contenuto": "note: Le componenti sono scalari con segno, non moduli!\n:::"
+        }
+      ]
+    },
+    {
+      "id": "slide-5",
+      "titolo": "Esempio di calcolo",
+      "blocchi": [
+        {
+          "tipo": "titolo",
+          "livello": 2,
+          "testo": "Esempio di calcolo"
+        },
+        {
+          "tipo": "testo",
+          "contenuto": "::: example\ntitle: Calcolo delle componenti"
+        },
+        {
+          "tipo": "testo",
+          "contenuto": "problem:\nUn vettore $\\vec{v}$ ha modulo 10 e forma un angolo di 30° con l'asse $x$ positivo.\nCalcola le componenti $v_x$ e $v_y$."
+        },
+        {
+          "tipo": "testo",
+          "contenuto": "solution:\nApplichiamo le formule:"
+        },
+        {
+          "tipo": "elenco",
+          "ordinato": false,
+          "elementi": [
+            "$v_x = 10 \\cdot \\cos 30° = 10 \\cdot \\frac{\\sqrt{3}}{2} \\approx 8.66$",
+            "$v_y = 10 \\cdot \\sin 30° = 10 \\cdot \\frac{1}{2} = 5$"
+          ]
+        },
+        {
+          "tipo": "testo",
+          "contenuto": "note: Nota che $v_x > v_y$ perché l'angolo è minore di 45°.\n:::"
+        }
+      ]
+    },
+    {
+      "id": "slide-6",
+      "titolo": "Il segno delle componenti",
+      "blocchi": [
+        {
+          "tipo": "titolo",
+          "livello": 2,
+          "testo": "Il segno delle componenti"
+        },
+        {
+          "tipo": "testo",
+          "contenuto": "::: note warning\nAttenzione al segno! Nel secondo e terzo quadrante $v_x < 0$,\nnel terzo e quarto quadrante $v_y < 0$.\n:::"
+        },
+        {
+          "tipo": "testo",
+          "contenuto": "::: question\ntitle: Verifica comprensione"
+        },
+        {
+          "tipo": "testo",
+          "contenuto": "question: Perché la componente $v_x$ può assumere valori negativi?"
+        },
+        {
+          "tipo": "testo",
+          "contenuto": "answer:\nLa componente $v_x = |\\vec{v}| \\cos\\theta$ può essere negativa perché\nil coseno è negativo per angoli compresi tra 90° e 270° (secondo e\nterzo quadrante). Il modulo $|\\vec{v}|$ è sempre positivo, quindi il\nsegno dipende solo dal coseno.\n:::"
+        }
+      ],
+      "transitions": [
+        2
+      ]
+    },
+    {
+      "id": "slide-7",
+      "titolo": "Ricostruire il modulo",
+      "blocchi": [
+        {
+          "tipo": "titolo",
+          "livello": 2,
+          "testo": "Ricostruire il modulo"
+        },
+        {
+          "tipo": "testo",
+          "contenuto": "Dalle componenti possiamo sempre risalire al modulo del vettore\nusando il **teorema di Pitagora**:"
+        },
+        {
+          "tipo": "formula",
+          "latex": "|\\vec{v}| = \\sqrt{v_x^2 + v_y^2}",
+          "display": true
+        },
+        {
+          "tipo": "testo",
+          "contenuto": "::: theorem\nname: Teorema di Pitagora vettoriale"
+        },
+        {
+          "tipo": "testo",
+          "contenuto": "statement:\nIl modulo di un vettore è uguale alla radice quadrata della somma\ndei quadrati delle sue componenti: $|\\vec{v}| = \\sqrt{v_x^2 + v_y^2}$"
+        },
+        {
+          "tipo": "testo",
+          "contenuto": "proof:\nIl vettore e le sue componenti formano un triangolo rettangolo,\ndove il vettore è l'ipotenusa e le componenti sono i cateti.\nPer il teorema di Pitagora: $|\\vec{v}|^2 = v_x^2 + v_y^2$\n:::"
+        }
+      ],
+      "transitions": [
+        3
+      ]
+    },
+    {
+      "id": "slide-8",
+      "titolo": "Esercizio guidato",
+      "blocchi": [
+        {
+          "tipo": "titolo",
+          "livello": 2,
+          "testo": "Esercizio guidato"
+        },
+        {
+          "tipo": "testo",
+          "contenuto": "::: activity\ntitle: Applica le formule"
+        },
+        {
+          "tipo": "testo",
+          "contenuto": "Dato un vettore con modulo 8 e angolo 60°, calcola le componenti\n$v_x$ e $v_y$. Verifica il risultato usando il teorema di Pitagora."
+        },
+        {
+          "tipo": "testo",
+          "contenuto": "note: Usa la calcolatrice in modalità gradi, non radianti!\n:::"
+        }
+      ]
+    },
+    {
+      "id": "slide-9",
+      "titolo": "Quiz di verifica",
+      "blocchi": [
+        {
+          "tipo": "titolo",
+          "livello": 2,
+          "testo": "Quiz di verifica"
+        },
+        {
+          "tipo": "testo",
+          "contenuto": "::: quiz\ndifficulty: media"
+        },
+        {
+          "tipo": "testo",
+          "contenuto": "question: Qual è la componente $v_x$ di un vettore con modulo 6 e angolo 60°?"
+        },
+        {
+          "tipo": "elenco",
+          "ordinato": false,
+          "elementi": [
+            "$v_x = 6$",
+            "$v_x = 3$",
+            "$v_x = 3\\sqrt{3}$",
+            "$v_x = 6\\sqrt{3}$"
+          ]
+        },
+        {
+          "tipo": "testo",
+          "contenuto": "explanation:\n$v_x = 6 \\cdot \\cos 60° = 6 \\cdot \\frac{1}{2} = 3$\n:::"
+        }
+      ]
+    },
+    {
+      "id": "slide-10",
+      "titolo": "Riepilogo",
+      "blocchi": [
+        {
+          "tipo": "titolo",
+          "livello": 2,
+          "testo": "Riepilogo"
+        },
+        {
+          "tipo": "testo",
+          "contenuto": "::: note remember\n**Punti chiave della lezione:**"
+        },
+        {
+          "tipo": "elenco",
+          "ordinato": true,
+          "elementi": [
+            "$v_x = |\\vec{v}| \\cos\\theta$ e $v_y = |\\vec{v}| \\sin\\theta$",
+            "Le componenti hanno segno (possono essere negative)",
+            "Dal teorema di Pitagora: $|\\vec{v}| = \\sqrt{v_x^2 + v_y^2}$\n:::"
+          ]
+        },
+        {
+          "tipo": "testo",
+          "contenuto": "::: link\nlessonId: vettori-somma\ntext: Prossima lezione: Somma di vettori\ndescription: Impara a sommare vettori usando le componenti\n:::"
+        }
+      ]
+    }
+  ]
+}
