@@ -258,7 +258,21 @@ export type Blocco =
     | BloccoCitazione
     | BloccoCodice
     | BloccoCollegamento
-    | BloccoSequenza;
+    | BloccoAttivita
+    | BloccoSequenza
+    | BloccoBrainstorming
+
+
+// ============================================================================
+// NUOVI BLOCCHI (2026-01) - Naming componenti in inglese, tipo in italiano
+// ============================================================================
+
+export interface BloccoAttivita {
+    tipo: "attivita";
+    titolo?: string;          // es. "Attività"
+    consegna: string;         // contenuto (supporta LaTeX tramite renderTesto)
+    nota?: string;            // opzionale
+}
 
 // ============================================================================
 // STRUTTURA LEZIONE
@@ -300,4 +314,15 @@ export interface Lezione {
     sezioni: SezioneLezione[];
     conclusione?: Blocco[];
     risorse?: Risorsa[];
+}
+
+export export interface BloccoBrainstorming {
+    tipo: "brainstorming";
+    titolo: string;             // tema in alto
+    placeholder?: string;       // testo suggerito
+    altezzaPx?: number;         // altezza area lavagna (default nel renderer)
+
+    // persistence (optional)
+    persistId?: string;         // chiave di persistenza (localStorage)
+    persistDefault?: boolean;   // default true se persistId esiste
 }

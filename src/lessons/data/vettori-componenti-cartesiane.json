@@ -112,6 +112,12 @@
                   "alt": "Componenti Ax e Ay di un vettore",
                   "didascalia": "Figura 2: Le componenti cartesiane Ax e Ay",
                   "larghezza": 70
+                },
+                {
+                  "tipo": "attivita",
+                  "titolo": "Attività",
+                  "consegna": "Disegna un vettore \\(\\vec{A}\\) e indica le sue componenti \\(A_x\\) e \\(A_y\\).",
+                  "nota": "Suggerimento: usa un triangolo rettangolo e ragiona con seno/coseno."
                 }
               ]
             },

@@ -31,7 +31,10 @@ import {
     TitoloLivello,
     BloccoSequenza,
     SequenzaStep,
+    BloccoAttivita,
+    BrainstormingBlock,
 } from "./schema";
+import type { BloccoBrainstorming } from "./schema";
 import { Latex } from "../../components/ui/Latex";
 import { AssetManager } from "../../assets";
 
@@ -398,6 +401,189 @@ function NotaBlock({ blocco }: { blocco: BloccoNota }): React.ReactElement {
         </div>
     );
 }
+
+
+
+function ActivityBlock({ blocco }: { blocco: BloccoAttivita }): React.ReactElement {
+    // blocco è BloccoAttivita (evitiamo refactor dei nomi esistenti)
+    return (
+        <div
+            style={{
+                background: "#fff7ed",
+                borderLeft: "4px solid #f97316",
+                borderRadius: "0 10px 10px 0",
+                padding: 16,
+                margin: "20px 0",
+            }}
+        >
+            <div style={{ fontWeight: 700, color: "#9a3412", marginBottom: 8, fontSize: 15 }}>
+                🧩 {blocco.titolo ?? "Attività"}
+            </div>
+
+            <div style={{ color: "#7c2d12", lineHeight: 1.6 }}>
+                {renderTesto(blocco.consegna)}
+            </div>
+
+            {blocco.nota && (
+                <div style={{ fontSize: 13, color: "#c2410c", marginTop: 10, fontStyle: "italic" }}>
+                    {renderTesto(blocco.nota)}
+                </div>
+            )}
+        </div>
+    );
+}
+
+function BrainstormingBlockRenderer({
+                                        block,
+                                    }: {
+    block: BrainstormingBlock;
+}): React.ReactElement {
+    const height = block.heightPx ?? 280;
+
+    const storageKey = block.persistId
+        ? `lesson:brainstorming:${block.persistId}`
+        : null;
+
+    const defaultPersist =
+        storageKey ? block.persistDefault ?? true : false;
+
+    const [persistEnabled, setPersistEnabled] =
+        React.useState<boolean>(defaultPersist);
+
+    const [htmlContent, setHtmlContent] = React.useState<string>("");
+
+    const boardRef = React.useRef<HTMLDivElement | null>(null);
+    const saveTimerRef = React.useRef<number | null>(null);
+
+    // Load persisted content
+    React.useEffect(() => {
+        if (!storageKey || !persistEnabled) return;
+
+        const saved = localStorage.getItem(storageKey);
+        if (saved != null) {
+            setHtmlContent(saved);
+            requestAnimationFrame(() => {
+                if (boardRef.current) {
+                    boardRef.current.innerHTML = saved;
+                }
+            });
+        }
+    }, [storageKey, persistEnabled]);
+
+    // Sync state -> DOM
+    React.useEffect(() => {
+        if (!boardRef.current) return;
+        if (boardRef.current.innerHTML !== htmlContent) {
+            boardRef.current.innerHTML = htmlContent;
+        }
+    }, [htmlContent]);
+
+    function scheduleSave(content: string) {
+        if (!storageKey || !persistEnabled) return;
+
+        if (saveTimerRef.current) {
+            window.clearTimeout(saveTimerRef.current);
+        }
+
+        saveTimerRef.current = window.setTimeout(() => {
+            localStorage.setItem(storageKey, content);
+        }, 400);
+    }
+
+    function handleInput() {
+        if (!boardRef.current) return;
+        const content = boardRef.current.innerHTML;
+        setHtmlContent(content);
+        scheduleSave(content);
+    }
+
+    function handleClear() {
+        setHtmlContent("");
+        if (boardRef.current) {
+            boardRef.current.innerHTML = "";
+        }
+        if (storageKey) {
+            localStorage.removeItem(storageKey);
+        }
+    }
+
+    return (
+        <div
+            style={{
+                background: "#0f172a",
+                borderLeft: "4px solid #22c55e",
+                borderRadius: "0 8px 8px 0",
+                padding: 16,
+                margin: "20px 0",
+                color: "#f8fafc",
+            }}
+        >
+            {/* Header */}
+            <div
+                style={{
+                    fontWeight: 700,
+                    marginBottom: 8,
+                    fontSize: 15,
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                }}
+            >
+                <span>🧠 {block.title}</span>
+
+                {storageKey && (
+                    <label style={{ fontSize: 12, cursor: "pointer" }}>
+                        <input
+                            type="checkbox"
+                            checked={persistEnabled}
+                            onChange={(e) => setPersistEnabled(e.target.checked)}
+                            style={{ marginRight: 6 }}
+                        />
+                        persist
+                    </label>
+                )}
+            </div>
+
+            {/* Board */}
+            <div
+                ref={boardRef}
+                contentEditable
+                onInput={handleInput}
+                style={{
+                    minHeight: height,
+                    background: "#020617",
+                    border: "1px dashed #64748b",
+                    borderRadius: 6,
+                    padding: 12,
+                    outline: "none",
+                    fontFamily: "monospace",
+                    whiteSpace: "pre-wrap",
+                }}
+                data-placeholder={block.placeholder ?? "Write here..."}
+                suppressContentEditableWarning
+            />
+
+            {/* Actions */}
+            <div style={{ marginTop: 8, textAlign: "right" }}>
+                <button
+                    onClick={handleClear}
+                    style={{
+                        fontSize: 12,
+                        padding: "4px 8px",
+                        borderRadius: 4,
+                        background: "#334155",
+                        color: "#e5e7eb",
+                        border: "none",
+                        cursor: "pointer",
+                    }}
+                >
+                    Clear
+                </button>
+            </div>
+        </div>
+    );
+}
+
 
 function ElencoBlock({ blocco }: { blocco: BloccoElenco }): React.ReactElement {
     const items = blocco.elementi.map((el: string, i: number) => (
@@ -1145,6 +1331,8 @@ function renderBlocco(blocco: Blocco, index: number): React.ReactNode {
             return <EsempioBlock key={key} blocco={blocco} />;
         case "nota":
             return <NotaBlock key={key} blocco={blocco} />;
+        case "attivita":
+            return <ActivityBlock key={key} blocco={blocco} />;
         case "elenco":
             return <ElencoBlock key={key} blocco={blocco} />;
         case "immagine":
@@ -1165,6 +1353,8 @@ function renderBlocco(blocco: Blocco, index: number): React.ReactNode {
             return <SeparatoreBlock key={key} />;
         case "tabella":
             return <TabellaBlock key={key} blocco={blocco} />;
+        case "brainstorming":
+            return <BrainstormingBlockRenderer block={block as BrainstormingBlock} />;
         default:
             return (
                 <div key={key} style={{ padding: 12, background: "#fef2f2", borderRadius: 8, color: "#991b1b" }}>
