@@ -1823,7 +1823,7 @@ function PresentationView({ lezione, boardStyle, onExit }: PresentationViewProps
                             color: theme.text,
                             cursor: "pointer",
                             fontSize: 14,
-                        }
+                        }}
                     >
                         - Zoom
                     </button>
