@@ -25,73 +25,19 @@
     ],
     "obiettivi": [
       "Comprendere il significato delle componenti cartesiane di un vettore",
-      "Calcolare le componenti Aₓ e Aᵧ dato il modulo e l'angolo",
+      "Calcolare le componenti Ax e Ay dato il modulo e l'angolo",
       "Calcolare modulo e angolo date le componenti",
       "Riconoscere i segni delle componenti nei quattro quadranti"
     ]
   },
-  "introduzione": [
-    {
-      "tipo": "sequenza",
-      "titolo": "Introduzione (BENVENUTO)",
-      "showProgress": true,
-      "allowJump": true,
-      "steps": [
-        {
-          "titolo": "Perché servono le componenti",
-          "blocchi": [
-            {
-              "tipo": "testo",
-              "contenuto": "In fisica spesso è necessario lavorare con i vettori in modo analitico. Per farlo, è fondamentale saper **scomporre** un vettore nelle sue **componenti cartesiane**."
-            },
-
-            {
-              "tipo": "immagine",
-              "src": "images/lezioni/vettori/img.png",
-              "alt": "Scomposizione di un vettore...",
-              "didascalia": "Figura: Sistema di riferimento cartesiano",
-              "larghezza": 60
-            },
-            {
-              "tipo": "question",
-              "title": "Quick check",
-              "question": "Why do we decompose a vector into components?",
-              "answer": "Because we can analyze motion/forces along each axis independently.",
-              "showAnswerLabel": "Mostra Risposta",
-              "hideAnswerLabel": "Nascondi risposta",
-              "defaultExpanded": false
-            }
-
-
-
-          ],
-          "transitions": [
-            0,
-            1
-          ]
-        },
-        {
-          "titolo": "Idea chiave",
-          "blocchi": [
-            {
-              "tipo": "nota",
-              "variante": "info",
-              "contenuto": "Le componenti cartesiane permettono di trasformare operazioni geometriche sui vettori in semplici operazioni algebriche sui numeri."
-            }
-          ]
-        }
-      ]
-    }
-
-  ],
   "sezioni": [
     {
-      "id": "scomposizione",
+      "id": "scomposizione-di-un-vettore",
       "titolo": "Scomposizione di un vettore",
       "blocchi": [
         {
           "tipo": "sequenza",
-          "titolo": "Scomposizione passo-passo",
+          "titolo": "Scomposizione di un vettore",
           "showProgress": true,
           "allowJump": true,
           "steps": [
@@ -113,21 +59,19 @@
                   "tipo": "brainstorming",
                   "titolo": "Brainstorming: cosa sappiamo sui vettori?",
                   "placeholder": "Scrivi qui idee/definizioni/esempi...",
+                  "altezzaPx": 280,
                   "persistId": "vectors-intro",
-                  "persistDefault": true,
-                  "altezzaPx": 280
+                  "persistDefault": true
                 }
               ]
             },
-
             {
               "titolo": "Definizione di componenti",
               "blocchi": [
                 {
                   "tipo": "definizione",
                   "termine": "Componenti cartesiane",
-                  "definizione": "Le coordinate $A_x$ e $A_y$ della punta del vettore $\\vec{A}$ (quando la coda è nell'origine) sono dette **componenti cartesiane** del vettore.",
-                  "nota": "Le componenti sono numeri con segno, non vettori!"
+                  "definizione": "Le coordinate $A_x$ e $A_y$ della punta del vettore $\\vec{A}$ (quando la coda è nell'origine) sono dette **componenti cartesiane** del vettore.\n\nnote: Le componenti sono numeri con segno, non vettori!"
                 },
                 {
                   "tipo": "immagine",
@@ -139,10 +83,8 @@
                 {
                   "tipo": "attivita",
                   "titolo": "Attività",
-                  "consegna": "Disegna un vettore \\(\\vec{A}\\) e indica le sue componenti \\(A_x\\) e \\(A_y\\).",
-                  "nota": "Suggerimento: usa un triangolo rettangolo e ragiona con seno/coseno."
+                  "consegna": "Disegna un vettore $\\vec{A}$ e indica le sue componenti $A_x$ e $A_y$.\n\nnote: Suggerimento: usa un triangolo rettangolo e ragiona con seno/coseno."
                 }
-
               ]
             },
             {
@@ -160,8 +102,7 @@
                 {
                   "tipo": "formula",
                   "latex": "\\vec{A} = \\vec{A}_x + \\vec{A}_y",
-                  "display": true,
-                  "descrizione": "Scomposizione del vettore nelle sue componenti vettoriali"
+                  "display": true
                 }
               ]
             },
@@ -180,12 +121,12 @@
       ]
     },
     {
-      "id": "funzioni-goniometriche",
+      "id": "le-funzioni-goniometriche",
       "titolo": "Le funzioni goniometriche",
       "blocchi": [
         {
           "tipo": "sequenza",
-          "titolo": "Ripasso goniometria (solo ciò che serve)",
+          "titolo": "Le funzioni goniometriche",
           "showProgress": true,
           "allowJump": true,
           "steps": [
@@ -250,12 +191,12 @@
       ]
     },
     {
-      "id": "calcolo-componenti",
+      "id": "da-modulo-e-angolo-alle-componenti",
       "titolo": "Da modulo e angolo alle componenti",
       "blocchi": [
         {
           "tipo": "sequenza",
-          "titolo": "Da (A, θ) a (Ax, Ay)",
+          "titolo": "Da modulo e angolo alle componenti",
           "showProgress": true,
           "allowJump": true,
           "steps": [
@@ -274,7 +215,7 @@
                 {
                   "tipo": "teorema",
                   "nome": "Formule per le componenti",
-                  "enunciato": "Date il modulo $A$ e l'angolo $\\theta$ di un vettore, le componenti cartesiane sono:\n\n$A_x = A \\cdot \\cos\\theta$\n\n$A_y = A \\cdot \\sin\\theta$"
+                  "enunciato": "Date il modulo $A$ e l'angolo $\\theta$ di un vettore, le componenti cartesiane sono:"
                 },
                 {
                   "tipo": "immagine",
@@ -292,8 +233,7 @@
                   "tipo": "esempio",
                   "titolo": "Calcolo delle componenti",
                   "problema": "Un vettore $\\vec{r}$ ha modulo $r = 1{,}50$ m e forma un angolo $\\theta = 25°$ con l'asse $x$ positivo. Calcola le componenti cartesiane.",
-                  "soluzione": "Applichiamo le formule:\n\n$r_x = r \\cdot \\cos\\theta = 1{,}50 \\text{ m} \\cdot \\cos(25°) = 1{,}50 \\cdot 0{,}9063 = 1{,}36 \\text{ m}$\n\n$r_y = r \\cdot \\sin\\theta = 1{,}50 \\text{ m} \\cdot \\sin(25°) = 1{,}50 \\cdot 0{,}4226 = 0{,}634 \\text{ m}$",
-                  "nota": "Sulla calcolatrice, assicurati che sia impostata in modalità DEG (gradi)!"
+                  "soluzione": "Applichiamo le formule:"
                 }
               ]
             },
@@ -303,7 +243,6 @@
                 {
                   "tipo": "demo",
                   "componente": "ComponentiCartesianeVettoreDemo",
-                  "props": {},
                   "titolo": "Prova tu!",
                   "descrizione": "Usa gli slider per cambiare modulo e angolo e osserva come variano le componenti."
                 }
@@ -314,12 +253,12 @@
       ]
     },
     {
-      "id": "calcolo-inverso",
+      "id": "dalle-componenti-a-modulo-e-angolo",
       "titolo": "Dalle componenti a modulo e angolo",
       "blocchi": [
         {
           "tipo": "sequenza",
-          "titolo": "Da (Ax, Ay) a (A, θ)",
+          "titolo": "Dalle componenti a modulo e angolo",
           "showProgress": true,
           "allowJump": true,
           "steps": [
@@ -338,8 +277,7 @@
                 {
                   "tipo": "teorema",
                   "nome": "Formule inverse",
-                  "enunciato": "Date le componenti $A_x$ e $A_y$, il modulo si calcola con il teorema di Pitagora:\n\n$|\\vec{A}| = \\sqrt{A_x^2 + A_y^2}$\n\nL'angolo $\\theta$ si trova con l'arcotangente:\n\n$\\theta = \\arctan\\left(\\frac{|A_y|}{|A_x|}\\right)$",
-                  "dimostrazione": "Il modulo segue direttamente dal teorema di Pitagora, dato che il vettore è l'ipotenusa di un triangolo rettangolo con cateti $|A_x|$ e $|A_y|$.\n\nPer l'angolo, dalla definizione di tangente: $\\tan\\theta = \\frac{A_y}{A_x}$, quindi $\\theta = \\arctan\\left(\\frac{A_y}{A_x}\\right)$."
+                  "enunciato": "Date le componenti $A_x$ e $A_y$, il modulo si calcola con il teorema di Pitagora:"
                 }
               ]
             },
@@ -360,8 +298,7 @@
                   "tipo": "esempio",
                   "titolo": "Calcolo del modulo e dell'angolo",
                   "problema": "Un vettore ha componenti $r_x = 1{,}67$ m e $r_y = -1{,}15$ m. Calcola modulo e direzione.",
-                  "soluzione": "**Modulo:**\n$r = \\sqrt{r_x^2 + r_y^2} = \\sqrt{(1{,}67)^2 + (-1{,}15)^2} = \\sqrt{2{,}79 + 1{,}32} = 2{,}03 \\text{ m}$\n\n**Angolo acuto:**\n$\\tan\\theta = \\frac{|r_y|}{|r_x|} = \\frac{1{,}15}{1{,}67} = 0{,}689$\n$\\theta_{acuto} = \\arctan(0{,}689) = 35°$\n\n**Quadrante:**\n$r_x > 0$ e $r_y < 0$ → IV quadrante\n\nL'angolo rispetto all'asse x positivo è: $\\theta = 360° - 35° = 325°$ (oppure $-35°$)",
-                  "nota": "Nel IV quadrante, $A_x$ è positivo e $A_y$ è negativo."
+                  "soluzione": "**Modulo:**\n$r = \\sqrt{r_x^2 + r_y^2} = \\sqrt{(1{,}67)^2 + (-1{,}15)^2} = \\sqrt{2{,}79 + 1{,}32} = 2{,}03 \\text{ m}$"
                 }
               ]
             }
@@ -370,12 +307,12 @@
       ]
     },
     {
-      "id": "quadranti",
+      "id": "i-segni-nei-quattro-quadranti",
       "titolo": "I segni nei quattro quadranti",
       "blocchi": [
         {
           "tipo": "sequenza",
-          "titolo": "Segni delle componenti",
+          "titolo": "I segni nei quattro quadranti",
           "showProgress": true,
           "allowJump": true,
           "steps": [
@@ -424,8 +361,7 @@
                       "$< 0$",
                       "$270° < \\theta < 360°$"
                     ]
-                  ],
-                  "didascalia": "Segni delle componenti cartesiane nei quattro quadranti"
+                  ]
                 },
                 {
                   "tipo": "immagine",
@@ -451,12 +387,12 @@
       ]
     },
     {
-      "id": "quiz",
+      "id": "verifica-le-tue-conoscenze",
       "titolo": "Verifica le tue conoscenze",
       "blocchi": [
         {
           "tipo": "sequenza",
-          "titolo": "Quiz a step",
+          "titolo": "Verifica le tue conoscenze",
           "showProgress": true,
           "allowJump": true,
           "steps": [
@@ -484,7 +420,7 @@
                       "corretta": false
                     }
                   ],
-                  "spiegazione": "La componente $A_x$ è il cateto **adiacente** all'angolo $\\theta$, quindi si calcola con il **coseno**: $A_x = A \\cdot \\cos\\theta$.",
+                  "spiegazione": "",
                   "difficolta": "facile"
                 }
               ]
@@ -513,7 +449,7 @@
                       "corretta": false
                     }
                   ],
-                  "spiegazione": "Nel II quadrante, il vettore punta verso sinistra ($A_x < 0$) e verso l'alto ($A_y > 0$).",
+                  "spiegazione": "",
                   "difficolta": "media"
                 }
               ]
@@ -542,7 +478,7 @@
                       "corretta": false
                     }
                   ],
-                  "spiegazione": "L'identità fondamentale è una conseguenza diretta del **teorema di Pitagora** applicato a un triangolo rettangolo con ipotenusa unitaria (cerchio goniometrico).",
+                  "spiegazione": "",
                   "difficolta": "media"
                 }
               ]
@@ -552,21 +488,65 @@
       ]
     }
   ],
+  "introduzione": [
+    {
+      "tipo": "sequenza",
+      "titolo": "Introduzione",
+      "showProgress": true,
+      "allowJump": true,
+      "steps": [
+        {
+          "titolo": "Perché servono le componenti",
+          "blocchi": [
+            {
+              "tipo": "testo",
+              "contenuto": "In fisica spesso è necessario lavorare con i vettori in modo analitico. Per farlo, è fondamentale saper **scomporre** un vettore nelle sue **componenti cartesiane**."
+            },
+            {
+              "tipo": "immagine",
+              "src": "images/lezioni/vettori/img.png",
+              "alt": "Scomposizione di un vettore...",
+              "didascalia": "Figura: Sistema di riferimento cartesiano",
+              "larghezza": 60
+            },
+            {
+              "tipo": "question",
+              "title": "Quick check",
+              "question": "Why do we decompose a vector into components?",
+              "answer": "Because we can analyze motion/forces along each axis independently.",
+              "showAnswerLabel": "Mostra Risposta",
+              "hideAnswerLabel": "Nascondi risposta",
+              "defaultExpanded": false
+            }
+          ],
+          "transitions": [
+            1,
+            2
+          ]
+        },
+        {
+          "titolo": "Idea chiave",
+          "blocchi": [
+            {
+              "tipo": "nota",
+              "variante": "info",
+              "contenuto": "Le componenti cartesiane permettono di trasformare operazioni geometriche sui vettori in semplici operazioni algebriche sui numeri."
+            }
+          ]
+        }
+      ]
+    }
+  ],
   "conclusione": [
     {
       "tipo": "sequenza",
-      "titolo": "Riepilogo a step",
+      "titolo": "Conclusione",
       "showProgress": true,
       "allowJump": true,
       "steps": [
         {
           "titolo": "Riepilogo",
           "blocchi": [
-            {
-              "tipo": "titolo",
-              "livello": 2,
-              "testo": "Riepilogo"
-            },
             {
               "tipo": "immagine",
               "assetId": "shared/assi-cartesiani",

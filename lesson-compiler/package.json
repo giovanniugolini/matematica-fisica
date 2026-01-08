@@ -1,14 +1,11 @@
 {
   "name": "lesson-markdown-compiler",
-  "version": "0.1.0",
-  "description": "Compiler for Lesson Markdown DSL → JSON",
+  "version": "0.2.0",
+  "description": "Compiler for Lesson Markdown DSL → JSON (with sequenze support)",
   "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "compile:lessons": "tsx scripts/compile-lessons.ts",
-    "compile:watch": "tsx scripts/compile-lessons.ts --watch",
     "test": "vitest",
     "test:run": "vitest run"
   },
@@ -27,8 +24,5 @@
     "typescript": "^5.3.0",
     "tsx": "^4.7.0",
     "vitest": "^1.1.0"
-  },
-  "engines": {
-    "node": ">=18.0.0"
   }
 }

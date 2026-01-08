@@ -1,5 +1,6 @@
 /**
- * Parser - Markdown → AST
+ * Parser v2 - Markdown → AST
+ * Supporta: sezioni (#), introduzione/conclusione, sequenze con step (==)
  */
 
 import { unified } from 'unified';
@@ -11,7 +12,7 @@ import { parse as parseYaml } from 'yaml';
 import type {
   AstDocument,
   AstBlock,
-  AstSlide,
+  AstSection,
   AstFrontmatter,
   AstHeading,
   AstParagraph,
@@ -19,6 +20,7 @@ import type {
   AstList,
   AstImage,
   AstTransition,
+  AstSectionBreak,
   AstDirective,
   CompilerError,
   CompilerWarning,
@@ -39,7 +41,6 @@ interface MdastNode {
   ordered?: boolean;
   url?: string;
   alt?: string;
-  title?: string;
   lang?: string;
 }
 
@@ -47,29 +48,23 @@ interface ExtractedDirective {
   name: string;
   variant: string;
   content: string;
+  rawContent: string;
   line: number;
 }
 
 export class Parser {
   private errors: CompilerError[] = [];
   private warnings: CompilerWarning[] = [];
-  private sourcePath: string;
-
-  constructor(sourcePath: string = '<input>') {
-    this.sourcePath = sourcePath;
-  }
 
   async parse(source: string): Promise<AstDocument> {
     this.errors = [];
     this.warnings = [];
 
-    // Step 1: Pre-process transitions
-    const { source: sourceWithTransitions, transitionPlaceholders } = this.extractTransitions(source);
+    // Step 1: Pre-process transitions and directives
+    const { source: s1, transitionPlaceholders } = this.extractTransitions(source);
+    const { processedSource, directives } = this.extractDirectives(s1);
 
-    // Step 2: Extract ::: directives
-    const { processedSource, directives } = this.extractDirectives(sourceWithTransitions);
-
-    // Step 3: Parse with remark
+    // Step 2: Parse with remark
     const processor = unified()
       .use(remarkParse)
       .use(remarkFrontmatter, ['yaml'])
@@ -77,15 +72,18 @@ export class Parser {
 
     const mdast = processor.parse(processedSource) as MdastNode;
 
-    // Step 4: Convert MDAST to our AST
+    // Step 3: Convert to AST blocks
     const { frontmatter, blocks } = this.convertMdast(mdast, directives, transitionPlaceholders);
 
-    // Step 5: Split into slides
-    const slides = this.splitIntoSlides(blocks);
+    // Step 4: Split into introduction, sections, conclusion
+    const { introduction, sections, conclusion, resources } = this.splitDocument(blocks);
 
     return {
       frontmatter,
-      slides,
+      introduction,
+      sections,
+      conclusion,
+      resources,
       errors: this.errors,
       warnings: this.warnings,
     };
@@ -114,6 +112,7 @@ export class Parser {
     const directives = new Map<string, ExtractedDirective>();
     let counter = 0;
 
+    // Match ::: blocks - capture raw content for sequenze
     const regex = /^:::(\w+)(?: (.+))?[\r\n]+([\s\S]*?)^:::[ \t]*$/gm;
 
     const processedSource = source.replace(regex, (match, name, variant, content, offset) => {
@@ -124,6 +123,7 @@ export class Parser {
         name: name || '',
         variant: (variant || '').trim(),
         content: (content || '').trim(),
+        rawContent: content || '',
         line,
       });
 
@@ -141,9 +141,7 @@ export class Parser {
     let frontmatter: AstFrontmatter | null = null;
     const blocks: AstBlock[] = [];
 
-    if (!mdast.children) {
-      return { frontmatter, blocks };
-    }
+    if (!mdast.children) return { frontmatter, blocks };
 
     for (const node of mdast.children) {
       const location = this.getLocation(node.position);
@@ -190,6 +188,7 @@ export class Parser {
                 name: directive.name,
                 attributes: { ...attrs, variant: directive.variant || attrs.variant },
                 content,
+                rawContent: directive.rawContent,
                 location,
               } as AstDirective);
               break;
@@ -201,35 +200,24 @@ export class Parser {
             break;
           }
 
+          // Display LaTeX
           const latexMatch = text.match(/^\$\$([\s\S]+)\$\$$/);
           if (latexMatch) {
-            const latex = latexMatch[1].trim();
-            const labelMatch = latex.match(/^\[([^\]]+)\]\s*([\s\S]+)$/);
             blocks.push({
               type: 'latex-display',
-              latex: labelMatch ? labelMatch[2].trim() : latex,
-              label: labelMatch ? labelMatch[1] : undefined,
+              latex: latexMatch[1].trim(),
               location,
             } as AstLatexDisplay);
             break;
           }
 
-          blocks.push({
-            type: 'paragraph',
-            content: text,
-            location,
-          } as AstParagraph);
+          blocks.push({ type: 'paragraph', content: text, location } as AstParagraph);
           break;
         }
 
         case 'list': {
           const items = (node.children || []).map(item => this.extractText(item));
-          blocks.push({
-            type: 'list',
-            ordered: node.ordered ?? false,
-            items,
-            location,
-          } as AstList);
+          blocks.push({ type: 'list', ordered: node.ordered ?? false, items, location } as AstList);
           break;
         }
 
@@ -244,7 +232,8 @@ export class Parser {
         }
 
         case 'thematicBreak': {
-          blocks.push({ type: 'slide-separator', location });
+          // --- is section break
+          blocks.push({ type: 'section-break', location } as AstSectionBreak);
           break;
         }
 
@@ -277,7 +266,6 @@ export class Parser {
             blocks.push({ type: 'transition', location } as AstTransition);
             break;
           }
-          
           blocks.push({
             type: 'directive',
             name: 'quote',
@@ -291,6 +279,99 @@ export class Parser {
     }
 
     return { frontmatter, blocks };
+  }
+
+  private splitDocument(blocks: AstBlock[]): {
+    introduction: AstBlock[];
+    sections: AstSection[];
+    conclusion: AstBlock[];
+    resources: Array<{ type: string; title: string; url?: string; description?: string }>;
+  } {
+    const introduction: AstBlock[] = [];
+    const sections: AstSection[] = [];
+    const conclusion: AstBlock[] = [];
+    const resources: Array<{ type: string; title: string; url?: string; description?: string }> = [];
+
+    let currentSection: AstSection | null = null;
+    let inIntro = true;
+    let inConclusion = false;
+
+    for (const block of blocks) {
+      // Check for special section markers via H1
+      if (block.type === 'heading' && (block as AstHeading).depth === 1) {
+        const title = (block as AstHeading).text.toLowerCase();
+        
+        if (title.includes('introduzione') || title.includes('intro')) {
+          inIntro = true;
+          inConclusion = false;
+          currentSection = null;
+          continue;
+        }
+        
+        if (title.includes('conclusione') || title.includes('riepilogo')) {
+          inIntro = false;
+          inConclusion = true;
+          currentSection = null;
+          continue;
+        }
+
+        if (title.includes('risorse') || title.includes('resources')) {
+          // Skip, resources handled via directive
+          continue;
+        }
+
+        // Regular section
+        inIntro = false;
+        inConclusion = false;
+        currentSection = {
+          id: this.slugify(title),
+          title: (block as AstHeading).text,
+          blocks: [],
+        };
+        sections.push(currentSection);
+        continue;
+      }
+
+      // Section break (---)
+      if (block.type === 'section-break') {
+        if (currentSection) {
+          currentSection = null;
+        }
+        continue;
+      }
+
+      // Resource directive
+      if (block.type === 'directive' && (block as AstDirective).name === 'risorsa') {
+        const attrs = (block as AstDirective).attributes;
+        resources.push({
+          type: attrs.tipo as string || 'sito',
+          title: attrs.titolo as string || '',
+          url: attrs.url as string,
+          description: attrs.descrizione as string,
+        });
+        continue;
+      }
+
+      // Add block to appropriate container
+      if (inConclusion) {
+        conclusion.push(block);
+      } else if (inIntro && !currentSection) {
+        introduction.push(block);
+      } else if (currentSection) {
+        currentSection.blocks.push(block);
+      } else {
+        // No section yet, create default
+        currentSection = {
+          id: `sezione-${sections.length + 1}`,
+          title: `Sezione ${sections.length + 1}`,
+          blocks: [block],
+        };
+        sections.push(currentSection);
+        inIntro = false;
+      }
+    }
+
+    return { introduction, sections, conclusion, resources };
   }
 
   private parseDirectiveBody(body: string): {
@@ -314,21 +395,17 @@ export class Parser {
       }
     };
 
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      const trimmedLine = line.trim();
+    for (const line of lines) {
+      const trimmed = line.trim();
 
-      if (trimmedLine === '') {
-        if (currentKey) {
-          saveCurrentAttr();
-        }
-        if (inContent) {
-          contentLines.push('');
-        }
+      if (trimmed === '') {
+        if (currentKey) saveCurrentAttr();
+        if (inContent) contentLines.push('');
         continue;
       }
 
-      if (trimmedLine.startsWith('- ')) {
+      // List items are content
+      if (trimmed.startsWith('- ')) {
         saveCurrentAttr();
         inContent = true;
         contentLines.push(line);
@@ -340,11 +417,11 @@ export class Parser {
         continue;
       }
 
+      // key: value
       const match = line.match(/^([a-zA-Z_]\w*)\s*:\s*(.*)$/);
       if (match) {
         saveCurrentAttr();
         const [, key, value] = match;
-        
         if (value.trim()) {
           attrs[key] = this.parseValue(value.trim());
         } else {
@@ -363,9 +440,7 @@ export class Parser {
     }
 
     saveCurrentAttr();
-
-    const content = contentLines.join('\n').trim();
-    return { attrs, content };
+    return { attrs, content: contentLines.join('\n').trim() };
   }
 
   private parseValue(value: string): unknown {
@@ -383,18 +458,13 @@ export class Parser {
   private parseTable(node: MdastNode): { header: string[]; rows: string[][] } {
     const header: string[] = [];
     const rows: string[][] = [];
-
     for (const child of node.children || []) {
       if (child.type === 'tableRow') {
         const cells = (child.children || []).map(cell => this.extractText(cell));
-        if (header.length === 0) {
-          header.push(...cells);
-        } else {
-          rows.push(cells);
-        }
+        if (header.length === 0) header.push(...cells);
+        else rows.push(cells);
       }
     }
-
     return { header, rows };
   }
 
@@ -415,39 +485,16 @@ export class Parser {
     }
   }
 
-  private splitIntoSlides(blocks: AstBlock[]): AstSlide[] {
-    const slides: AstSlide[] = [];
-    let current: AstSlide = { blocks: [], transitionIndices: [] };
-    let blockIdx = 0;
-
-    for (const block of blocks) {
-      if (block.type === 'slide-separator') {
-        if (current.blocks.length > 0) {
-          slides.push(current);
-        }
-        current = { blocks: [], transitionIndices: [] };
-        blockIdx = 0;
-        continue;
-      }
-
-      if (block.type === 'transition') {
-        current.transitionIndices.push(blockIdx);
-        continue;
-      }
-
-      if (block.type === 'heading' && !current.title) {
-        current.title = (block as AstHeading).text;
-      }
-
-      current.blocks.push(block);
-      blockIdx++;
-    }
-
-    if (current.blocks.length > 0) {
-      slides.push(current);
-    }
-
-    return slides;
+  private slugify(text: string): string {
+    return text
+      .toLowerCase()
+      .replace(/[àáâãäå]/g, 'a')
+      .replace(/[èéêë]/g, 'e')
+      .replace(/[ìíîï]/g, 'i')
+      .replace(/[òóôõö]/g, 'o')
+      .replace(/[ùúûü]/g, 'u')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
   }
 
   private getLocation(pos?: Position): SourceRange | undefined {

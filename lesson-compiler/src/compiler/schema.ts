@@ -1,6 +1,11 @@
 /**
- * Schema Lezioni - Tipi per il compilatore
+ * Schema Lezioni - Tipi per il compilatore v2
+ * Allineato alla struttura del frontend
  */
+
+// ============================================================================
+// ENUMS E TIPI BASE
+// ============================================================================
 
 export type LivelloScolastico =
   | "primo-biennio"
@@ -17,12 +22,19 @@ export type Argomento =
   | "dinamica" | "lavoro-energia" | "vettori" | "elettrostatica"
   | "elettromagnetismo" | "termologia" | "onde" | "ottica";
 
+export type NotaVariante = "info" | "attenzione" | "suggerimento" | "ricorda";
+export type CalloutVariante = "obiettivo" | "prerequisiti" | "materiali" | "tempo";
+export type TitoloLivello = 2 | 3 | 4;
+export type DifficoltaQuiz = "facile" | "media" | "difficile";
+
+// ============================================================================
+// BLOCCHI
+// ============================================================================
+
 export interface BloccoTesto {
   tipo: "testo";
   contenuto: string;
 }
-
-export type TitoloLivello = 2 | 3 | 4;
 
 export interface BloccoTitolo {
   tipo: "titolo";
@@ -34,6 +46,7 @@ export interface BloccoFormula {
   tipo: "formula";
   latex: string;
   display?: boolean;
+  descrizione?: string;
   etichetta?: string;
 }
 
@@ -59,11 +72,16 @@ export interface BloccoEsempio {
   nota?: string;
 }
 
-export type NotaVariante = "info" | "attenzione" | "suggerimento" | "ricorda";
-
 export interface BloccoNota {
   tipo: "nota";
   variante: NotaVariante;
+  contenuto: string;
+}
+
+export interface BloccoCallout {
+  tipo: "callout";
+  variante: CalloutVariante;
+  titolo?: string;
   contenuto: string;
 }
 
@@ -88,9 +106,6 @@ export interface BloccoVideo {
   assetId?: string;
   titolo?: string;
   didascalia?: string;
-  larghezza?: number;
-  altezza?: number;
-  autoplay?: boolean;
 }
 
 export interface BloccoDemo {
@@ -99,7 +114,6 @@ export interface BloccoDemo {
   props?: Record<string, unknown>;
   titolo?: string;
   descrizione?: string;
-  altezza?: number;
 }
 
 export interface OpzioneQuiz {
@@ -112,31 +126,7 @@ export interface BloccoQuiz {
   domanda: string;
   opzioni: OpzioneQuiz[];
   spiegazione: string;
-  difficolta?: "facile" | "media" | "difficile";
-}
-
-export interface StepItem {
-  titolo: string;
-  contenuto: string;
-}
-
-export interface BloccoStepByStep {
-  tipo: "step-by-step";
-  titolo?: string;
-  step: StepItem[];
-}
-
-export type CalloutVariante = "obiettivo" | "prerequisiti" | "materiali" | "tempo";
-
-export interface BloccoCallout {
-  tipo: "callout";
-  variante: CalloutVariante;
-  titolo?: string;
-  contenuto: string;
-}
-
-export interface BloccoSeparatore {
-  tipo: "separatore";
+  difficolta?: DifficoltaQuiz;
 }
 
 export interface BloccoTabella {
@@ -157,7 +147,6 @@ export interface BloccoCodice {
   tipo: "codice";
   linguaggio: string;
   codice: string;
-  eseguibile?: boolean;
 }
 
 export interface BloccoCollegamento {
@@ -176,9 +165,9 @@ export interface BloccoAttivita {
 
 export interface BloccoBrainstorming {
   tipo: "brainstorming";
-  title: string;
+  titolo: string;
   placeholder?: string;
-  heightPx?: number;
+  altezzaPx?: number;
   persistId?: string;
   persistDefault?: boolean;
 }
@@ -193,21 +182,31 @@ export interface BloccoQuestion {
   defaultExpanded?: boolean;
 }
 
+export interface BloccoSeparatore {
+  tipo: "separatore";
+}
+
+// ============================================================================
+// SEQUENZA - Struttura per step con transizioni
+// ============================================================================
+
 export interface SequenzaStep {
-  id?: string;
   titolo?: string;
-  transitions?: number[];
   blocchi: Blocco[];
+  transitions?: number[];
 }
 
 export interface BloccoSequenza {
   tipo: "sequenza";
   titolo?: string;
-  steps: SequenzaStep[];
-  startAt?: number;
   showProgress?: boolean;
   allowJump?: boolean;
+  steps: SequenzaStep[];
 }
+
+// ============================================================================
+// UNION TYPE BLOCCHI
+// ============================================================================
 
 export type Blocco =
   | BloccoTesto
@@ -217,22 +216,25 @@ export type Blocco =
   | BloccoTeorema
   | BloccoEsempio
   | BloccoNota
+  | BloccoCallout
   | BloccoElenco
   | BloccoImmagine
   | BloccoVideo
   | BloccoDemo
   | BloccoQuiz
-  | BloccoStepByStep
-  | BloccoCallout
-  | BloccoSeparatore
   | BloccoTabella
   | BloccoCitazione
   | BloccoCodice
   | BloccoCollegamento
   | BloccoAttivita
-  | BloccoSequenza
   | BloccoBrainstorming
-  | BloccoQuestion;
+  | BloccoQuestion
+  | BloccoSeparatore
+  | BloccoSequenza;
+
+// ============================================================================
+// STRUTTURA LEZIONE
+// ============================================================================
 
 export interface MetadatiLezione {
   id: string;
@@ -255,7 +257,6 @@ export interface SezioneLezione {
   id: string;
   titolo: string;
   blocchi: Blocco[];
-  transitions?: number[];
 }
 
 export interface Risorsa {

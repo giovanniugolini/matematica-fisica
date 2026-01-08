@@ -1,31 +1,11 @@
 #!/usr/bin/env node
-/**
- * CLI Script - Compile lesson markdown files to JSON
- */
-
 import { readFile, writeFile, mkdir } from 'fs/promises';
 import { existsSync } from 'fs';
 import { dirname, join } from 'path';
 import { glob } from 'glob';
 import chalk from 'chalk';
-import chokidar from 'chokidar';
 
 import { compile } from '../src/compiler/index.js';
-
-interface Config {
-  inputDir: string;
-  outputDir: string;
-  watch: boolean;
-}
-
-function parseArgs(): Config {
-  const args = process.argv.slice(2);
-  return {
-    inputDir: process.env.INPUT_DIR || './src/lessons/md',
-    outputDir: process.env.OUTPUT_DIR || './src/lessons/data',
-    watch: args.includes('--watch') || args.includes('-w'),
-  };
-}
 
 async function compileFile(inputPath: string, outputPath: string): Promise<boolean> {
   try {
@@ -34,6 +14,9 @@ async function compileFile(inputPath: string, outputPath: string): Promise<boole
 
     for (const error of result.errors) {
       console.log(chalk.red(`  error[${error.code}]: ${error.message}`));
+    }
+    for (const warning of result.warnings) {
+      console.log(chalk.yellow(`  warning[${warning.code}]: ${warning.message}`));
     }
 
     if (!result.success || !result.lesson) {
@@ -55,44 +38,31 @@ async function compileFile(inputPath: string, outputPath: string): Promise<boole
   }
 }
 
-async function compileAll(config: Config): Promise<{ success: number; failed: number }> {
-  console.log(chalk.blue('\n📚 Lesson Markdown Compiler\n'));
+async function main(): Promise<void> {
+  const inputDir = process.env.INPUT_DIR || './examples/md';
+  const outputDir = process.env.OUTPUT_DIR || './output';
   
-  const files = await glob(join(config.inputDir, '**/*.md'));
+  console.log(chalk.blue('\n📚 Lesson Markdown Compiler v2\n'));
+  
+  const files = await glob(join(inputDir, '**/*.md'));
   if (files.length === 0) {
-    console.log(chalk.yellow(`No .md files found in ${config.inputDir}`));
-    return { success: 0, failed: 0 };
+    console.log(chalk.yellow(`No .md files found in ${inputDir}`));
+    return;
   }
 
   console.log(chalk.gray(`Found ${files.length} file(s)\n`));
 
   let success = 0, failed = 0;
   for (const inputPath of files) {
-    const outputPath = join(config.outputDir, inputPath.replace(config.inputDir, '').replace(/^\//, '').replace(/\.md$/, '.json'));
+    const outputPath = join(outputDir, inputPath.replace(inputDir, '').replace(/^\//, '').replace(/\.md$/, '.json'));
     if (await compileFile(inputPath, outputPath)) success++; else failed++;
   }
 
-  console.log(failed === 0 ? chalk.green(`\n✓ All ${success} file(s) compiled`) : chalk.red(`\n✗ ${failed} failed, ${success} succeeded`));
-  return { success, failed };
-}
-
-function startWatchMode(config: Config): void {
-  console.log(chalk.blue('\n👀 Watch mode\n'));
-  const watcher = chokidar.watch(join(config.inputDir, '**/*.md'), { persistent: true, ignoreInitial: true });
+  console.log(failed === 0 
+    ? chalk.green(`\n✓ All ${success} file(s) compiled`) 
+    : chalk.red(`\n✗ ${failed} failed, ${success} succeeded`));
   
-  watcher.on('change', async (inputPath) => {
-    const outputPath = join(config.outputDir, inputPath.replace(config.inputDir, '').replace(/^\//, '').replace(/\.md$/, '.json'));
-    await compileFile(inputPath, outputPath);
-  });
-
-  process.on('SIGINT', () => { watcher.close(); process.exit(0); });
-}
-
-async function main(): Promise<void> {
-  const config = parseArgs();
-  const { failed } = await compileAll(config);
-  if (config.watch) startWatchMode(config);
-  else process.exit(failed > 0 ? 1 : 0);
+  process.exit(failed > 0 ? 1 : 0);
 }
 
 main().catch(console.error);

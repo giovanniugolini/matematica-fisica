@@ -1,10 +1,11 @@
 /**
- * Compiler - AST → Lezione JSON
+ * Compiler v2 - AST → Lezione JSON
+ * Supporta sequenze con step e transizioni
  */
 
 import type {
   AstDocument,
-  AstSlide,
+  AstSection,
   AstBlock,
   AstHeading,
   AstParagraph,
@@ -12,6 +13,7 @@ import type {
   AstList,
   AstImage,
   AstDirective,
+  AstTransition,
   CompilerOutput,
   CompilerError,
   CompilerWarning,
@@ -24,34 +26,14 @@ import type {
   MetadatiLezione,
   SezioneLezione,
   Blocco,
-  BloccoTesto,
-  BloccoTitolo,
-  BloccoFormula,
-  BloccoElenco,
-  BloccoImmagine,
-  BloccoNota,
-  BloccoCallout,
-  BloccoDefinizione,
-  BloccoTeorema,
-  BloccoEsempio,
-  BloccoAttivita,
-  BloccoQuestion,
-  BloccoBrainstorming,
-  BloccoQuiz,
-  BloccoCitazione,
-  BloccoTabella,
-  BloccoCodice,
-  BloccoCollegamento,
-  BloccoSeparatore,
-  BloccoDemo,
-  BloccoVideo,
-  BloccoStepByStep,
-  NotaVariante,
-  CalloutVariante,
-  TitoloLivello,
+  BloccoSequenza,
+  SequenzaStep,
   Materia,
   Argomento,
   LivelloScolastico,
+  NotaVariante,
+  CalloutVariante,
+  TitoloLivello,
 } from './schema.js';
 
 export class Compiler {
@@ -68,44 +50,35 @@ export class Compiler {
     this.warnings = [...ast.warnings];
 
     if (!ast.frontmatter) {
-      this.addError('E001', 'Frontmatter mancante', undefined, 
-        'Aggiungi un blocco YAML all\'inizio del file');
+      this.addError('E001', 'Frontmatter mancante');
       return this.failedOutput();
     }
 
     const metadati = this.parseMetadati(ast.frontmatter.data, ast.frontmatter.location);
-    if (!metadati) {
-      return this.failedOutput();
-    }
+    if (!metadati) return this.failedOutput();
 
-    const sezioni: SezioneLezione[] = [];
-    let introduzione: Blocco[] | undefined;
-    let conclusione: Blocco[] | undefined;
+    // Compile sections
+    const sezioni: SezioneLezione[] = ast.sections.map((s, i) => this.compileSection(s, i));
 
-    for (let i = 0; i < ast.slides.length; i++) {
-      const slide = ast.slides[i];
-      const sezione = this.compileSlide(slide, i);
+    // Compile introduction/conclusion
+    const introduzione = ast.introduction.length > 0
+        ? this.compileBlocksToSequenceOrBlocks(ast.introduction, 'Introduzione')
+        : undefined;
 
-      if (slide.id === 'intro' || slide.id === 'introduzione') {
-        introduzione = sezione.blocchi;
-      } else if (slide.id === 'conclusione') {
-        conclusione = sezione.blocchi;
-      } else {
-        sezioni.push(sezione);
-      }
-    }
+    const conclusione = ast.conclusion.length > 0
+        ? this.compileBlocksToSequenceOrBlocks(ast.conclusion, 'Conclusione')
+        : undefined;
 
     const lezione: Lezione = { metadati, sezioni };
     if (introduzione) lezione.introduzione = introduzione;
     if (conclusione) lezione.conclusione = conclusione;
-
-    if (this.options.strict && this.warnings.length > 0) {
-      this.errors.push(...this.warnings.map(w => ({
-        code: w.code as unknown as CompilerError['code'],
-        message: `[strict] ${w.message}`,
-        location: w.location,
-        help: w.help,
-      })));
+    if (ast.resources.length > 0) {
+      lezione.risorse = ast.resources.map(r => ({
+        tipo: r.type as 'libro' | 'video' | 'sito' | 'esercizi',
+        titolo: r.title,
+        url: r.url,
+        descrizione: r.description,
+      }));
     }
 
     return {
@@ -118,7 +91,7 @@ export class Compiler {
 
   private parseMetadati(data: Record<string, unknown>, location?: SourceRange): MetadatiLezione | null {
     const required = ['id', 'title', 'subject', 'topic', 'level'];
-    const missing = required.filter(key => !data[key]);
+    const missing = required.filter(k => !data[k]);
 
     if (missing.length > 0) {
       this.addError('E002', `Campi obbligatori mancanti: ${missing.join(', ')}`, location);
@@ -146,6 +119,8 @@ export class Compiler {
       livello: data.level as LivelloScolastico,
       durata: data.duration as number | undefined,
       autore: data.author as string | undefined,
+      dataCreazione: data.created as string | undefined,
+      dataModifica: data.modified as string | undefined,
       versione: data.version as string | undefined,
       tags: data.tags as string[] | undefined,
       prerequisiti: data.prerequisites as string[] | undefined,
@@ -153,31 +128,303 @@ export class Compiler {
     };
   }
 
-  private compileSlide(slide: AstSlide, index: number): SezioneLezione {
-    const blocchi: Blocco[] = [];
+  private compileSection(section: AstSection, index: number): SezioneLezione {
+    const blocchi = this.compileBlocksToSequenceOrBlocks(section.blocks, section.title);
 
-    for (const block of slide.blocks) {
+    return {
+      id: section.id || `sezione-${index + 1}`,
+      titolo: section.title || `Sezione ${index + 1}`,
+      blocchi,
+    };
+  }
+
+  /**
+   * Compile blocks - ALWAYS wrap in a sequenza when there are H2 headers
+   * Each ## becomes a step in the sequenza
+   */
+  private compileBlocksToSequenceOrBlocks(blocks: AstBlock[], title?: string): Blocco[] {
+    // Check if there's a sequenza directive
+    const sequenzaDirective = blocks.find(
+        b => b.type === 'directive' && (b as AstDirective).name === 'sequenza'
+    ) as AstDirective | undefined;
+
+    if (sequenzaDirective) {
+      const seq = this.compileSequenzaDirective(sequenzaDirective);
+      if (seq) return [seq];
+    }
+
+    // Check if there are H2 headers - if so, ALWAYS create a sequenza
+    const hasH2Headers = blocks.some(
+        b => b.type === 'heading' && (b as AstHeading).depth === 2
+    );
+
+    if (hasH2Headers) {
+      const seq = this.createSequenzaFromBlocks(blocks, title);
+      return [seq];
+    }
+
+    // Check if there are transitions without H2 - still create sequenza
+    const hasTransitions = blocks.some(b => b.type === 'transition');
+    if (hasTransitions) {
+      const seq = this.createSequenzaFromBlocks(blocks, title);
+      return [seq];
+    }
+
+    // No H2 and no transitions, compile normally (shouldn't happen often)
+    return this.compileBlocks(blocks);
+  }
+
+  /**
+   * Create a sequenza from blocks with transitions
+   * Each transition creates a new step
+   */
+  private createSequenzaFromBlocks(blocks: AstBlock[], title?: string): BloccoSequenza {
+    const steps: SequenzaStep[] = [];
+    let currentStep: SequenzaStep = { blocchi: [], transitions: [] };
+    let blockIndex = 0;
+
+    for (const block of blocks) {
+      if (block.type === 'transition') {
+        // Record transition at current position within step
+        currentStep.transitions!.push(blockIndex);
+        continue;
+      }
+
+      // Check for step break (== Title ==)
+      if (block.type === 'heading' && (block as AstHeading).depth === 2) {
+        // Save current step if not empty
+        if (currentStep.blocchi.length > 0) {
+          steps.push(currentStep);
+        }
+        // Start new step
+        currentStep = {
+          titolo: (block as AstHeading).text,
+          blocchi: [],
+          transitions: [],
+        };
+        blockIndex = 0;
+        continue;
+      }
+
       const compiled = this.compileBlock(block);
       if (compiled) {
         if (Array.isArray(compiled)) {
-          blocchi.push(...compiled);
+          currentStep.blocchi.push(...compiled);
+          blockIndex += compiled.length;
         } else {
-          blocchi.push(compiled);
+          currentStep.blocchi.push(compiled);
+          blockIndex++;
         }
       }
     }
 
-    const sezione: SezioneLezione = {
-      id: slide.id || `slide-${index + 1}`,
-      titolo: slide.title || `Slide ${index + 1}`,
-      blocchi,
-    };
-
-    if (slide.transitionIndices.length > 0) {
-      sezione.transitions = slide.transitionIndices;
+    // Don't forget last step
+    if (currentStep.blocchi.length > 0) {
+      steps.push(currentStep);
     }
 
-    return sezione;
+    // Clean up empty transitions arrays
+    for (const step of steps) {
+      if (step.transitions && step.transitions.length === 0) {
+        delete step.transitions;
+      }
+    }
+
+    return {
+      tipo: 'sequenza',
+      titolo: title,
+      showProgress: true,
+      allowJump: true,
+      steps,
+    };
+  }
+
+  /**
+   * Compile :::sequenza directive with == step == syntax
+   */
+  private compileSequenzaDirective(directive: AstDirective): BloccoSequenza | null {
+    const { attributes, rawContent } = directive;
+
+    // Parse steps from rawContent using == Title == markers
+    const steps = this.parseSequenzaSteps(rawContent || '');
+
+    return {
+      tipo: 'sequenza',
+      titolo: attributes.titolo as string || attributes.title as string,
+      showProgress: attributes.showProgress as boolean ?? true,
+      allowJump: attributes.allowJump as boolean ?? true,
+      steps,
+    };
+  }
+
+  /**
+   * Parse sequenza content into steps
+   * Format: == Step Title ==\n content \n>>>\n more content
+   */
+  private parseSequenzaSteps(content: string): SequenzaStep[] {
+    const steps: SequenzaStep[] = [];
+
+    // Split by == Title ==
+    const stepRegex = /^==\s*(.+?)\s*==$/gm;
+    const parts: { title: string; content: string; start: number }[] = [];
+
+    let match;
+    let lastEnd = 0;
+
+    while ((match = stepRegex.exec(content)) !== null) {
+      if (lastEnd > 0) {
+        // Save previous part's content
+        parts[parts.length - 1].content = content.slice(lastEnd, match.index).trim();
+      }
+      parts.push({
+        title: match[1],
+        content: '',
+        start: match.index + match[0].length,
+      });
+      lastEnd = match.index + match[0].length;
+    }
+
+    // Last part
+    if (parts.length > 0) {
+      parts[parts.length - 1].content = content.slice(lastEnd).trim();
+    } else {
+      // No step markers, single step
+      parts.push({ title: '', content: content.trim(), start: 0 });
+    }
+
+    // Convert each part to a step
+    for (const part of parts) {
+      const step = this.parseStepContent(part.title, part.content);
+      steps.push(step);
+    }
+
+    return steps;
+  }
+
+  /**
+   * Parse a single step's content, handling >>> transitions
+   */
+  private parseStepContent(title: string, content: string): SequenzaStep {
+    const blocchi: Blocco[] = [];
+    const transitions: number[] = [];
+
+    // Split by >>> and track positions
+    const fragments = content.split(/^>>>$/m);
+
+    let blockIndex = 0;
+    for (let i = 0; i < fragments.length; i++) {
+      const fragment = fragments[i].trim();
+      if (!fragment) continue;
+
+      if (i > 0) {
+        // There was a >>> before this fragment
+        transitions.push(blockIndex);
+      }
+
+      // Parse fragment as mini-markdown
+      const fragmentBlocks = this.parseFragmentToBlocks(fragment);
+      for (const block of fragmentBlocks) {
+        blocchi.push(block);
+        blockIndex++;
+      }
+    }
+
+    const step: SequenzaStep = { blocchi };
+    if (title) step.titolo = title;
+    if (transitions.length > 0) step.transitions = transitions;
+
+    return step;
+  }
+
+  /**
+   * Parse a text fragment into blocks (simple parsing for step content)
+   */
+  private parseFragmentToBlocks(text: string): Blocco[] {
+    const blocks: Blocco[] = [];
+    const lines = text.split('\n');
+    let i = 0;
+
+    while (i < lines.length) {
+      const line = lines[i].trim();
+
+      if (!line) {
+        i++;
+        continue;
+      }
+
+      // Display formula
+      if (line.startsWith('$$') && line.endsWith('$$')) {
+        blocks.push({
+          tipo: 'formula',
+          latex: line.slice(2, -2).trim(),
+          display: true,
+        });
+        i++;
+        continue;
+      }
+
+      // Multi-line formula
+      if (line === '$$') {
+        let latex = '';
+        i++;
+        while (i < lines.length && lines[i].trim() !== '$$') {
+          latex += lines[i] + '\n';
+          i++;
+        }
+        blocks.push({
+          tipo: 'formula',
+          latex: latex.trim(),
+          display: true,
+        });
+        i++;
+        continue;
+      }
+
+      // List
+      if (line.startsWith('- ') || line.match(/^\d+\.\s/)) {
+        const ordered = !line.startsWith('- ');
+        const items: string[] = [];
+        while (i < lines.length) {
+          const l = lines[i].trim();
+          if (l.startsWith('- ') || l.match(/^\d+\.\s/)) {
+            items.push(l.replace(/^[-\d.]+\s*/, ''));
+            i++;
+          } else if (l === '') {
+            i++;
+            break;
+          } else {
+            break;
+          }
+        }
+        blocks.push({ tipo: 'elenco', ordinato: ordered, elementi: items });
+        continue;
+      }
+
+      // Regular text
+      let text = line;
+      i++;
+      while (i < lines.length && lines[i].trim() && !lines[i].trim().startsWith('$$') &&
+      !lines[i].trim().startsWith('- ') && !lines[i].trim().match(/^\d+\.\s/)) {
+        text += '\n' + lines[i];
+        i++;
+      }
+      blocks.push({ tipo: 'testo', contenuto: text });
+    }
+
+    return blocks;
+  }
+
+  private compileBlocks(blocks: AstBlock[]): Blocco[] {
+    const result: Blocco[] = [];
+    for (const block of blocks) {
+      if (block.type === 'transition') continue; // Skip bare transitions
+      const compiled = this.compileBlock(block);
+      if (compiled) {
+        if (Array.isArray(compiled)) result.push(...compiled);
+        else result.push(compiled);
+      }
+    }
+    return result;
   }
 
   private compileBlock(block: AstBlock): Blocco | Blocco[] | null {
@@ -199,26 +446,24 @@ export class Compiler {
     }
   }
 
-  private compileHeading(block: AstHeading): BloccoTitolo {
+  private compileHeading(block: AstHeading): Blocco {
     const level = Math.min(Math.max(block.depth + 1, 2), 4) as TitoloLivello;
     return { tipo: 'titolo', livello: level, testo: block.text };
   }
 
-  private compileParagraph(block: AstParagraph): BloccoTesto {
+  private compileParagraph(block: AstParagraph): Blocco {
     return { tipo: 'testo', contenuto: block.content };
   }
 
-  private compileLatex(block: AstLatexDisplay): BloccoFormula {
-    const formula: BloccoFormula = { tipo: 'formula', latex: block.latex, display: true };
-    if (block.label) formula.etichetta = block.label;
-    return formula;
+  private compileLatex(block: AstLatexDisplay): Blocco {
+    return { tipo: 'formula', latex: block.latex, display: true };
   }
 
-  private compileList(block: AstList): BloccoElenco {
+  private compileList(block: AstList): Blocco {
     return { tipo: 'elenco', ordinato: block.ordered, elementi: block.items };
   }
 
-  private compileImage(block: AstImage): BloccoImmagine {
+  private compileImage(block: AstImage): Blocco {
     return { tipo: 'immagine', src: block.src, alt: block.alt || '' };
   }
 
@@ -242,16 +487,16 @@ export class Compiler {
       case 'code': return this.compileCode(attributes, content);
       case 'quote': return this.compileQuote(attributes, content);
       case 'link': return this.compileLink(attributes, location);
-      case 'separator': return { tipo: 'separatore' } as BloccoSeparatore;
-      case 'step-by-step': return this.compileStepByStep(attributes, content);
+      case 'separator': return { tipo: 'separatore' };
+      case 'sequenza': return this.compileSequenzaDirective(block);
       case 'json': return this.compileJsonEscape(content, location);
       default:
-        this.addError('E004', `Tipo direttiva sconosciuto: "${name}"`, location);
+        this.addWarning('W001', `Direttiva sconosciuta: "${name}", ignorata`, location);
         return null;
     }
   }
 
-  private compileNote(attrs: Record<string, unknown>, content: string): BloccoNota {
+  private compileNote(attrs: Record<string, unknown>, content: string): Blocco {
     const variantMap: Record<string, NotaVariante> = {
       info: 'info', warning: 'attenzione', attenzione: 'attenzione',
       tip: 'suggerimento', suggerimento: 'suggerimento',
@@ -261,63 +506,104 @@ export class Compiler {
     return { tipo: 'nota', variante: variantMap[variant] || 'info', contenuto: content || '' };
   }
 
-  private compileCallout(attrs: Record<string, unknown>, content: string): BloccoCallout {
+  private compileCallout(attrs: Record<string, unknown>, content: string): Blocco {
     const variantMap: Record<string, CalloutVariante> = {
       obiettivo: 'obiettivo', prerequisiti: 'prerequisiti',
       materiali: 'materiali', tempo: 'tempo',
     };
     const variant = attrs.variant as string || Object.keys(attrs).find(k => variantMap[k]) || 'obiettivo';
-    return { tipo: 'callout', variante: variantMap[variant] || 'obiettivo', contenuto: content || '' };
+    return {
+      tipo: 'callout',
+      variante: variantMap[variant] || 'obiettivo',
+      titolo: attrs.titolo as string || attrs.title as string,
+      contenuto: content || ''
+    };
   }
 
-  private compileDefinition(attrs: Record<string, unknown>, content: string, location?: SourceRange): BloccoDefinizione | null {
-    const term = attrs.term as string;
+  private compileDefinition(attrs: Record<string, unknown>, content: string, loc?: SourceRange): Blocco | null {
+    const term = attrs.term as string || attrs.termine as string;
     if (!term) {
-      this.addError('E005', 'Campo "term" obbligatorio in definition', location);
+      this.addError('E005', 'Campo "term" obbligatorio in definition', loc);
       return null;
     }
-    return { tipo: 'definizione', termine: term, definizione: content, nota: attrs.note as string | undefined };
+    return {
+      tipo: 'definizione',
+      termine: term,
+      definizione: content,
+      nota: attrs.note as string || attrs.nota as string,
+    };
   }
 
-  private compileTheorem(attrs: Record<string, unknown>, content: string, location?: SourceRange): BloccoTeorema | null {
-    const statement = (attrs.statement as string) || content;
+  private compileTheorem(attrs: Record<string, unknown>, content: string, loc?: SourceRange): Blocco | null {
+    const statement = (attrs.statement as string) || (attrs.enunciato as string) || content;
     if (!statement) {
-      this.addError('E005', 'Campo "statement" obbligatorio in theorem', location);
+      this.addError('E005', 'Campo "statement" obbligatorio in theorem', loc);
       return null;
     }
-    return { tipo: 'teorema', nome: attrs.name as string | undefined, enunciato: statement, dimostrazione: attrs.proof as string | undefined };
+    return {
+      tipo: 'teorema',
+      nome: attrs.name as string || attrs.nome as string,
+      enunciato: statement,
+      dimostrazione: attrs.proof as string || attrs.dimostrazione as string,
+    };
   }
 
-  private compileExample(attrs: Record<string, unknown>, content: string, location?: SourceRange): BloccoEsempio | null {
-    const problem = (attrs.problem as string) || content;
-    const solution = attrs.solution as string;
-    if (!problem) { this.addError('E005', 'Campo "problem" obbligatorio in example', location); return null; }
-    if (!solution) { this.addError('E005', 'Campo "solution" obbligatorio in example', location); return null; }
-    return { tipo: 'esempio', titolo: attrs.title as string | undefined, problema: problem, soluzione: solution, nota: attrs.note as string | undefined };
+  private compileExample(attrs: Record<string, unknown>, content: string, loc?: SourceRange): Blocco | null {
+    const problem = (attrs.problem as string) || (attrs.problema as string) || content;
+    const solution = (attrs.solution as string) || (attrs.soluzione as string);
+    if (!problem) { this.addError('E005', 'Campo "problem" obbligatorio in example', loc); return null; }
+    if (!solution) { this.addError('E005', 'Campo "solution" obbligatorio in example', loc); return null; }
+    return {
+      tipo: 'esempio',
+      titolo: attrs.title as string || attrs.titolo as string,
+      problema: problem,
+      soluzione: solution,
+      nota: attrs.note as string || attrs.nota as string,
+    };
   }
 
-  private compileActivity(attrs: Record<string, unknown>, content: string): BloccoAttivita {
-    return { tipo: 'attivita', titolo: attrs.title as string | undefined, consegna: content, nota: attrs.note as string | undefined };
+  private compileActivity(attrs: Record<string, unknown>, content: string): Blocco {
+    return {
+      tipo: 'attivita',
+      titolo: attrs.title as string || attrs.titolo as string,
+      consegna: content,
+      nota: attrs.note as string || attrs.nota as string,
+    };
   }
 
-  private compileQuestion(attrs: Record<string, unknown>, content: string, location?: SourceRange): BloccoQuestion | null {
-    const question = (attrs.question as string) || content;
-    const answer = attrs.answer as string;
-    if (!question) { this.addError('E005', 'Campo "question" obbligatorio', location); return null; }
-    if (!answer) { this.addError('E005', 'Campo "answer" obbligatorio', location); return null; }
-    return { tipo: 'question', title: attrs.title as string | undefined, question, answer };
+  private compileQuestion(attrs: Record<string, unknown>, content: string, loc?: SourceRange): Blocco | null {
+    const question = (attrs.question as string) || (attrs.domanda as string) || content;
+    const answer = (attrs.answer as string) || (attrs.risposta as string);
+    if (!question) { this.addError('E005', 'Campo "question" obbligatorio', loc); return null; }
+    if (!answer) { this.addError('E005', 'Campo "answer" obbligatorio', loc); return null; }
+    return {
+      tipo: 'question',
+      title: attrs.title as string || attrs.titolo as string,
+      question,
+      answer,
+      showAnswerLabel: attrs.showAnswerLabel as string,
+      hideAnswerLabel: attrs.hideAnswerLabel as string,
+      defaultExpanded: attrs.defaultExpanded as boolean,
+    };
   }
 
-  private compileBrainstorming(attrs: Record<string, unknown>, location?: SourceRange): BloccoBrainstorming | null {
-    const title = attrs.title as string;
-    if (!title) { this.addError('E005', 'Campo "title" obbligatorio in brainstorming', location); return null; }
-    return { tipo: 'brainstorming', title, placeholder: attrs.placeholder as string | undefined };
+  private compileBrainstorming(attrs: Record<string, unknown>, loc?: SourceRange): Blocco | null {
+    const title = attrs.title as string || attrs.titolo as string;
+    if (!title) { this.addError('E005', 'Campo "title" obbligatorio in brainstorming', loc); return null; }
+    return {
+      tipo: 'brainstorming',
+      titolo: title,
+      placeholder: attrs.placeholder as string,
+      altezzaPx: attrs.altezzaPx as number || attrs.heightPx as number,
+      persistId: attrs.persistId as string,
+      persistDefault: attrs.persistDefault as boolean,
+    };
   }
 
-  private compileQuiz(attrs: Record<string, unknown>, content: string, location?: SourceRange): BloccoQuiz | null {
-    const question = attrs.question as string;
-    const explanation = (attrs.explanation as string) || '';
-    
+  private compileQuiz(attrs: Record<string, unknown>, content: string, loc?: SourceRange): Blocco | null {
+    const question = attrs.question as string || attrs.domanda as string;
+    const explanation = (attrs.explanation as string) || (attrs.spiegazione as string) || '';
+
     const options: { testo: string; corretta: boolean }[] = [];
     const optionRegex = /^-\s*\[([ x])\]\s*(.+)$/gm;
     let match;
@@ -325,42 +611,59 @@ export class Compiler {
       options.push({ testo: match[2].trim(), corretta: match[1] === 'x' });
     }
 
-    if (!question) { this.addError('E005', 'Campo "question" obbligatorio in quiz', location); return null; }
-    if (options.length === 0) { this.addError('E005', 'Almeno un\'opzione richiesta in quiz', location); return null; }
+    if (!question) { this.addError('E005', 'Campo "question" obbligatorio in quiz', loc); return null; }
+    if (options.length === 0) { this.addError('E005', 'Almeno un\'opzione richiesta in quiz', loc); return null; }
 
-    return { tipo: 'quiz', domanda: question, opzioni: options, spiegazione: explanation, difficolta: attrs.difficulty as 'facile' | 'media' | 'difficile' | undefined };
+    return {
+      tipo: 'quiz',
+      domanda: question,
+      opzioni: options,
+      spiegazione: explanation,
+      difficolta: attrs.difficulty as 'facile' | 'media' | 'difficile' || attrs.difficolta as 'facile' | 'media' | 'difficile',
+    };
   }
 
-  private compileImageDirective(attrs: Record<string, unknown>, location?: SourceRange): BloccoImmagine | null {
+  private compileImageDirective(attrs: Record<string, unknown>, loc?: SourceRange): Blocco | null {
     if (!attrs.src && !attrs.assetId) {
-      this.addError('E005', 'Campo "src" o "assetId" obbligatorio in image', location);
+      this.addError('E005', 'Campo "src" o "assetId" obbligatorio in image', loc);
       return null;
     }
     return {
       tipo: 'immagine',
-      src: attrs.src as string | undefined,
-      assetId: attrs.assetId as string | undefined,
+      src: attrs.src as string,
+      assetId: attrs.assetId as string,
       alt: (attrs.alt as string) || '',
-      didascalia: attrs.caption as string | undefined,
-      larghezza: attrs.width as number | undefined,
+      didascalia: attrs.caption as string || attrs.didascalia as string,
+      larghezza: attrs.width as number || attrs.larghezza as number,
     };
   }
 
-  private compileVideo(attrs: Record<string, unknown>, location?: SourceRange): BloccoVideo | null {
+  private compileVideo(attrs: Record<string, unknown>, loc?: SourceRange): Blocco | null {
     if (!attrs.src && !attrs.assetId) {
-      this.addError('E005', 'Campo "src" o "assetId" obbligatorio in video', location);
+      this.addError('E005', 'Campo "src" o "assetId" obbligatorio in video', loc);
       return null;
     }
-    return { tipo: 'video', src: attrs.src as string | undefined, assetId: attrs.assetId as string | undefined, titolo: attrs.title as string | undefined };
+    return {
+      tipo: 'video',
+      src: attrs.src as string,
+      assetId: attrs.assetId as string,
+      titolo: attrs.title as string || attrs.titolo as string,
+    };
   }
 
-  private compileDemo(attrs: Record<string, unknown>, location?: SourceRange): BloccoDemo | null {
-    const component = attrs.component as string;
-    if (!component) { this.addError('E005', 'Campo "component" obbligatorio in demo', location); return null; }
-    return { tipo: 'demo', componente: component, props: attrs.props as Record<string, unknown> | undefined };
+  private compileDemo(attrs: Record<string, unknown>, loc?: SourceRange): Blocco | null {
+    const component = attrs.component as string || attrs.componente as string;
+    if (!component) { this.addError('E005', 'Campo "component" obbligatorio in demo', loc); return null; }
+    return {
+      tipo: 'demo',
+      componente: component,
+      props: attrs.props as Record<string, unknown>,
+      titolo: attrs.title as string || attrs.titolo as string,
+      descrizione: attrs.description as string || attrs.descrizione as string,
+    };
   }
 
-  private compileTable(attrs: Record<string, unknown>, content: string): BloccoTabella {
+  private compileTable(attrs: Record<string, unknown>, content: string): Blocco {
     let header: string[] = [];
     let rows: string[][] = [];
     try {
@@ -368,42 +671,50 @@ export class Compiler {
       header = data.header || [];
       rows = data.rows || [];
     } catch {}
-    return { tipo: 'tabella', intestazione: header, righe: rows, didascalia: attrs.caption as string | undefined };
+    return {
+      tipo: 'tabella',
+      intestazione: header,
+      righe: rows,
+      didascalia: attrs.caption as string || attrs.didascalia as string,
+    };
   }
 
-  private compileCode(attrs: Record<string, unknown>, content: string): BloccoCodice {
-    return { tipo: 'codice', linguaggio: (attrs.lang as string) || 'text', codice: content };
+  private compileCode(attrs: Record<string, unknown>, content: string): Blocco {
+    return {
+      tipo: 'codice',
+      linguaggio: (attrs.lang as string) || (attrs.linguaggio as string) || 'text',
+      codice: content,
+    };
   }
 
-  private compileQuote(attrs: Record<string, unknown>, content: string): BloccoCitazione {
-    return { tipo: 'citazione', testo: content, autore: attrs.author as string | undefined, fonte: attrs.source as string | undefined };
+  private compileQuote(attrs: Record<string, unknown>, content: string): Blocco {
+    return {
+      tipo: 'citazione',
+      testo: content,
+      autore: attrs.author as string || attrs.autore as string,
+      fonte: attrs.source as string || attrs.fonte as string,
+    };
   }
 
-  private compileLink(attrs: Record<string, unknown>, location?: SourceRange): BloccoCollegamento | null {
-    const lessonId = attrs.lessonId as string;
-    const text = attrs.text as string;
-    if (!lessonId) { this.addError('E005', 'Campo "lessonId" obbligatorio in link', location); return null; }
-    if (!text) { this.addError('E005', 'Campo "text" obbligatorio in link', location); return null; }
-    return { tipo: 'collegamento', lezioneId: lessonId, testo: text, descrizione: attrs.description as string | undefined };
+  private compileLink(attrs: Record<string, unknown>, loc?: SourceRange): Blocco | null {
+    const lessonId = attrs.lessonId as string || attrs.lezioneId as string;
+    const text = attrs.text as string || attrs.testo as string;
+    if (!lessonId) { this.addError('E005', 'Campo "lessonId" obbligatorio in link', loc); return null; }
+    if (!text) { this.addError('E005', 'Campo "text" obbligatorio in link', loc); return null; }
+    return {
+      tipo: 'collegamento',
+      lezioneId: lessonId,
+      testo: text,
+      descrizione: attrs.description as string || attrs.descrizione as string,
+    };
   }
 
-  private compileStepByStep(attrs: Record<string, unknown>, content: string): BloccoStepByStep {
-    const steps: { titolo: string; contenuto: string }[] = [];
-    const stepRegex = /^\d+\.\s*(.+)$/gm;
-    let match;
-    let stepNum = 1;
-    while ((match = stepRegex.exec(content)) !== null) {
-      steps.push({ titolo: `Passo ${stepNum++}`, contenuto: match[1].trim() });
-    }
-    return { tipo: 'step-by-step', titolo: attrs.title as string | undefined, step: steps };
-  }
-
-  private compileJsonEscape(content: string, location?: SourceRange): Blocco | Blocco[] | null {
+  private compileJsonEscape(content: string, loc?: SourceRange): Blocco | Blocco[] | null {
     try {
       const parsed = JSON.parse(content);
       return Array.isArray(parsed) ? parsed as Blocco[] : parsed as Blocco;
     } catch (e) {
-      this.addError('E006', `JSON non valido: ${(e as Error).message}`, location);
+      this.addError('E006', `JSON non valido: ${(e as Error).message}`, loc);
       return null;
     }
   }

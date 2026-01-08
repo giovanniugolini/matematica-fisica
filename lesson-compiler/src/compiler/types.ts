@@ -1,8 +1,6 @@
 /**
- * AST Types - Rappresentazione intermedia per il compilatore
+ * AST Types v2 - Con supporto sequenze
  */
-
-import type { Blocco, MetadatiLezione } from './schema.js';
 
 export interface SourceLocation {
   line: number;
@@ -58,9 +56,15 @@ export interface AstTransition extends AstNode {
   type: 'transition';
 }
 
-export interface AstSlideSeparator extends AstNode {
-  type: 'slide-separator';
-  slideId?: string;
+export interface AstSectionBreak extends AstNode {
+  type: 'section-break';
+  sectionId?: string;
+  sectionTitle?: string;
+}
+
+export interface AstStepBreak extends AstNode {
+  type: 'step-break';
+  stepTitle?: string;
 }
 
 export interface AstDirective extends AstNode {
@@ -68,7 +72,7 @@ export interface AstDirective extends AstNode {
   name: string;
   attributes: Record<string, unknown>;
   content: string;
-  children?: AstBlock[];
+  rawContent?: string; // Per sequenze, contenuto grezzo con == step ==
 }
 
 export type AstBlock =
@@ -79,19 +83,22 @@ export type AstBlock =
   | AstList
   | AstImage
   | AstTransition
-  | AstSlideSeparator
+  | AstSectionBreak
+  | AstStepBreak
   | AstDirective;
 
-export interface AstSlide {
+export interface AstSection {
   id?: string;
   title?: string;
   blocks: AstBlock[];
-  transitionIndices: number[];
 }
 
 export interface AstDocument {
   frontmatter: AstFrontmatter | null;
-  slides: AstSlide[];
+  introduction: AstBlock[];
+  sections: AstSection[];
+  conclusion: AstBlock[];
+  resources: Array<{ type: string; title: string; url?: string; description?: string }>;
   errors: CompilerError[];
   warnings: CompilerWarning[];
 }
@@ -125,10 +132,6 @@ export interface CompilerOutput {
 }
 
 export interface CompilerOptions {
-  validateAssets?: boolean;
-  assetRegistry?: Set<string>;
-  validateLinks?: boolean;
-  knownLessons?: Set<string>;
   strict?: boolean;
   sourcePath?: string;
 }
