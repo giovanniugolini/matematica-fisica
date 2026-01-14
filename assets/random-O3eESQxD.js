@@ -1,0 +1,1 @@
+function t(n,o){return n+Math.floor(Math.random()*(o-n+1))}function a(n,o){let r=0;for(;r===0;)r=t(n,o);return r}function e(n){return n[t(0,n.length-1)]}function u(n=.5){return Math.random()<n}export{u as a,e as b,a as c,t as r};
