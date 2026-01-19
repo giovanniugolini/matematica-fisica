@@ -34,6 +34,7 @@ const categories: Category[] = [
                     "disequazioni-secondo-grado",
                     "sistemi-disequazioni",
                     "disequazioni-soluzioni",
+                    "segno-di-un-prodotto"
 
                 ],
             },

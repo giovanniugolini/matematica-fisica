@@ -173,4 +173,11 @@ export const demos: DemoInfo[] = [
         title: "Componenti Cartesiane di un vettore",
         Component: React.lazy(() => import("./demos/vettori-piano/./ComponentiCartesianeVettoreDemo")),
     },
+
+    // ============ SEGNO DI N PRODOTTO ============
+    {
+        slug: "segno-di-un-prodotto",
+        title: "Segno di un prodotto",
+        Component: React.lazy(() => import("./demos/algebra/./SegnoDiUnProdotto.tsx")),
+    },
 ];
