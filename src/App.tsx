@@ -130,6 +130,11 @@ const categories: Category[] = [
 // Mappa slug -> demo per lookup veloce
 const demoBySlug = new Map(demos.map((d) => [d.slug, d]));
 
+// Demo in evidenza (novità) con data
+const newDemos: { slug: string; date: string }[] = [
+    { slug: "segno-di-un-prodotto", date: "20 Gen 2026" },
+];
+
 // ============ COMPONENTI ============
 
 function CategoryCard({ category, expanded, onToggle }: {
@@ -255,7 +260,7 @@ function Home() {
             background: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #f0fdf4 100%)",
             padding: "24px 16px",
         }}>
-            <div style={{ maxWidth: 800, margin: "0 auto" }}>
+            <div style={{ maxWidth: 1100, margin: "0 auto" }}>
                 {/* Header */}
                 <div style={{ textAlign: "center", marginBottom: 32 }}>
                     <h1 style={{
@@ -287,52 +292,141 @@ function Home() {
                     </div>
                 </div>
 
-                {/* Pulsanti espandi/comprimi */}
+                {/* Layout a due colonne */}
                 <div style={{
                     display: "flex",
-                    gap: 8,
-                    justifyContent: "center",
-                    marginBottom: 20,
+                    gap: 24,
+                    alignItems: "flex-start",
                 }}>
-                    <button
-                        onClick={() => setExpanded(Object.fromEntries(categories.map((c) => [c.id, true])))}
-                        style={{
-                            padding: "8px 16px",
-                            borderRadius: 8,
-                            border: "1px solid #d1d5db",
-                            background: "#fff",
-                            cursor: "pointer",
-                            fontSize: 13,
-                            color: "#475569",
-                        }}
-                    >
-                        Espandi tutto
-                    </button>
-                    <button
-                        onClick={() => setExpanded(Object.fromEntries(categories.map((c) => [c.id, false])))}
-                        style={{
-                            padding: "8px 16px",
-                            borderRadius: 8,
-                            border: "1px solid #d1d5db",
-                            background: "#fff",
-                            cursor: "pointer",
-                            fontSize: 13,
-                            color: "#475569",
-                        }}
-                    >
-                        Comprimi tutto
-                    </button>
-                </div>
+                    {/* Colonna principale */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                        {/* Pulsanti espandi/comprimi */}
+                        <div style={{
+                            display: "flex",
+                            gap: 8,
+                            justifyContent: "center",
+                            marginBottom: 20,
+                        }}>
+                            <button
+                                onClick={() => setExpanded(Object.fromEntries(categories.map((c) => [c.id, true])))}
+                                style={{
+                                    padding: "8px 16px",
+                                    borderRadius: 8,
+                                    border: "1px solid #d1d5db",
+                                    background: "#fff",
+                                    cursor: "pointer",
+                                    fontSize: 13,
+                                    color: "#475569",
+                                }}
+                            >
+                                Espandi tutto
+                            </button>
+                            <button
+                                onClick={() => setExpanded(Object.fromEntries(categories.map((c) => [c.id, false])))}
+                                style={{
+                                    padding: "8px 16px",
+                                    borderRadius: 8,
+                                    border: "1px solid #d1d5db",
+                                    background: "#fff",
+                                    cursor: "pointer",
+                                    fontSize: 13,
+                                    color: "#475569",
+                                }}
+                            >
+                                Comprimi tutto
+                            </button>
+                        </div>
 
-                {/* Categorie */}
-                {categories.map((category) => (
-                    <CategoryCard
-                        key={category.id}
-                        category={category}
-                        expanded={expanded[category.id]}
-                        onToggle={() => toggleCategory(category.id)}
-                    />
-                ))}
+                        {/* Categorie */}
+                        {categories.map((category) => (
+                            <CategoryCard
+                                key={category.id}
+                                category={category}
+                                expanded={expanded[category.id]}
+                                onToggle={() => toggleCategory(category.id)}
+                            />
+                        ))}
+                    </div>
+
+                    {/* Sidebar Novità */}
+                    {newDemos.length > 0 && (
+                        <div style={{
+                            width: 260,
+                            flexShrink: 0,
+                            position: "sticky",
+                            top: 24,
+                        }}>
+                            <div style={{
+                                background: "linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)",
+                                borderRadius: 16,
+                                padding: "14px 16px",
+                                border: "2px solid #f59e0b",
+                                boxShadow: "0 4px 12px rgba(245, 158, 11, 0.2)",
+                            }}>
+                                <div style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 8,
+                                    marginBottom: 12,
+                                }}>
+                                    <span style={{ fontSize: 18 }}>✨</span>
+                                    <span style={{
+                                        fontSize: 15,
+                                        fontWeight: 700,
+                                        color: "#92400e",
+                                    }}>
+                                        Novità
+                                    </span>
+                                </div>
+                                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                                    {newDemos.map(({ slug, date }) => {
+                                        const demo = demoBySlug.get(slug);
+                                        if (!demo) return null;
+                                        return (
+                                            <Link
+                                                key={slug}
+                                                to={`/${slug}`}
+                                                style={{
+                                                    display: "block",
+                                                    padding: "10px 12px",
+                                                    background: "#fff",
+                                                    borderRadius: 8,
+                                                    color: "#92400e",
+                                                    textDecoration: "none",
+                                                    fontSize: 13,
+                                                    fontWeight: 600,
+                                                    transition: "all 0.15s",
+                                                    boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    e.currentTarget.style.background = "#fffbeb";
+                                                    e.currentTarget.style.transform = "translateY(-2px)";
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.background = "#fff";
+                                                    e.currentTarget.style.transform = "translateY(0)";
+                                                }}
+                                            >
+                                                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                                                    <span style={{ fontSize: 14 }}>🆕</span>
+                                                    <span>{demo.title}</span>
+                                                </div>
+                                                <div style={{
+                                                    fontSize: 11,
+                                                    color: "#b45309",
+                                                    fontWeight: 500,
+                                                    paddingLeft: 20,
+                                                }}>
+                                                    {date}
+                                                </div>
+                                            </Link>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
 
                 {/* Footer */}
                 <div style={{
