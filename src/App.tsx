@@ -168,13 +168,17 @@ function CategoryCard({ category, expanded, onToggle }: {
     expanded: boolean;
     onToggle: () => void;
 }) {
+    // Stile speciale per la categoria Verifiche & Quiz
+    const isVerifiche = category.id === "verifiche";
+
     return (
         <div style={{
-            background: "#fff",
+            background: isVerifiche ? "#fffbeb" : "#fff",
             borderRadius: 16,
             boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
             overflow: "hidden",
             marginBottom: 16,
+            border: isVerifiche ? "2px solid #fcd34d" : "none",
         }}>
             {/* Header categoria */}
             <button
@@ -182,16 +186,18 @@ function CategoryCard({ category, expanded, onToggle }: {
                 style={{
                     width: "100%",
                     padding: "16px 20px",
-                    background: expanded ? "#f8fafc" : "#fff",
+                    background: isVerifiche
+                        ? (expanded ? "#fef3c7" : "#fffbeb")
+                        : (expanded ? "#f8fafc" : "#fff"),
                     border: "none",
-                    borderBottom: expanded ? "1px solid #e2e8f0" : "none",
+                    borderBottom: expanded ? `1px solid ${isVerifiche ? "#fcd34d" : "#e2e8f0"}` : "none",
                     cursor: "pointer",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
                     fontSize: 18,
                     fontWeight: 600,
-                    color: "#1e293b",
+                    color: isVerifiche ? "#92400e" : "#1e293b",
                     transition: "background 0.2s",
                 }}
             >
