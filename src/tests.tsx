@@ -27,4 +27,11 @@ export const tests: TestInfo[] = [
         type: "verifica",
         questionCount: 10,
     },
+    {
+        slug: "quiz-vettori",
+        title: "Quiz: Vettori (random)",
+        Component: React.lazy(() => import("./demos/quiz/QuizVettoriDemo")),
+        type: "quiz",
+        questionCount: 8,
+    },
 ];

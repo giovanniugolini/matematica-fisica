@@ -139,6 +139,13 @@ const categories: Category[] = [
                     "verifica-algebra-1",
                 ],
             },
+            {
+                id: "quiz-fisica",
+                name: "Fisica",
+                slugs: [
+                    "quiz-vettori",
+                ],
+            },
         ],
     },
 ];
@@ -151,6 +158,7 @@ const newDemoSlugs = new Set([
     "segno-di-un-prodotto",
     "quiz-algebra",
     "verifica-algebra-1",
+    "quiz-vettori",
 ]);
 
 // ============ COMPONENTI ============

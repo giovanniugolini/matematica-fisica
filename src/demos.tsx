@@ -191,4 +191,9 @@ export const demos: DemoInfo[] = [
         title: "Verifica: Equazioni di 2° grado",
         Component: React.lazy(() => import("./demos/quiz/VerificaAlgebra1")),
     },
+    {
+        slug: "quiz-vettori",
+        title: "Quiz: Vettori (random)",
+        Component: React.lazy(() => import("./demos/quiz/QuizVettoriDemo")),
+    },
 ];
