@@ -180,4 +180,15 @@ export const demos: DemoInfo[] = [
         title: "Segno di un prodotto",
         Component: React.lazy(() => import("./demos/algebra/./SegnoDiUnProdotto.tsx")),
     },
+    // ============ QUIZ E VERIFICHE ============
+    {
+        slug: "quiz-algebra",
+        title: "Quiz: Equazioni di 2° grado (random)",
+        Component: React.lazy(() => import("./demos/quiz/QuizAlgebraDemo")),
+    },
+    {
+        slug: "verifica-algebra-1",
+        title: "Verifica: Equazioni di 2° grado",
+        Component: React.lazy(() => import("./demos/quiz/VerificaAlgebra1")),
+    },
 ];

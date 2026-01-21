@@ -4,7 +4,7 @@
  */
 
 // Latex
-export { Latex, InlineMath, DisplayMath } from "./Latex";
+export { Latex, InlineMath, DisplayMath, MixedLatex } from "./Latex";
 export type { LatexProps } from "./Latex";
 
 // StepByStep
@@ -71,3 +71,26 @@ export type {
 // CollapsibleExplanation
 export { CollapsibleExplanation } from "./CollapsibleExplanation";
 export type { CollapsibleExplanationProps } from "./CollapsibleExplanation";
+
+// Quiz
+export {
+    QuizOptionButton,
+    QuizNumericInput,
+    QuizProgress,
+    QuizFeedback,
+    QuizQuestionCard,
+    QuizResults,
+    QuizContainer,
+    QuizStartScreen,
+    QuizNavigation,
+} from "./Quiz";
+
+export type {
+    QuizOptionProps,
+    QuizNumericInputProps,
+    QuizProgressProps,
+    QuizFeedbackProps,
+    QuizQuestionProps,
+    QuizResultsProps,
+    QuizContainerProps,
+} from "./Quiz";

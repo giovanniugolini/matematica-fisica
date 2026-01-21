@@ -1,6 +1,7 @@
 import React, { Suspense, useState } from "react";
 import { HashRouter as Router, Routes, Route, Link } from "react-router-dom";
 import { demos } from "./demos";
+import { tests } from "./tests";
 import "katex/dist/katex.min.css";
 
 // ============ STRUTTURA CATEGORIE ============
@@ -125,6 +126,21 @@ const categories: Category[] = [
             },
         ],
     },
+    {
+        id: "verifiche",
+        name: "Verifiche & Quiz",
+        icon: "📝",
+        subcategories: [
+            {
+                id: "quiz-algebra",
+                name: "Algebra",
+                slugs: [
+                    "quiz-algebra",
+                    "verifica-algebra-1",
+                ],
+            },
+        ],
+    },
 ];
 
 // Mappa slug -> demo per lookup veloce
@@ -133,6 +149,8 @@ const demoBySlug = new Map(demos.map((d) => [d.slug, d]));
 // Demo nuove (mostrano tag NEW)
 const newDemoSlugs = new Set([
     "segno-di-un-prodotto",
+    "quiz-algebra",
+    "verifica-algebra-1",
 ]);
 
 // ============ COMPONENTI ============
@@ -268,6 +286,7 @@ function Home() {
     };
 
     const totalDemos = demos.length;
+    const totalTests = tests.length;
 
     return (
         <div style={{
@@ -295,15 +314,31 @@ function Home() {
                         Demo interattive per le lezioni di Giovanni Ugolini
                     </p>
                     <div style={{
-                        display: "inline-block",
-                        padding: "6px 16px",
-                        background: "#dbeafe",
-                        borderRadius: 20,
-                        fontSize: 13,
-                        color: "#1e40af",
-                        fontWeight: 500,
+                        display: "flex",
+                        justifyContent: "center",
+                        gap: 12,
+                        flexWrap: "wrap",
                     }}>
-                        {totalDemos} demo disponibili
+                        <div style={{
+                            padding: "6px 16px",
+                            background: "#dbeafe",
+                            borderRadius: 20,
+                            fontSize: 13,
+                            color: "#1e40af",
+                            fontWeight: 500,
+                        }}>
+                            {totalDemos} demo disponibili
+                        </div>
+                        <div style={{
+                            padding: "6px 16px",
+                            background: "#fef3c7",
+                            borderRadius: 20,
+                            fontSize: 13,
+                            color: "#92400e",
+                            fontWeight: 500,
+                        }}>
+                            {totalTests} verifiche & quiz
+                        </div>
                     </div>
                 </div>
 
