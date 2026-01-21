@@ -19,6 +19,20 @@ export interface LatexProps {
 }
 
 /**
+ * Renderizza una stringa LaTeX pura (senza delimitatori $)
+ */
+function renderLatex(latex: string, displayMode: boolean): string {
+    try {
+        return katex.renderToString(latex, {
+            throwOnError: false,
+            displayMode,
+        });
+    } catch {
+        return latex;
+    }
+}
+
+/**
  * Componente per renderizzare espressioni LaTeX
  *
  * @example
@@ -34,15 +48,49 @@ export function Latex({
                           style
                       }: LatexProps): React.ReactElement {
     const html = useMemo(() => {
-        try {
-            return katex.renderToString(children, {
-                throwOnError: false,
-                displayMode: display,
-            });
-        } catch {
-            return children;
-        }
+        return renderLatex(children, display);
     }, [children, display]);
+
+    return (
+        <span
+            dangerouslySetInnerHTML={{ __html: html }}
+            className={className}
+            style={style}
+        />
+    );
+}
+
+/**
+ * Componente per renderizzare testo misto con LaTeX inline
+ * Supporta delimitatori $...$ per LaTeX inline
+ *
+ * @example
+ * ```tsx
+ * <MixedLatex>{"Risolvi l'equazione $x^2 + 2x + 1 = 0$"}</MixedLatex>
+ * ```
+ */
+export function MixedLatex({
+                               children,
+                               className = "",
+                               style
+                           }: Omit<LatexProps, 'display'>): React.ReactElement {
+    const html = useMemo(() => {
+        // Regex per trovare $...$ (non escaped)
+        const parts = children.split(/(\$[^$]+\$)/g);
+
+        return parts.map((part) => {
+            if (part.startsWith('$') && part.endsWith('$')) {
+                // È una parte LaTeX - rimuovi i delimitatori e renderizza
+                const latex = part.slice(1, -1);
+                return renderLatex(latex, false);
+            }
+            // È testo normale - escape HTML
+            return part
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }).join('');
+    }, [children]);
 
     return (
         <span
