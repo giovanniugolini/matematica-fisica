@@ -67,6 +67,13 @@ const categories: Category[] = [
                     "archi-associati",
                 ],
             },
+            {
+                id: "trigonometria",
+                name: "Trigonometria",
+                slugs: [
+                    "risoluzione-di-un-triangolo-rettangolo",
+                ],
+            },
         ],
     },
     {
@@ -159,6 +166,7 @@ const newDemoSlugs = new Set([
     "quiz-algebra",
     "verifica-algebra-1",
     "quiz-vettori",
+    "risoluzione-di-un-triangolo-rettangolo"
 ]);
 
 // ============ COMPONENTI ============

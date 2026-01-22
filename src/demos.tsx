@@ -180,6 +180,13 @@ export const demos: DemoInfo[] = [
         title: "Segno di un prodotto",
         Component: React.lazy(() => import("./demos/algebra/./SegnoDiUnProdotto.tsx")),
     },
+
+    // ============ RISOLUZIONE DI UN TRIANGOLO RETTANGOLO ============
+    {
+        slug: "risoluzione-di-un-triangolo-rettangolo",
+        title: "Risoluzione di un triangolo rettangolo",
+        Component: React.lazy(() => import("./demos/trigonometria/./RisoluzioneDiUnTriangoloRettangolo.tsx")),
+    },
     // ============ QUIZ E VERIFICHE ============
     {
         slug: "quiz-algebra",
