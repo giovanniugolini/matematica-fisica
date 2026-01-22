@@ -1,4 +1,5 @@
 import React, { Suspense, useState } from "react";
+import AuthTest from "./pages/AuthTest";
 import { HashRouter as Router, Routes, Route, Link } from "react-router-dom";
 import { demos } from "./demos";
 import { tests } from "./tests";
@@ -433,6 +434,7 @@ export default function App() {
         <Router>
             <Routes>
                 <Route path="/" element={<Home />} />
+                <Route path="/auth-test" element={<AuthTest />} />
                 {demos.map(({ slug, Component }) => (
                     <Route
                         key={slug}
