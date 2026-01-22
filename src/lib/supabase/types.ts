@@ -6,7 +6,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export interface Database {
+export type Database = {
   public: {
     Tables: {
       profiles: {
@@ -43,6 +43,7 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
       artifacts: {
         Row: {
@@ -105,6 +106,7 @@ export interface Database {
           updated_at?: string
           published_at?: string | null
         }
+        Relationships: []
       }
       quiz_results: {
         Row: {
@@ -138,6 +140,7 @@ export interface Database {
           time_spent?: number | null
           completed_at?: string
         }
+        Relationships: []
       }
       favorites: {
         Row: {
@@ -155,6 +158,7 @@ export interface Database {
           artifact_id?: string
           created_at?: string
         }
+        Relationships: []
       }
       path_items: {
         Row: {
@@ -178,6 +182,7 @@ export interface Database {
           order_index?: number
           is_required?: boolean
         }
+        Relationships: []
       }
     }
     Views: {
@@ -189,15 +194,22 @@ export interface Database {
     Enums: {
       [_ in never]: never
     }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
 }
 
 // Helper types
-export type Profile = Database['public']['Tables']['profiles']['Row']
-export type Artifact = Database['public']['Tables']['artifacts']['Row']
-export type QuizResult = Database['public']['Tables']['quiz_results']['Row']
-export type Favorite = Database['public']['Tables']['favorites']['Row']
-export type PathItem = Database['public']['Tables']['path_items']['Row']
+export type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row']
+export type InsertTables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Insert']
+export type UpdateTables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Update']
 
-export type NewArtifact = Database['public']['Tables']['artifacts']['Insert']
-export type UpdateArtifact = Database['public']['Tables']['artifacts']['Update']
+export type Profile = Tables<'profiles'>
+export type Artifact = Tables<'artifacts'>
+export type QuizResult = Tables<'quiz_results'>
+export type Favorite = Tables<'favorites'>
+export type PathItem = Tables<'path_items'>
+
+export type NewArtifact = InsertTables<'artifacts'>
+export type UpdateArtifact = UpdateTables<'artifacts'>
