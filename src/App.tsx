@@ -1,6 +1,7 @@
 import React, { Suspense, useState } from "react";
 import AuthTest from "./pages/AuthTest";
 import ArtifactsTest from "./pages/ArtifactsTest";
+import Dashboard from "./pages/Dashboard";
 import { HashRouter as Router, Routes, Route, Link } from "react-router-dom";
 import { demos } from "./demos";
 import { tests } from "./tests";
@@ -437,6 +438,7 @@ export default function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/auth-test" element={<AuthTest />} />
                 <Route path="/artifacts-test" element={<ArtifactsTest />} />
+                <Route path="/dashboard" element={<Dashboard />} />
                 {demos.map(({ slug, Component }) => (
                     <Route
                         key={slug}
