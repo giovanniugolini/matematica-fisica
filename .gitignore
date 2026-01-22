@@ -31,3 +31,9 @@ BACKriassunto_commit.txt
 /Read_Didattica_STEM.md
 /README_INTERNO.md
 /riassunto_commit.txt
+/02-analisi-funzionale.md
+/03-analisi-tecnica.md
+
+# build output
+/dist
+/dist-node
