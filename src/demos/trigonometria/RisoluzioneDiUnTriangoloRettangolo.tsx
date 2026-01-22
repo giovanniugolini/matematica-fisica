@@ -959,7 +959,8 @@ export default function RisoluzioneTriangoloRettangolo() {
                 </div>
             )}
 
-            <InfoBox title="Come funziona:" style={{ marginTop: 30 }}>
+            <div style={{ marginTop: 30 }}>
+            <InfoBox title="Come funziona:">
                 <ol style={{ marginLeft: 20, fontSize: 14 }}>
                     <li>Osserva i <span style={{ color: "#10b981", fontWeight: 600 }}>dati noti (verdi)</span> e i <span style={{ color: "#ef4444", fontWeight: 600 }}>dati da trovare (rossi)</span></li>
                     <li>Scegli quale teorema applicare tra quelli disponibili</li>
@@ -969,6 +970,7 @@ export default function RisoluzioneTriangoloRettangolo() {
                     <li>Continua fino a trovare tutti i dati mancanti</li>
                 </ol>
             </InfoBox>
+            </div>
         </DemoContainer>
     );
 }
