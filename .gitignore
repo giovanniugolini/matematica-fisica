@@ -31,3 +31,7 @@ BACKriassunto_commit.txt
 /Read_Didattica_STEM.md
 /README_INTERNO.md
 /riassunto_commit.txt
+
+# build
+dist/
+
