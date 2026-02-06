@@ -178,7 +178,7 @@ export const demos: DemoInfo[] = [
         slug: "moto-circolare-uniforme",
         title: "Moto Circolare Uniforme",
         Component: React.lazy(() => import("./demos/cinematica/./MotoCircolareUniformeDemo")),
-
+    },
 
     // ============ SEGNO DI N PRODOTTO ============
     {

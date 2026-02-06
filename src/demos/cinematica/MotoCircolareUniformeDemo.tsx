@@ -105,6 +105,56 @@ function hzToRadPerSec(hz: number): number {
     return hz * TAU;
 }
 
+function FormulaRow({
+                        title,
+                        color,
+                        formula,
+                        numeric,
+                        note,
+                    }: {
+    title: string;
+    color: string;
+    formula: React.ReactNode;
+    numeric: React.ReactNode;
+    note?: React.ReactNode;
+}) {
+    return (
+        <div>
+            <div style={{ fontWeight: 600, color, marginBottom: 4 }}>{title}</div>
+
+            <div
+                style={{
+                    background: "#f8fafc",
+                    padding: 10,
+                    borderRadius: 8,
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: 10,
+                    alignItems: "start",
+                }}
+            >
+                <div>{formula}</div>
+                <div
+                    style={{
+                        paddingLeft: 10,
+                        borderLeft: "2px solid #e2e8f0",
+                        color: "#0f172a",
+                    }}
+                >
+                    {numeric}
+                </div>
+            </div>
+
+            {note && (
+                <div style={{ fontSize: 11, color: "#64748b", marginTop: 6 }}>
+                    {note}
+                </div>
+            )}
+        </div>
+    );
+}
+
+
 // Calcola lo stato del moto circolare a un dato istante
 function calculateCircularMotion(params: CircularMotionParams, t: number): CircularMotionState {
     const { radius, omega0, theta0 } = params;
@@ -874,91 +924,119 @@ export default function MottoCircolareUniformeDemo() {
                 📐 Formule del moto circolare uniforme
             </div>
 
-            <div style={{ display: "grid", gap: 14, fontSize: 13 }}>
+            <div style={{ display: "grid", gap: 16, fontSize: 13 }}>
                 {/* Definizione */}
                 <div style={{ padding: 12, background: "#f0fdfa", borderRadius: 8 }}>
                     <div style={{ fontWeight: 600, color: "#0f766e", marginBottom: 8 }}>
                         🎯 Definizione
                     </div>
                     <div style={{ fontSize: 12, color: "#475569" }}>
-                        Nel <strong>moto circolare uniforme</strong> un punto si muove su una circonferenza con <strong>velocità angolare costante</strong> (ω = costante).
-                        La traiettoria è circolare e il modulo della velocità lineare è costante.
+                        Nel <strong>moto circolare uniforme</strong> un punto si muove su una circonferenza con{" "}
+                        <strong>velocità angolare costante</strong> (ω = costante).
                     </div>
                 </div>
 
                 {/* 1. Legge oraria */}
                 <div>
-                    <div style={{ fontWeight: 600, color: COLORS.position, marginBottom: 4 }}>1. Legge oraria angolare</div>
-                    <div style={{ background: "#f8fafc", padding: 10, borderRadius: 8 }}>
+                    <div style={{ fontWeight: 600, color: COLORS.position, marginBottom: 4 }}>
+                        1. Legge oraria angolare
+                    </div>
+                    <div style={{ background: "#f8fafc", padding: 12, borderRadius: 8 }}>
                         <Latex>{"\\theta(t) = \\theta_0 + \\omega t"}</Latex>
                     </div>
-                    <div style={{ fontSize: 11, color: "#64748b", marginTop: 4 }}>
-                        θ(t): angolo al tempo t<br />
-                        θ₀: angolo iniziale<br />
-                        ω: velocità angolare (costante)<br />
-                        t: tempo
+
+                    {/* valori sotto come nel MUA */}
+                    <div style={{ fontSize: 12, color: "#64748b", marginTop: 6 }}>
+                        <Latex>{`
+            \\theta(${formatNumber(currentState1.t, 2)}) =
+            ${formatNumber(params1.theta0, 3)} +
+            ${formatNumber(currentState1.omega, 3)}\\cdot ${formatNumber(currentState1.t, 2)}
+            = ${formatNumber(currentState1.theta, 3)}\\ \\text{rad}
+            \\;\\;\\Big(\\approx ${formatNumber(toDegrees(currentState1.theta), 1)}^{\\circ}\\Big)
+          `}</Latex>
                     </div>
                 </div>
 
                 {/* 2. Periodo e frequenza */}
                 <div>
-                    <div style={{ fontWeight: 600, color: "#8b5cf6", marginBottom: 4 }}>2. Periodo e frequenza</div>
-                    <div style={{ background: "#f8fafc", padding: 10, borderRadius: 8, display: "grid", gap: 6 }}>
+                    <div style={{ fontWeight: 600, color: "#8b5cf6", marginBottom: 4 }}>
+                        2. Periodo e frequenza
+                    </div>
+                    <div style={{ background: "#f8fafc", padding: 12, borderRadius: 8, display: "grid", gap: 6 }}>
                         <Latex>{`T = \\frac{2\\pi}{\\omega}`}</Latex>
                         <Latex>{`f = \\frac{1}{T} = \\frac{\\omega}{2\\pi}`}</Latex>
                     </div>
-                    <div style={{ fontSize: 11, color: "#64748b", marginTop: 4 }}>
-                        T: periodo (tempo per un giro completo)<br />
-                        f: frequenza (numero di giri al secondo)<br />
-                        ω: velocità angolare
+
+                    <div style={{ fontSize: 12, color: "#64748b", marginTop: 6, display: "grid", gap: 6 }}>
+                        <Latex>{`
+            T = \\frac{2\\pi}{${formatNumber(currentState1.omega, 3)}} =
+            ${formatNumber(currentState1.period, 2)}\\ \\text{s}
+          `}</Latex>
+                        <Latex>{`
+            f = \\frac{1}{T} =
+            ${formatNumber(currentState1.frequency, 3)}\\ \\text{Hz}
+          `}</Latex>
                     </div>
                 </div>
 
-                {/* 3. Velocità lineare e angolare */}
+                {/* 3. Velocità lineare */}
                 <div>
-                    <div style={{ fontWeight: 600, color: COLORS.velocity, marginBottom: 4 }}>3. Velocità lineare e angolare</div>
-                    <div style={{ background: "#f8fafc", padding: 10, borderRadius: 8, display: "grid", gap: 6 }}>
+                    <div style={{ fontWeight: 600, color: COLORS.velocity, marginBottom: 4 }}>
+                        3. Velocità lineare e angolare
+                    </div>
+                    <div style={{ background: "#f8fafc", padding: 12, borderRadius: 8 }}>
                         <Latex>{`v = \\omega r`}</Latex>
                     </div>
-                    <div style={{ fontSize: 11, color: "#64748b", marginTop: 4 }}>
-                        v: velocità lineare (tangenziale, modulo costante)<br />
-                        ω: velocità angolare<br />
-                        r: raggio della traiettoria
+
+                    <div style={{ fontSize: 12, color: "#64748b", marginTop: 6 }}>
+                        <Latex>{`
+            v =
+            ${formatNumber(currentState1.omega, 3)}\\cdot ${formatNumber(params1.radius, 2)}
+            = ${formatNumber(currentState1.v, 2)}\\ \\text{m/s}
+            \\;\\;\\Big(= ${formatNumber(currentState1.v * 3.6, 1)}\\ \\text{km/h}\\Big)
+          `}</Latex>
                     </div>
                 </div>
 
                 {/* 4. Accelerazione centripeta */}
                 <div>
-                    <div style={{ fontWeight: 600, color: COLORS.acceleration, marginBottom: 4 }}>4. Accelerazione centripeta</div>
-                    <div style={{ background: "#f8fafc", padding: 10, borderRadius: 8, display: "grid", gap: 6 }}>
+                    <div style={{ fontWeight: 600, color: COLORS.acceleration, marginBottom: 4 }}>
+                        4. Accelerazione centripeta
+                    </div>
+                    <div style={{ background: "#f8fafc", padding: 12, borderRadius: 8, display: "grid", gap: 6 }}>
                         <Latex>{`a_c = \\frac{v^2}{r} = \\omega^2 r`}</Latex>
                     </div>
-                    <div style={{ fontSize: 11, color: "#64748b", marginTop: 4 }}>
-                        a_c: accelerazione centripeta (sempre verso il centro)<br />
-                        v: velocità lineare<br />
-                        ω: velocità angolare<br />
-                        r: raggio della traiettoria
+
+                    <div style={{ fontSize: 12, color: "#64748b", marginTop: 6, display: "grid", gap: 6 }}>
+                        <Latex>{`
+            a_c = \\frac{(${formatNumber(currentState1.v, 2)})^2}{${formatNumber(params1.radius, 2)}}
+            = ${formatNumber((currentState1.v * currentState1.v) / params1.radius, 2)}\\ \\text{m/s}^2
+          `}</Latex>
+                        <Latex>{`
+            a_c = (${formatNumber(currentState1.omega, 3)})^2\\cdot ${formatNumber(params1.radius, 2)}
+            = ${formatNumber(currentState1.a, 2)}\\ \\text{m/s}^2
+          `}</Latex>
                     </div>
                 </div>
 
-                {/* Note importanti - AGGIORNATE con le nuove osservazioni */}
+                {/* Note importanti */}
                 <div style={{ padding: 12, background: "#fef3c7", borderRadius: 8 }}>
                     <div style={{ fontWeight: 600, color: "#92400e", marginBottom: 8 }}>
                         💡 Osservazioni importanti
                     </div>
                     <div style={{ fontSize: 12, color: "#78716c" }}>
-                        1. <strong>Periodo (T)</strong>: tempo necessario per compiere un giro completo.<br />
-                        2. <strong>Frequenza (f)</strong>: numero di giri completati in un secondo (f = 1/T).<br />
-                        3. La <strong>velocità lineare v</strong> è sempre tangente alla traiettoria.<br />
-                        4. Il <strong>modulo della velocità v</strong> è costante, ma la sua direzione e verso cambiano continuamente.<br />
-                        5. L'<strong>accelerazione centripeta a</strong> è sempre diretta verso il centro.<br />
-                        6. Velocità e accelerazione sono <strong>perpendicolari</strong> (v ⊥ a).<br />
-                        7. Senza accelerazione centripeta, l'oggetto procederebbe di moto rettilineo uniforme.
+                        1. <strong>Periodo (T)</strong>: tempo necessario per un giro completo.<br />
+                        2. <strong>Frequenza (f)</strong>: numero di giri al secondo (f = 1/T).<br />
+                        3. La <strong>velocità</strong> è tangente alla traiettoria.<br />
+                        4. L’<strong>accelerazione</strong> è sempre verso il centro.<br />
+                        5. <strong>v ⟂ a</strong>.
                     </div>
                 </div>
             </div>
         </ResponsiveCard>
     );
+
+
 
     const ConversionPanel = (
         <CollapsiblePanel title="🔄 Conversioni unità" defaultOpen={false}>
