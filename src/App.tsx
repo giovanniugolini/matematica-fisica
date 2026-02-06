@@ -1,6 +1,7 @@
 import React, { Suspense, useState } from "react";
 import { HashRouter as Router, Routes, Route, Link } from "react-router-dom";
 import { demos } from "./demos";
+import { tests } from "./tests";
 import "katex/dist/katex.min.css";
 
 // ============ STRUTTURA CATEGORIE ============
@@ -34,6 +35,7 @@ const categories: Category[] = [
                     "disequazioni-secondo-grado",
                     "sistemi-disequazioni",
                     "disequazioni-soluzioni",
+                    "segno-di-un-prodotto"
 
                 ],
             },
@@ -63,6 +65,13 @@ const categories: Category[] = [
                 slugs: [
                     "angolo-rotazione",
                     "archi-associati",
+                ],
+            },
+            {
+                id: "trigonometria",
+                name: "Trigonometria",
+                slugs: [
+                    "risoluzione-di-un-triangolo-rettangolo",
                 ],
             },
         ],
@@ -125,10 +134,41 @@ const categories: Category[] = [
             },
         ],
     },
+    {
+        id: "verifiche",
+        name: "Verifiche & Quiz",
+        icon: "📝",
+        subcategories: [
+            {
+                id: "quiz-algebra",
+                name: "Algebra",
+                slugs: [
+                    "quiz-algebra",
+                    "verifica-algebra-1",
+                ],
+            },
+            {
+                id: "quiz-fisica",
+                name: "Fisica",
+                slugs: [
+                    "quiz-vettori",
+                ],
+            },
+        ],
+    },
 ];
 
 // Mappa slug -> demo per lookup veloce
 const demoBySlug = new Map(demos.map((d) => [d.slug, d]));
+
+// Demo nuove (mostrano tag NEW)
+const newDemoSlugs = new Set([
+    "segno-di-un-prodotto",
+    "quiz-algebra",
+    "verifica-algebra-1",
+    "quiz-vettori",
+    "risoluzione-di-un-triangolo-rettangolo"
+]);
 
 // ============ COMPONENTI ============
 
@@ -137,13 +177,17 @@ function CategoryCard({ category, expanded, onToggle }: {
     expanded: boolean;
     onToggle: () => void;
 }) {
+    // Stile speciale per la categoria Verifiche & Quiz
+    const isVerifiche = category.id === "verifiche";
+
     return (
         <div style={{
-            background: "#fff",
+            background: isVerifiche ? "#fffbeb" : "#fff",
             borderRadius: 16,
             boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
             overflow: "hidden",
             marginBottom: 16,
+            border: isVerifiche ? "2px solid #fcd34d" : "none",
         }}>
             {/* Header categoria */}
             <button
@@ -151,16 +195,18 @@ function CategoryCard({ category, expanded, onToggle }: {
                 style={{
                     width: "100%",
                     padding: "16px 20px",
-                    background: expanded ? "#f8fafc" : "#fff",
+                    background: isVerifiche
+                        ? (expanded ? "#fef3c7" : "#fffbeb")
+                        : (expanded ? "#f8fafc" : "#fff"),
                     border: "none",
-                    borderBottom: expanded ? "1px solid #e2e8f0" : "none",
+                    borderBottom: expanded ? `1px solid ${isVerifiche ? "#fcd34d" : "#e2e8f0"}` : "none",
                     cursor: "pointer",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
                     fontSize: 18,
                     fontWeight: 600,
-                    color: "#1e293b",
+                    color: isVerifiche ? "#92400e" : "#1e293b",
                     transition: "background 0.2s",
                 }}
             >
@@ -203,7 +249,9 @@ function CategoryCard({ category, expanded, onToggle }: {
                                             key={slug}
                                             to={`/${slug}`}
                                             style={{
-                                                display: "block",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                gap: 8,
                                                 padding: "10px 14px",
                                                 background: "#f8fafc",
                                                 borderRadius: 8,
@@ -225,6 +273,19 @@ function CategoryCard({ category, expanded, onToggle }: {
                                             }}
                                         >
                                             {demo.title}
+                                            {newDemoSlugs.has(slug) && (
+                                                <span style={{
+                                                    background: "#f59e0b",
+                                                    color: "#fff",
+                                                    fontSize: 10,
+                                                    fontWeight: 700,
+                                                    padding: "2px 6px",
+                                                    borderRadius: 4,
+                                                    textTransform: "uppercase",
+                                                }}>
+                                                    New
+                                                </span>
+                                            )}
                                         </Link>
                                     );
                                 })}
@@ -248,6 +309,7 @@ function Home() {
     };
 
     const totalDemos = demos.length;
+    const totalTests = tests.length;
 
     return (
         <div style={{
@@ -275,15 +337,31 @@ function Home() {
                         Demo interattive per le lezioni di Giovanni Ugolini
                     </p>
                     <div style={{
-                        display: "inline-block",
-                        padding: "6px 16px",
-                        background: "#dbeafe",
-                        borderRadius: 20,
-                        fontSize: 13,
-                        color: "#1e40af",
-                        fontWeight: 500,
+                        display: "flex",
+                        justifyContent: "center",
+                        gap: 12,
+                        flexWrap: "wrap",
                     }}>
-                        {totalDemos} demo disponibili
+                        <div style={{
+                            padding: "6px 16px",
+                            background: "#dbeafe",
+                            borderRadius: 20,
+                            fontSize: 13,
+                            color: "#1e40af",
+                            fontWeight: 500,
+                        }}>
+                            {totalDemos} demo disponibili
+                        </div>
+                        <div style={{
+                            padding: "6px 16px",
+                            background: "#fef3c7",
+                            borderRadius: 20,
+                            fontSize: 13,
+                            color: "#92400e",
+                            fontWeight: 500,
+                        }}>
+                            {totalTests} verifiche & quiz
+                        </div>
                     </div>
                 </div>
 

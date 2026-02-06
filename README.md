@@ -4,8 +4,7 @@ Una piattaforma di **demo interattive per l’insegnamento di Matematica e Fisic
 
 Il progetto nasce con l’obiettivo di **rendere visibili i concetti**, guidare il procedimento passo–passo e favorire un apprendimento attivo attraverso la visualizzazione, l’esplorazione e il confronto tra casi diversi.
 
-🌐 **Sito online (GitHub Pages)**  
-👉 https://giovanniugolini.github.io/matematica-fisica/
+🌐 **Sito online (GitHub Pages)** 👉 https://giovanniugolini.github.io/matematica-fisica/
 
 ---
 
@@ -27,20 +26,15 @@ Le demo **non sostituiscono il libro di testo**, ma lo integrano come strumento 
 
 ## 🧠 Caratteristiche principali
 
-- ✅ **Procedimento step-by-step**  
-  I passaggi logici vengono mostrati in modo progressivo e controllabile
+- ✅ **Procedimento step-by-step** I passaggi logici vengono mostrati in modo progressivo e controllabile
 
-- ✅ **Visualizzazioni dinamiche**  
-  Grafici, schemi, rette, curve, vettori, traiettorie e grandezze fisiche
+- ✅ **Visualizzazioni dinamiche** Grafici, schemi, rette, curve, vettori, traiettorie e grandezze fisiche
 
-- ✅ **Responsive**  
-  Utilizzabile da PC, tablet e smartphone
+- ✅ **Responsive** Utilizzabile da PC, tablet e smartphone
 
-- ✅ **Notazione matematica corretta**  
-  Tutte le formule sono renderizzate in **LaTeX**
+- ✅ **Notazione matematica corretta** Tutte le formule sono renderizzate in **LaTeX**
 
-- ✅ **Approccio esplorativo**  
-  Parametri modificabili per osservare variazioni, casi limite e situazioni particolari
+- ✅ **Approccio esplorativo** Parametri modificabili per osservare variazioni, casi limite e situazioni particolari
 
 ---
 
@@ -138,30 +132,21 @@ Contribuisce allo sviluppo di:
 
 ---
 
-## 🚀 Sviluppi futuri
-
-L’obiettivo è coprire **l’intero curricolo di matematica e fisica della scuola secondaria di secondo grado**, attraverso:
-
-- ampliamento sistematico delle demo esistenti
-- introduzione di nuovi moduli per tutti gli argomenti curricolari
-- maggiore integrazione tra matematica e fisica
-- strumenti per lezioni interattive e percorsi guidati
-
-La piattaforma è pensata come un **laboratorio digitale in continua evoluzione**.
-
----
-
 ## 👨‍🏫 Autore
 
 Progetto sviluppato da  
-**Giovanni Ugolini**  
-Docente di Matematica e Fisica
+**Giovanni Ugolini** Docente di Matematica e Fisica
 
 ---
 
 ## 📄 Licenza
 
-Il progetto è pensato per **uso didattico e divulgativo**.  
-Il codice è pubblico e riutilizzabile citando la fonte.
+Questo progetto è distribuito sotto licenza **MIT**.
 
-👉 Per informazioni tecniche sul progetto: vedi `README.dev.md`
+Sei libero di utilizzare, copiare, modificare, unire, pubblicare, distribuire, concedere in sub-licenza e/o vendere copie del Software, a condizione che venga incluso l'avviso di copyright e la nota di permesso originale.
+
+Copyright © 2026 Giovanni Ugolini
+
+👉 Per i dettagli completi, vedi il file `LICENSE` o visita [opensource.org/licenses/MIT](https://opensource.org/licenses/MIT).
+
+Per informazioni tecniche sul progetto: vedi `README.dev.md`

@@ -22,3 +22,16 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 BACKriassunto_commit.txt
+/ai_update.txt
+/analisi_tecnica_funzionale_md
+/create-random-images
+/lesson-compiler-v2.zip
+/markdown-implementation.md
+/progetto.zip
+/Read_Didattica_STEM.md
+/README_INTERNO.md
+/riassunto_commit.txt
+
+# build
+dist/
+

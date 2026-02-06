@@ -178,5 +178,36 @@ export const demos: DemoInfo[] = [
         slug: "moto-circolare-uniforme",
         title: "Moto Circolare Uniforme",
         Component: React.lazy(() => import("./demos/cinematica/./MotoCircolareUniformeDemo")),
+
+
+    // ============ SEGNO DI N PRODOTTO ============
+    {
+        slug: "segno-di-un-prodotto",
+        title: "Segno di un prodotto",
+        Component: React.lazy(() => import("./demos/algebra/./SegnoDiUnProdotto.tsx")),
+    },
+
+    // ============ RISOLUZIONE DI UN TRIANGOLO RETTANGOLO ============
+    {
+        slug: "risoluzione-di-un-triangolo-rettangolo",
+        title: "Risoluzione di un triangolo rettangolo",
+        Component: React.lazy(() => import("./demos/trigonometria/./RisoluzioneDiUnTriangoloRettangolo.tsx")),
+    },
+    // ============ QUIZ E VERIFICHE ============
+    {
+        slug: "quiz-algebra",
+        title: "Quiz: Equazioni di 2° grado (random)",
+        Component: React.lazy(() => import("./demos/quiz/QuizAlgebraDemo")),
+    },
+    {
+        slug: "verifica-algebra-1",
+        title: "Verifica: Equazioni di 2° grado",
+        Component: React.lazy(() => import("./demos/quiz/VerificaAlgebra1")),
+    },
+    {
+        slug: "quiz-vettori",
+        title: "Quiz: Vettori (random)",
+        Component: React.lazy(() => import("./demos/quiz/QuizVettoriDemo")),
+  
     },
 ];
