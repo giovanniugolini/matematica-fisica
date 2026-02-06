@@ -183,7 +183,7 @@ export const demos: DemoInfo[] = [
     // ============ SEGNO DI N PRODOTTO ============
     {
         slug: "segno-di-un-prodotto",
-        title: "Segno di un prodotto",
+        title: "Disequazioni prodotto e disequazioni fratte",
         Component: React.lazy(() => import("./demos/algebra/./SegnoDiUnProdotto.tsx")),
     },
 
