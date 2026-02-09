@@ -203,4 +203,9 @@ export const demos: DemoInfo[] = [
         title: "Quiz: Vettori (random)",
         Component: React.lazy(() => import("./demos/quiz/QuizVettoriDemo")),
     },
+    {
+        slug: "legge-hom",
+        title: "La prima legge di Ohm (laboratorio online)",
+        Component: React.lazy(() => import("./demos/elettromagnetismo/Leggeohmdemo.tsx")),
+    },
 ];

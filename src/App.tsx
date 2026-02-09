@@ -106,6 +106,7 @@ const categories: Category[] = [
                     "campo-elettrico",
                     "legge-di-coulomb",
                     "condensatore",
+                    "legge-hom"
                 ],
             },
             {
@@ -166,7 +167,8 @@ const newDemoSlugs = new Set([
     "quiz-algebra",
     "verifica-algebra-1",
     "quiz-vettori",
-    "risoluzione-di-un-triangolo-rettangolo"
+    "risoluzione-di-un-triangolo-rettangolo",
+    "legge-hom"
 ]);
 
 // ============ COMPONENTI ============
