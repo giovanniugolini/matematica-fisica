@@ -35,7 +35,8 @@ const categories: Category[] = [
                     "disequazioni-secondo-grado",
                     "sistemi-disequazioni",
                     "disequazioni-soluzioni",
-                    "segno-di-un-prodotto"
+                    "segno-di-un-prodotto",
+                    "sistemi-secondo-grado"
 
                 ],
             },
@@ -169,7 +170,8 @@ const newDemoSlugs = new Set([
     "verifica-algebra-1",
     "quiz-vettori",
     "risoluzione-di-un-triangolo-rettangolo",
-    "legge-hom"
+    "legge-hom",
+    "sistemi-secondo-grado"
 ]);
 
 // ============ COMPONENTI ============

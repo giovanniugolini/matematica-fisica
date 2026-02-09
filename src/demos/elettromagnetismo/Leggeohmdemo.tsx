@@ -1457,7 +1457,7 @@ export default function LeggeOhmDemo() {
 
     if (isMobile) {
         return (
-            <DemoContainer title="Legge di Ohm" description="Laboratorio interattivo: V = R · I">
+            <DemoContainer title="Prima Legge di Ohm" description="Laboratorio interattivo: V = R · I">
                 <SwipeableTabs
                     tabs={[
                         {
