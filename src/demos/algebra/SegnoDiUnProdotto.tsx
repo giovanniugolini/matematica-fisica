@@ -1,6 +1,7 @@
 /**
  * DisequazioniProdottoDemo - Versione Responsive
  * Step-by-step: forma fattorizzata → studio fattori → schema segno → soluzione
+ * Supporta sia disequazioni prodotto che disequazioni fratte (primo grado)
  * Ottimizzato per mobile, tablet e desktop
  */
 
@@ -34,6 +35,8 @@ import {
 
 // ============ TIPI ============
 
+type InequalityMode = "prodotto" | "fratta";
+
 interface Factor {
     coefficient: number; // coefficiente di x
     constant: number;   // termine noto
@@ -41,111 +44,111 @@ interface Factor {
 }
 
 interface Inequality {
-    factors: Factor[];  // 2-3 fattori (80% 2 fattori, 20% 3 fattori)
+    mode: InequalityMode;
+    numeratorFactors: Factor[];   // fattori al numeratore
+    denominatorFactors: Factor[]; // fattori al denominatore (vuoto per prodotto)
     inequalityType: "<" | ">" | "≤" | "≥";
     solutionLatex: string;
     solutionSetLatex: string;
-    solutionIntervals: { start: string; end: string; included: boolean }[];
-    roots: number[];
+    solutionIntervals: { start: string; end: string; includedStart: boolean; includedEnd: boolean }[];
+    roots: number[];           // tutte le radici ordinate
+    denominatorRoots: number[]; // radici del denominatore (sempre escluse)
 }
 
 // ============ GENERATORE ============
 
+function generateFactor(existingRoots: Set<number>): Factor {
+    const coefficient = randomNonZero(-3, 3);
+    let root: number;
+    do {
+        root = randomInt(-5, 5);
+    } while (existingRoots.has(root));
+    existingRoots.add(root);
+    const constant = -coefficient * root;
+    return { coefficient, constant, root };
+}
+
 function generateDisequazione(): Inequality {
-    // 80% 2 fattori, 20% 3 fattori
-    const numFactors = Math.random() < 0.8 ? 2 : 3;
+    // 50% prodotto, 50% fratta
+    const mode: InequalityMode = Math.random() < 0.5 ? "prodotto" : "fratta";
 
-    const factors: Factor[] = [];
     const rootsSet = new Set<number>();
+    const numeratorFactors: Factor[] = [];
+    const denominatorFactors: Factor[] = [];
 
-    // Genera fattori distinti
-    while (factors.length < numFactors) {
-        // Coefficiente diverso da zero
-        const coefficient = randomNonZero(-3, 3);
-
-        // Genera radice intera semplice tra -5 e 5
-        let root;
-        do {
-            root = randomInt(-5, 5);
-        } while (rootsSet.has(root));
-
-        rootsSet.add(root);
-
-        // Costante: -coefficient * root
-        const constant = -coefficient * root;
-
-        factors.push({
-            coefficient,
-            constant,
-            root,
-        });
+    if (mode === "prodotto") {
+        // 80% 2 fattori, 20% 3 fattori
+        const numFactors = Math.random() < 0.8 ? 2 : 3;
+        for (let i = 0; i < numFactors; i++) {
+            numeratorFactors.push(generateFactor(rootsSet));
+        }
+    } else {
+        // Fratta semplice: sempre 1 fattore al numeratore e 1 al denominatore
+        numeratorFactors.push(generateFactor(rootsSet));
+        denominatorFactors.push(generateFactor(rootsSet));
     }
 
     // Tipo di disequazione
     const inequalityTypes: ("<" | ">" | "≤" | "≥")[] = ["<", ">", "≤", "≥"];
     const inequalityType = randomChoice(inequalityTypes);
 
-    // Ordina radici
-    const roots = Array.from(rootsSet).sort((a, b) => a - b);
+    // Tutte le radici ordinate
+    const allRoots = [...numeratorFactors, ...denominatorFactors]
+        .map(f => f.root)
+        .sort((a, b) => a - b);
+
+    const denominatorRoots = denominatorFactors.map(f => f.root).sort((a, b) => a - b);
 
     // Risolve la disequazione
-    const solution = solveProductInequality(factors, inequalityType, roots);
+    const allFactors = [...numeratorFactors, ...denominatorFactors];
+    const solution = solveInequality(allFactors, inequalityType, allRoots, denominatorRoots);
 
     return {
-        factors,
+        mode,
+        numeratorFactors,
+        denominatorFactors,
         inequalityType,
         solutionLatex: solution.latex,
         solutionSetLatex: solution.setLatex,
         solutionIntervals: solution.intervals,
-        roots,
+        roots: allRoots,
+        denominatorRoots,
     };
 }
 
-function solveProductInequality(
-    factors: Factor[],
+function solveInequality(
+    allFactors: Factor[],
     type: "<" | ">" | "≤" | "≥",
-    roots: number[]
+    roots: number[],
+    denominatorRoots: number[]
 ): {
     latex: string;
     setLatex: string;
-    intervals: { start: string; end: string; included: boolean }[]
+    intervals: { start: string; end: string; includedStart: boolean; includedEnd: boolean }[];
 } {
     const rootsSorted = [...roots].sort((a, b) => a - b);
-    const testPoints = [-10, ...rootsSorted, 10];
+    const uniqueRoots = [...new Set(rootsSorted)];
+    const testPoints = [-10, ...uniqueRoots, 10];
     const intervals: { start: number; end: number; sign: number }[] = [];
 
     // Determina il segno in ciascun intervallo
     for (let i = 0; i < testPoints.length - 1; i++) {
-        const x = (testPoints[i] + testPoints[i + 1]) / 2; // Punto medio
-
-        // Calcola segno del prodotto
+        const x = (testPoints[i] + testPoints[i + 1]) / 2;
         let productSign = 1;
-        for (const factor of factors) {
+        for (const factor of allFactors) {
             const factorSign = factor.coefficient * x + factor.constant > 0 ? 1 : -1;
             productSign *= factorSign;
         }
-
-        intervals.push({
-            start: testPoints[i],
-            end: testPoints[i + 1],
-            sign: productSign,
-        });
+        intervals.push({ start: testPoints[i], end: testPoints[i + 1], sign: productSign });
     }
 
-    // Determina quali intervalli soddisfano la disequazione
     const isStrict = type === "<" || type === ">";
     const wantPositive = type === ">" || type === "≥";
+    const denomRootsSet = new Set(denominatorRoots);
 
     const solutionIntervals = intervals
-        .filter(interval => {
-            if (wantPositive) {
-                return interval.sign > 0;
-            } else {
-                return interval.sign < 0;
-            }
-        })
+        .filter(interval => wantPositive ? interval.sign > 0 : interval.sign < 0)
         .map(interval => {
-            // Gestisci intervalli infiniti
             const isStartInfinity = interval.start === -10;
             const isEndInfinity = interval.end === 10;
 
@@ -158,100 +161,129 @@ function solveProductInequality(
                 startStr = "-\\infty";
             } else {
                 startStr = formatNumberLatex(interval.start);
-                // Controlla se il punto iniziale è una radice e se va inclusa
-                includedStart = !isStrict && rootsSorted.includes(interval.start);
+                // Incluso solo se: non stretta, è una radice, e NON è radice del denominatore
+                includedStart = !isStrict
+                    && uniqueRoots.includes(interval.start)
+                    && !denomRootsSet.has(interval.start);
             }
 
             if (isEndInfinity) {
                 endStr = "+\\infty";
             } else {
                 endStr = formatNumberLatex(interval.end);
-                // Controlla se il punto finale è una radice e se va inclusa
-                includedEnd = !isStrict && rootsSorted.includes(interval.end);
+                includedEnd = !isStrict
+                    && uniqueRoots.includes(interval.end)
+                    && !denomRootsSet.has(interval.end);
             }
 
-            return {
-                start: startStr,
-                end: endStr,
-                included: isStartInfinity ? false : includedStart,
-            };
+            return { start: startStr, end: endStr, includedStart, includedEnd };
         });
 
-    // Costruisci la rappresentazione LaTeX
+    // Costruisci LaTeX
     let latex = "";
     let setLatex = "";
 
-    // Simboli per le disequazioni
     const leqSymbol = isStrict ? "<" : "\\leq";
     const geqSymbol = isStrict ? ">" : "\\geq";
 
     if (solutionIntervals.length === 0) {
         latex = "\\emptyset";
         setLatex = "\\emptyset";
-    } else if (solutionIntervals.length === 1 &&
+    } else if (
+        solutionIntervals.length === 1 &&
         solutionIntervals[0].start === "-\\infty" &&
-        solutionIntervals[0].end === "+\\infty") {
-        latex = "\\forall x \\in \\mathbb{R}";
-        setLatex = "\\mathbb{R}";
+        solutionIntervals[0].end === "+\\infty"
+    ) {
+        if (denomRootsSet.size > 0) {
+            const excluded = [...denomRootsSet].sort((a, b) => a - b)
+                .map(r => formatNumberLatex(r)).join(", ");
+            latex = `\\forall x \\in \\mathbb{R},\\; x \\neq ${excluded}`;
+            setLatex = `\\mathbb{R} \\setminus \\{${excluded}\\}`;
+        } else {
+            latex = "\\forall x \\in \\mathbb{R}";
+            setLatex = "\\mathbb{R}";
+        }
     } else {
-        // Costruisci la soluzione in forma algebrica (x ≤ a ∨ x ≥ b)
         const algebraicParts: string[] = [];
 
         for (const interval of solutionIntervals) {
             if (interval.start === "-\\infty" && interval.end === "+\\infty") {
                 algebraicParts.push("\\forall x \\in \\mathbb{R}");
             } else if (interval.start === "-\\infty") {
-                // x ≤ end o x < end
-                algebraicParts.push(`x ${leqSymbol} ${interval.end}`);
+                const sym = interval.includedEnd ? "\\leq" : "<";
+                algebraicParts.push(`x ${sym} ${interval.end}`);
             } else if (interval.end === "+\\infty") {
-                // x ≥ start o x > start
-                algebraicParts.push(`x ${geqSymbol} ${interval.start}`);
+                const sym = interval.includedStart ? "\\geq" : ">";
+                algebraicParts.push(`x ${sym} ${interval.start}`);
             } else {
-                // start ≤ x ≤ end o start < x < end
-                algebraicParts.push(`${interval.start} ${leqSymbol} x ${leqSymbol} ${interval.end}`);
+                const symLeft = interval.includedStart ? "\\leq" : "<";
+                const symRight = interval.includedEnd ? "\\leq" : "<";
+                algebraicParts.push(`${interval.start} ${symLeft} x ${symRight} ${interval.end}`);
             }
         }
 
-        if (algebraicParts.length === 1) {
-            latex = algebraicParts[0];
-        } else {
-            latex = algebraicParts.join(" \\; \\vee \\; ");
-        }
+        latex = algebraicParts.length === 1
+            ? algebraicParts[0]
+            : algebraicParts.join(" \\; \\vee \\; ");
 
-        // Forma insiemistica con intervalli
         const setStrings = solutionIntervals.map(interval => {
             if (interval.start === "-\\infty" && interval.end === "+\\infty") {
                 return "\\mathbb{R}";
             }
-            const leftBracket = interval.start === "-\\infty" ? "(" : (interval.included ? "[" : "(");
-            const rightBracket = interval.end === "+\\infty" ? ")" : (interval.included ? "]" : ")");
-            return `${leftBracket}${interval.start}, ${interval.end}${rightBracket}`;
+            const leftBracket = interval.start === "-\\infty" || !interval.includedStart ? "(" : "[";
+            const rightBracket = interval.end === "+\\infty" || !interval.includedEnd ? ")" : "]";
+            return `${leftBracket}${interval.start},\\, ${interval.end}${rightBracket}`;
         });
 
-        if (setStrings.length === 1) {
-            setLatex = setStrings[0];
-        } else {
-            setLatex = setStrings.join(" \\cup ");
-        }
+        setLatex = setStrings.length === 1
+            ? setStrings[0]
+            : setStrings.join(" \\cup ");
     }
 
-    return {
-        latex,
-        setLatex,
-        intervals: solutionIntervals,
-    };
+    return { latex, setLatex, intervals: solutionIntervals };
+}
+
+// ============ HELPER LATEX ============
+
+function formatFactorLatex(factor: Factor): string {
+    const coeff = factor.coefficient;
+    const constant = factor.constant;
+
+    if (coeff === 1) {
+        return `(x ${constant >= 0 ? '+' : ''} ${formatNumberLatex(constant)})`;
+    } else if (coeff === -1) {
+        return `(-x ${constant >= 0 ? '+' : ''} ${formatNumberLatex(constant)})`;
+    } else {
+        return `(${formatNumberLatex(coeff)}x ${constant >= 0 ? '+' : ''} ${formatNumberLatex(constant)})`;
+    }
+}
+
+function buildInequalityLatex(ineq: Inequality): string {
+    const numLatex = ineq.numeratorFactors.map(formatFactorLatex).join(" \\cdot ");
+
+    if (ineq.mode === "prodotto") {
+        return `${numLatex} ${ineq.inequalityType} 0`;
+    }
+
+    const denLatex = ineq.denominatorFactors.map(formatFactorLatex).join(" \\cdot ");
+    return `\\dfrac{${numLatex}}{${denLatex}} ${ineq.inequalityType} 0`;
 }
 
 // ============ COMPONENTE GRAFICO DEI SEGNI ============
 
 interface SignChartProps {
-    factors: Factor[];
+    numeratorFactors: Factor[];
+    denominatorFactors: Factor[];
     roots: number[];
+    denominatorRoots: number[];
     isMobile?: boolean;
 }
 
-function SignChart({ factors, roots, isMobile = false }: SignChartProps) {
-    const sortedRoots = [...roots].sort((a, b) => a - b);
+function SignChart({ numeratorFactors, denominatorFactors, roots, denominatorRoots, isMobile = false }: SignChartProps) {
+    const allFactors = [...numeratorFactors, ...denominatorFactors];
+    const sortedRoots = [...new Set(roots)].sort((a, b) => a - b);
+    const denomRootsSet = new Set(denominatorRoots);
+    const hasDenominator = denominatorFactors.length > 0;
 
     // Dimensioni
     const rowHeight = isMobile ? 40 : 50;
@@ -262,59 +294,148 @@ function SignChart({ factors, roots, isMobile = false }: SignChartProps) {
 
     const numRegions = sortedRoots.length + 1;
     const chartWidth = labelWidth + numRegions * regionWidth;
-    const chartHeight = topPadding + (factors.length + 1) * rowHeight + bottomPadding;
 
-    // Calcola il segno di un fattore in un punto
+    // Righe: numeratore factors + (separatore N) + denominatore factors + (separatore D) + prodotto/quoziente
+    const numRows = allFactors.length + (hasDenominator ? 1 : 0); // +1 per la riga risultato (N/D o prodotto)
+    // Calcoliamo le posizioni delle righe
+    // Per la fratta: num factors | linea separatrice num | den factors | linea separatrice | risultato
+    // Per il prodotto: factors | linea separatrice | risultato
+
+    let totalRows: number;
+    if (hasDenominator) {
+        // numFactors righe + separatore "N" + denFactors righe + separatore + riga risultato
+        totalRows = numeratorFactors.length + denominatorFactors.length + 1;
+    } else {
+        totalRows = allFactors.length + 1;
+    }
+
+    const chartHeight = topPadding + totalRows * rowHeight + bottomPadding;
+
     const getFactorSign = (factor: Factor, x: number): number => {
         const value = factor.coefficient * x + factor.constant;
         return value > 0 ? 1 : -1;
     };
 
-    // Calcola il segno del prodotto in un punto
     const getProductSign = (x: number): number => {
         let sign = 1;
-        for (const factor of factors) {
+        for (const factor of allFactors) {
             sign *= getFactorSign(factor, x);
         }
         return sign;
     };
 
-    // Genera un punto di test per ogni regione
     const getTestPoint = (regionIndex: number): number => {
-        if (regionIndex === 0) {
-            return sortedRoots[0] - 1;
-        } else if (regionIndex === sortedRoots.length) {
-            return sortedRoots[sortedRoots.length - 1] + 1;
-        } else {
-            return (sortedRoots[regionIndex - 1] + sortedRoots[regionIndex]) / 2;
-        }
+        if (regionIndex === 0) return sortedRoots[0] - 1;
+        if (regionIndex === sortedRoots.length) return sortedRoots[sortedRoots.length - 1] + 1;
+        return (sortedRoots[regionIndex - 1] + sortedRoots[regionIndex]) / 2;
     };
 
-    // Formatta il nome del fattore
     const formatFactorName = (factor: Factor): string => {
         const coeff = factor.coefficient;
         const constant = factor.constant;
-
-        if (coeff === 1) {
-            return `x ${constant >= 0 ? '+' : '−'} ${Math.abs(constant)}`;
-        } else if (coeff === -1) {
-            return `−x ${constant >= 0 ? '+' : '−'} ${Math.abs(constant)}`;
-        } else {
-            return `${coeff}x ${constant >= 0 ? '+' : '−'} ${Math.abs(constant)}`;
-        }
-    };
-
-    // Formatta il nome del prodotto come prodotto dei fattori
-    const formatProductName = (): string => {
-        return factors.map(f => `(${formatFactorName(f)})`).join("");
+        if (coeff === 1) return `x ${constant >= 0 ? '+' : '−'} ${Math.abs(constant)}`;
+        if (coeff === -1) return `−x ${constant >= 0 ? '+' : '−'} ${Math.abs(constant)}`;
+        return `${coeff}x ${constant >= 0 ? '+' : '−'} ${Math.abs(constant)}`;
     };
 
     const fontSize = isMobile ? 12 : 14;
     const signFontSize = isMobile ? 16 : 20;
 
-    const productY = topPadding + factors.length * rowHeight + rowHeight / 2;
+    // Calcola la posizione Y della riga del risultato
+    const resultRowIndex = hasDenominator
+        ? numeratorFactors.length + denominatorFactors.length
+        : allFactors.length;
+    const resultY = topPadding + resultRowIndex * rowHeight + rowHeight / 2;
+
+    // Posizioni separatori
+    const numDenSeparatorY = hasDenominator
+        ? topPadding + numeratorFactors.length * rowHeight
+        : -1;
+
+    const resultSeparatorY = resultY - rowHeight / 2;
+
     const verticalLineTop = topPadding;
-    const verticalLineBottom = productY + rowHeight / 2 - 10;
+    const verticalLineBottom = resultY + rowHeight / 2 - 10;
+
+    // Helper per renderizzare una riga di fattore
+    const renderFactorRow = (factor: Factor, rowIndex: number, isDenominator: boolean) => {
+        const y = topPadding + rowIndex * rowHeight + rowHeight / 2;
+
+        return (
+            <g key={`factor-${rowIndex}`}>
+                <text
+                    x={labelWidth - 10}
+                    y={y + 5}
+                    textAnchor="end"
+                    fontSize={fontSize}
+                    fill={isDenominator ? "#7c3aed" : "#334155"}
+                >
+                    {formatFactorName(factor)}
+                </text>
+
+                {/* Cerchi/simboli dove il fattore si annulla */}
+                {sortedRoots.map((root, rootIdx) => {
+                    const xPos = labelWidth + (rootIdx + 1) * regionWidth;
+                    const isZero = Math.abs(factor.root - root) < 0.001;
+
+                    if (!isZero) return null;
+
+                    return (
+                        <g key={`zero-${rootIdx}`}>
+                            <circle
+                                cx={xPos}
+                                cy={y}
+                                r={isMobile ? 6 : 8}
+                                fill="white"
+                                stroke={isDenominator ? "#7c3aed" : "#1e40af"}
+                                strokeWidth={2}
+                            />
+                            {/* Per fattori del denominatore, mostra 0 barrato */}
+                            {isDenominator && (
+                                <text
+                                    x={xPos}
+                                    y={y + 4}
+                                    textAnchor="middle"
+                                    fontSize={isMobile ? 9 : 11}
+                                    fill="#7c3aed"
+                                    fontWeight="bold"
+                                >
+                                    0
+                                </text>
+                            )}
+                        </g>
+                    );
+                })}
+
+                {/* Segni nelle regioni */}
+                {Array.from({ length: numRegions }).map((_, regionIdx) => {
+                    const testPoint = getTestPoint(regionIdx);
+                    const sign = getFactorSign(factor, testPoint);
+                    const xCenter = labelWidth + regionIdx * regionWidth + regionWidth / 2;
+
+                    return (
+                        <text
+                            key={`sign-${regionIdx}`}
+                            x={xCenter}
+                            y={y + 6}
+                            textAnchor="middle"
+                            fontSize={signFontSize}
+                            fill={sign > 0 ? "#16a34a" : "#dc2626"}
+                            fontWeight="bold"
+                        >
+                            {sign > 0 ? "+" : "−"}
+                        </text>
+                    );
+                })}
+            </g>
+        );
+    };
+
+    // Label del risultato
+    const resultLabel = hasDenominator ? "N / D" : (() => {
+        const parts = allFactors.map(f => `(${formatFactorName(f)})`);
+        return parts.join("");
+    })();
 
     return (
         <svg
@@ -330,7 +451,7 @@ function SignChart({ factors, roots, isMobile = false }: SignChartProps) {
                     y={topPadding - 10}
                     textAnchor="middle"
                     fontSize={fontSize}
-                    fill="#1e40af"
+                    fill={denomRootsSet.has(root) ? "#7c3aed" : "#1e40af"}
                     fontWeight="bold"
                 >
                     {root}
@@ -347,103 +468,125 @@ function SignChart({ factors, roots, isMobile = false }: SignChartProps) {
                         y1={verticalLineTop}
                         x2={xPos}
                         y2={verticalLineBottom}
-                        stroke="#64748b"
+                        stroke={denomRootsSet.has(root) ? "#7c3aed" : "#64748b"}
                         strokeWidth={1.5}
+                        strokeDasharray={denomRootsSet.has(root) ? "4,3" : undefined}
                     />
                 );
             })}
 
-            {/* Linea separatrice sopra il prodotto */}
+            {/* Etichetta sezione N se fratta */}
+            {hasDenominator && (
+                <text
+                    x={8}
+                    y={topPadding + (numeratorFactors.length * rowHeight) / 2}
+                    fontSize={isMobile ? 10 : 12}
+                    fill="#64748b"
+                    fontWeight="bold"
+                    dominantBaseline="middle"
+                >
+                    N
+                </text>
+            )}
+
+            {/* Righe numeratore */}
+            {numeratorFactors.map((factor, idx) => renderFactorRow(factor, idx, false))}
+
+            {/* Separatore tra numeratore e denominatore se fratta */}
+            {hasDenominator && (
+                <line
+                    x1={labelWidth}
+                    y1={numDenSeparatorY}
+                    x2={chartWidth - 10}
+                    y2={numDenSeparatorY}
+                    stroke="#94a3b8"
+                    strokeWidth={1}
+                    strokeDasharray="6,4"
+                />
+            )}
+
+            {/* Etichetta sezione D se fratta */}
+            {hasDenominator && (
+                <text
+                    x={8}
+                    y={numDenSeparatorY + (denominatorFactors.length * rowHeight) / 2}
+                    fontSize={isMobile ? 10 : 12}
+                    fill="#7c3aed"
+                    fontWeight="bold"
+                    dominantBaseline="middle"
+                >
+                    D
+                </text>
+            )}
+
+            {/* Righe denominatore */}
+            {denominatorFactors.map((factor, idx) =>
+                renderFactorRow(factor, numeratorFactors.length + idx, true)
+            )}
+
+            {/* Linea separatrice sopra il risultato */}
             <line
                 x1={labelWidth}
-                y1={productY - rowHeight / 2}
+                y1={resultSeparatorY}
                 x2={chartWidth - 10}
-                y2={productY - rowHeight / 2}
+                y2={resultSeparatorY}
                 stroke="#334155"
                 strokeWidth={2}
             />
 
-            {/* Righe per ogni fattore */}
-            {factors.map((factor, factorIdx) => {
-                const y = topPadding + factorIdx * rowHeight + rowHeight / 2;
-
-                return (
-                    <g key={`factor-${factorIdx}`}>
-                        {/* Etichetta del fattore */}
-                        <text
-                            x={labelWidth - 10}
-                            y={y + 5}
-                            textAnchor="end"
-                            fontSize={fontSize}
-                            fill="#334155"
-                        >
-                            {formatFactorName(factor)}
-                        </text>
-
-                        {/* Cerchi dove il fattore si annulla */}
-                        {sortedRoots.map((root, rootIdx) => {
-                            const xPos = labelWidth + (rootIdx + 1) * regionWidth;
-                            const isZero = Math.abs(factor.root - root) < 0.001;
-
-                            return isZero ? (
-                                <circle
-                                    key={`zero-${rootIdx}`}
-                                    cx={xPos}
-                                    cy={y}
-                                    r={isMobile ? 6 : 8}
-                                    fill="white"
-                                    stroke="#1e40af"
-                                    strokeWidth={2}
-                                />
-                            ) : null;
-                        })}
-
-                        {/* Segni nelle regioni */}
-                        {Array.from({ length: numRegions }).map((_, regionIdx) => {
-                            const testPoint = getTestPoint(regionIdx);
-                            const sign = getFactorSign(factor, testPoint);
-                            const xCenter = labelWidth + regionIdx * regionWidth + regionWidth / 2;
-
-                            return (
-                                <text
-                                    key={`sign-${regionIdx}`}
-                                    x={xCenter}
-                                    y={y + 6}
-                                    textAnchor="middle"
-                                    fontSize={signFontSize}
-                                    fill={sign > 0 ? "#16a34a" : "#dc2626"}
-                                    fontWeight="bold"
-                                >
-                                    {sign > 0 ? "+" : "−"}
-                                </text>
-                            );
-                        })}
-                    </g>
-                );
-            })}
-
-            {/* Riga del prodotto */}
+            {/* Riga del risultato */}
             <g>
-                {/* Etichetta del prodotto */}
                 <text
                     x={labelWidth - 10}
-                    y={productY + 5}
+                    y={resultY + 5}
                     textAnchor="end"
                     fontSize={isMobile ? 10 : 12}
                     fill="#334155"
                     fontWeight="bold"
                 >
-                    {formatProductName()}
+                    {resultLabel}
                 </text>
 
-                {/* Cerchi alle radici */}
+                {/* Simboli alle radici nella riga risultato */}
                 {sortedRoots.map((root, rootIdx) => {
                     const xPos = labelWidth + (rootIdx + 1) * regionWidth;
+                    const isDenomRoot = denomRootsSet.has(root);
+
+                    if (isDenomRoot) {
+                        // Simbolo ∄ (non esiste) per radici del denominatore
+                        return (
+                            <g key={`result-root-${rootIdx}`}>
+                                {/* Sfondo */}
+                                <rect
+                                    x={xPos - (isMobile ? 9 : 11)}
+                                    y={resultY - (isMobile ? 9 : 11)}
+                                    width={isMobile ? 18 : 22}
+                                    height={isMobile ? 18 : 22}
+                                    rx={3}
+                                    fill="#faf5ff"
+                                    stroke="#7c3aed"
+                                    strokeWidth={1.5}
+                                />
+                                <text
+                                    x={xPos}
+                                    y={resultY + (isMobile ? 5 : 5)}
+                                    textAnchor="middle"
+                                    fontSize={isMobile ? 13 : 16}
+                                    fill="#7c3aed"
+                                    fontWeight="bold"
+                                >
+                                    ∄
+                                </text>
+                            </g>
+                        );
+                    }
+
+                    // Cerchio normale per radici del numeratore
                     return (
                         <circle
-                            key={`product-zero-${rootIdx}`}
+                            key={`result-root-${rootIdx}`}
                             cx={xPos}
-                            cy={productY}
+                            cy={resultY}
                             r={isMobile ? 6 : 8}
                             fill="white"
                             stroke="#334155"
@@ -452,7 +595,7 @@ function SignChart({ factors, roots, isMobile = false }: SignChartProps) {
                     );
                 })}
 
-                {/* Segni del prodotto nelle regioni */}
+                {/* Segni del risultato nelle regioni */}
                 {Array.from({ length: numRegions }).map((_, regionIdx) => {
                     const testPoint = getTestPoint(regionIdx);
                     const sign = getProductSign(testPoint);
@@ -460,9 +603,9 @@ function SignChart({ factors, roots, isMobile = false }: SignChartProps) {
 
                     return (
                         <text
-                            key={`product-sign-${regionIdx}`}
+                            key={`result-sign-${regionIdx}`}
                             x={xCenter}
-                            y={productY + 6}
+                            y={resultY + 6}
                             textAnchor="middle"
                             fontSize={signFontSize}
                             fill={sign > 0 ? "#16a34a" : "#dc2626"}
@@ -480,16 +623,26 @@ function SignChart({ factors, roots, isMobile = false }: SignChartProps) {
 // ============ COMPONENTE GRAFICO SOLUZIONE ============
 
 interface SolutionChartProps {
-    factors: Factor[];
+    numeratorFactors: Factor[];
+    denominatorFactors: Factor[];
     roots: number[];
+    denominatorRoots: number[];
     inequalityType: "<" | ">" | "≤" | "≥";
     isMobile?: boolean;
 }
 
-function SolutionChart({ factors, roots, inequalityType, isMobile = false }: SolutionChartProps) {
-    const sortedRoots = [...roots].sort((a, b) => a - b);
+function SolutionChart({
+                           numeratorFactors,
+                           denominatorFactors,
+                           roots,
+                           denominatorRoots,
+                           inequalityType,
+                           isMobile = false,
+                       }: SolutionChartProps) {
+    const allFactors = [...numeratorFactors, ...denominatorFactors];
+    const sortedRoots = [...new Set(roots)].sort((a, b) => a - b);
+    const denomRootsSet = new Set(denominatorRoots);
 
-    // Dimensioni
     const labelWidth = isMobile ? 60 : 80;
     const regionWidth = isMobile ? 60 : 80;
     const chartHeight = isMobile ? 60 : 70;
@@ -501,40 +654,31 @@ function SolutionChart({ factors, roots, inequalityType, isMobile = false }: Sol
 
     const fontSize = isMobile ? 12 : 14;
     const isStrict = inequalityType === "<" || inequalityType === ">";
-    const wantPositive = inequalityType === ">" || inequalityType === "≥";
     const circleR = isMobile ? 6 : 8;
 
-    // Calcola il segno del prodotto in un punto
+    const wantPositive = inequalityType === ">" || inequalityType === "≥";
+
     const getProductSign = (x: number): number => {
         let sign = 1;
-        for (const factor of factors) {
-            const value = factor.coefficient * x + factor.constant;
-            sign *= value > 0 ? 1 : -1;
+        for (const factor of allFactors) {
+            sign *= (factor.coefficient * x + factor.constant) > 0 ? 1 : -1;
         }
         return sign;
     };
 
-    // Genera un punto di test per ogni regione
     const getTestPoint = (regionIndex: number): number => {
-        if (regionIndex === 0) {
-            return sortedRoots[0] - 1;
-        } else if (regionIndex === sortedRoots.length) {
-            return sortedRoots[sortedRoots.length - 1] + 1;
-        } else {
-            return (sortedRoots[regionIndex - 1] + sortedRoots[regionIndex]) / 2;
-        }
+        if (regionIndex === 0) return sortedRoots[0] - 1;
+        if (regionIndex === sortedRoots.length) return sortedRoots[sortedRoots.length - 1] + 1;
+        return (sortedRoots[regionIndex - 1] + sortedRoots[regionIndex]) / 2;
     };
 
-    // Determina quali regioni sono soluzioni
     const isSolutionRegion = (regionIndex: number): boolean => {
-        const testPoint = getTestPoint(regionIndex);
-        const sign = getProductSign(testPoint);
+        const sign = getProductSign(getTestPoint(regionIndex));
         return wantPositive ? sign > 0 : sign < 0;
     };
 
-    // Costruisci i segmenti della soluzione
+    // Segmenti soluzione
     const segments: { xStart: number; xEnd: number; isInfiniteLeft: boolean; isInfiniteRight: boolean }[] = [];
-
     let currentSegmentStart: number | null = null;
     let currentIsInfiniteLeft = false;
 
@@ -550,25 +694,13 @@ function SolutionChart({ factors, roots, inequalityType, isMobile = false }: Sol
             }
         } else {
             if (currentSegmentStart !== null) {
-                segments.push({
-                    xStart: currentSegmentStart,
-                    xEnd: xStart,
-                    isInfiniteLeft: currentIsInfiniteLeft,
-                    isInfiniteRight: false
-                });
+                segments.push({ xStart: currentSegmentStart, xEnd: xStart, isInfiniteLeft: currentIsInfiniteLeft, isInfiniteRight: false });
                 currentSegmentStart = null;
             }
         }
     }
-
-    // Chiudi l'ultimo segmento se necessario
     if (currentSegmentStart !== null) {
-        segments.push({
-            xStart: currentSegmentStart,
-            xEnd: chartWidth - 10,
-            isInfiniteLeft: currentIsInfiniteLeft,
-            isInfiniteRight: true
-        });
+        segments.push({ xStart: currentSegmentStart, xEnd: chartWidth - 10, isInfiniteLeft: currentIsInfiniteLeft, isInfiniteRight: true });
     }
 
     return (
@@ -577,139 +709,65 @@ function SolutionChart({ factors, roots, inequalityType, isMobile = false }: Sol
             viewBox={`0 0 ${chartWidth} ${chartHeight}`}
             style={{ maxWidth: chartWidth, display: "block", margin: "0 auto" }}
         >
-            {/* Etichetta */}
-            <text
-                x={labelWidth - 10}
-                y={lineY + 5}
-                textAnchor="end"
-                fontSize={fontSize}
-                fill="#334155"
-                fontWeight="bold"
-            >
+            <text x={labelWidth - 10} y={lineY + 5} textAnchor="end" fontSize={fontSize} fill="#334155" fontWeight="bold">
                 Soluzione
             </text>
 
-            {/* Segmenti della soluzione */}
+            {/* Segmenti */}
             {segments.map((seg, idx) => (
                 <g key={`segment-${idx}`}>
-                    {/* Segmento con infinito su entrambi i lati (tutta la retta) */}
                     {seg.isInfiniteLeft && seg.isInfiniteRight && (
                         <>
-                            <line
-                                x1={seg.xStart}
-                                y1={lineY}
-                                x2={seg.xStart + dashLength}
-                                y2={lineY}
-                                stroke="#16a34a"
-                                strokeWidth={4}
-                                strokeDasharray="12,6"
-                            />
-                            <line
-                                x1={seg.xStart + dashLength}
-                                y1={lineY}
-                                x2={seg.xEnd - dashLength}
-                                y2={lineY}
-                                stroke="#16a34a"
-                                strokeWidth={4}
-                            />
-                            <line
-                                x1={seg.xEnd - dashLength}
-                                y1={lineY}
-                                x2={seg.xEnd}
-                                y2={lineY}
-                                stroke="#16a34a"
-                                strokeWidth={4}
-                                strokeDasharray="12,6"
-                            />
+                            <line x1={seg.xStart} y1={lineY} x2={seg.xStart + dashLength} y2={lineY} stroke="#16a34a" strokeWidth={4} strokeDasharray="12,6" />
+                            <line x1={seg.xStart + dashLength} y1={lineY} x2={seg.xEnd - dashLength} y2={lineY} stroke="#16a34a" strokeWidth={4} />
+                            <line x1={seg.xEnd - dashLength} y1={lineY} x2={seg.xEnd} y2={lineY} stroke="#16a34a" strokeWidth={4} strokeDasharray="12,6" />
                         </>
                     )}
-
-                    {/* Segmento con infinito solo a sinistra */}
                     {seg.isInfiniteLeft && !seg.isInfiniteRight && (
                         <>
-                            <line
-                                x1={seg.xStart}
-                                y1={lineY}
-                                x2={seg.xStart + dashLength}
-                                y2={lineY}
-                                stroke="#16a34a"
-                                strokeWidth={4}
-                                strokeDasharray="12,6"
-                            />
-                            <line
-                                x1={seg.xStart + dashLength}
-                                y1={lineY}
-                                x2={seg.xEnd}
-                                y2={lineY}
-                                stroke="#16a34a"
-                                strokeWidth={4}
-                            />
+                            <line x1={seg.xStart} y1={lineY} x2={seg.xStart + dashLength} y2={lineY} stroke="#16a34a" strokeWidth={4} strokeDasharray="12,6" />
+                            <line x1={seg.xStart + dashLength} y1={lineY} x2={seg.xEnd} y2={lineY} stroke="#16a34a" strokeWidth={4} />
                         </>
                     )}
-
-                    {/* Segmento con infinito solo a destra */}
                     {!seg.isInfiniteLeft && seg.isInfiniteRight && (
                         <>
-                            <line
-                                x1={seg.xStart}
-                                y1={lineY}
-                                x2={seg.xEnd - dashLength}
-                                y2={lineY}
-                                stroke="#16a34a"
-                                strokeWidth={4}
-                            />
-                            <line
-                                x1={seg.xEnd - dashLength}
-                                y1={lineY}
-                                x2={seg.xEnd}
-                                y2={lineY}
-                                stroke="#16a34a"
-                                strokeWidth={4}
-                                strokeDasharray="12,6"
-                            />
+                            <line x1={seg.xStart} y1={lineY} x2={seg.xEnd - dashLength} y2={lineY} stroke="#16a34a" strokeWidth={4} />
+                            <line x1={seg.xEnd - dashLength} y1={lineY} x2={seg.xEnd} y2={lineY} stroke="#16a34a" strokeWidth={4} strokeDasharray="12,6" />
                         </>
                     )}
-
-                    {/* Segmento finito (senza infiniti) */}
                     {!seg.isInfiniteLeft && !seg.isInfiniteRight && (
-                        <line
-                            x1={seg.xStart}
-                            y1={lineY}
-                            x2={seg.xEnd}
-                            y2={lineY}
-                            stroke="#16a34a"
-                            strokeWidth={4}
-                        />
+                        <line x1={seg.xStart} y1={lineY} x2={seg.xEnd} y2={lineY} stroke="#16a34a" strokeWidth={4} />
                     )}
                 </g>
             ))}
 
-            {/* Etichette delle radici e cerchi */}
+            {/* Radici e cerchi */}
             {sortedRoots.map((root, i) => {
                 const xPos = labelWidth + (i + 1) * regionWidth;
-                const isIncluded = !isStrict;
+                const isDenomRoot = denomRootsSet.has(root);
 
-                // Determina se questo punto è un confine della soluzione
                 const leftIsSolution = isSolutionRegion(i);
                 const rightIsSolution = isSolutionRegion(i + 1);
                 const isBoundary = leftIsSolution || rightIsSolution;
 
+                // Radici del denominatore: sempre escluse (cerchio vuoto con ∄)
+                // Radici del numeratore: incluse solo se disequazione larga
+                const isIncluded = !isDenomRoot && !isStrict;
+
                 return (
                     <g key={`root-${i}`}>
-                        {/* Etichetta del valore */}
                         <text
                             x={xPos}
                             y={lineY - 15}
                             textAnchor="middle"
                             fontSize={fontSize}
-                            fill="#1e40af"
+                            fill={isDenomRoot ? "#7c3aed" : "#1e40af"}
                             fontWeight="bold"
                         >
                             {root}
                         </text>
 
-                        {/* Cerchio: pieno se incluso, vuoto se escluso */}
-                        {isBoundary && (
+                        {isBoundary && !isDenomRoot && (
                             <circle
                                 cx={xPos}
                                 cy={lineY}
@@ -720,16 +778,30 @@ function SolutionChart({ factors, roots, inequalityType, isMobile = false }: Sol
                             />
                         )}
 
-                        {/* Linea verticale di riferimento se non è boundary */}
+                        {isBoundary && isDenomRoot && (
+                            <g>
+                                <circle
+                                    cx={xPos}
+                                    cy={lineY}
+                                    r={circleR}
+                                    fill="white"
+                                    stroke="#7c3aed"
+                                    strokeWidth={2.5}
+                                />
+                                {/* Barra diagonale per indicare esclusione */}
+                                <line
+                                    x1={xPos - circleR + 1}
+                                    y1={lineY + circleR - 1}
+                                    x2={xPos + circleR - 1}
+                                    y2={lineY - circleR + 1}
+                                    stroke="#7c3aed"
+                                    strokeWidth={2}
+                                />
+                            </g>
+                        )}
+
                         {!isBoundary && (
-                            <line
-                                x1={xPos}
-                                y1={lineY - 8}
-                                x2={xPos}
-                                y2={lineY + 8}
-                                stroke="#94a3b8"
-                                strokeWidth={1}
-                            />
+                            <line x1={xPos} y1={lineY - 8} x2={xPos} y2={lineY + 8} stroke="#94a3b8" strokeWidth={1} />
                         )}
                     </g>
                 );
@@ -746,7 +818,6 @@ export default function DisequazioniProdottoDemo() {
     const [ineq, setIneq] = useState<Inequality>(() => generateDisequazione());
     const { currentStep, nextStep, prevStep, showAll, reset } = useStepNavigation(4);
 
-    // helper robusto (currentStep 0-based, stepNumber 1-based)
     const isActive = (stepNumber: number) => currentStep >= stepNumber - 1;
 
     const handleGenerate = useCallback(() => {
@@ -754,43 +825,28 @@ export default function DisequazioniProdottoDemo() {
         reset();
     }, [reset]);
 
-    // Formatta i fattori in LaTeX
-    const factorsLatex = useMemo(() => {
-        return ineq.factors.map(factor => {
-            const coeff = factor.coefficient;
-            const constant = factor.constant;
+    const originalInequality = useMemo(() => buildInequalityLatex(ineq), [ineq]);
 
-            if (coeff === 1) {
-                return `(x ${constant >= 0 ? '+' : ''} ${formatNumberLatex(constant)})`;
-            } else if (coeff === -1) {
-                return `(-x ${constant >= 0 ? '+' : ''} ${formatNumberLatex(constant)})`;
-            } else {
-                return `(${formatNumberLatex(coeff)}x ${constant >= 0 ? '+' : ''} ${formatNumberLatex(constant)})`;
-            }
-        }).join(" \\cdot ");
-    }, [ineq.factors]);
-
-    const originalInequality = `${factorsLatex} ${ineq.inequalityType} 0`;
-
-    // Genera LaTeX per lo studio dei fattori separatamente
+    // LaTeX per studio fattori
     const factorsStudyLatex = useMemo(() => {
+        const allFactors = [...ineq.numeratorFactors, ...ineq.denominatorFactors];
         let latex = "\\begin{aligned}\n";
 
-        ineq.factors.forEach((factor, index) => {
+        allFactors.forEach((factor, index) => {
             const coeff = factor.coefficient;
             const constTerm = factor.constant;
+            const isDenom = index >= ineq.numeratorFactors.length;
+            const label = isDenom ? "\\;(\\text{D})" : "";
 
-            // Disequazione del fattore > 0
             if (coeff === 1) {
-                latex += `& x ${constTerm >= 0 ? '+' : ''} ${formatNumberLatex(constTerm)} > 0 \\\\\n`;
+                latex += `& x ${constTerm >= 0 ? '+' : ''} ${formatNumberLatex(constTerm)} > 0 ${label}\\\\\n`;
                 latex += `& x > ${formatNumberLatex(-constTerm)} \\\\\n`;
             } else if (coeff === -1) {
-                latex += `& -x ${constTerm >= 0 ? '+' : ''} ${formatNumberLatex(constTerm)} > 0 \\\\\n`;
+                latex += `& -x ${constTerm >= 0 ? '+' : ''} ${formatNumberLatex(constTerm)} > 0 ${label}\\\\\n`;
                 latex += `& -x > ${formatNumberLatex(-constTerm)} \\\\\n`;
                 latex += `& x < ${formatNumberLatex(constTerm)} \\\\\n`;
             } else {
-                latex += `& ${formatNumberLatex(coeff)}x ${constTerm >= 0 ? '+' : ''} ${formatNumberLatex(constTerm)} > 0 \\\\\n`;
-
+                latex += `& ${formatNumberLatex(coeff)}x ${constTerm >= 0 ? '+' : ''} ${formatNumberLatex(constTerm)} > 0 ${label}\\\\\n`;
                 if (coeff > 0) {
                     latex += `& ${formatNumberLatex(coeff)}x > ${formatNumberLatex(-constTerm)} \\\\\n`;
                     latex += `& x > \\frac{${formatNumberLatex(-constTerm)}}{${formatNumberLatex(coeff)}} \\\\\n`;
@@ -802,25 +858,40 @@ export default function DisequazioniProdottoDemo() {
                 }
             }
 
-            if (index < ineq.factors.length - 1) {
-                latex += "&\\\\\n"; // Separatore tra fattori
+            if (index < allFactors.length - 1) {
+                latex += "&\\\\\n";
             }
         });
 
         latex += "\\end{aligned}";
         return latex;
-    }, [ineq.factors]);
+    }, [ineq]);
+
+    // Riassunto per step 2
+    const allFactorsForSummary = useMemo(
+        () => [...ineq.numeratorFactors, ...ineq.denominatorFactors],
+        [ineq]
+    );
 
     // ============ STEP CARDS ============
 
     const Step1 = (
-        <StepCard stepNumber={1} title="Forma fattorizzata" color="green" isActive={isActive(1)}>
+        <StepCard stepNumber={1} title={ineq.mode === "fratta" ? "Forma della disequazione fratta" : "Forma fattorizzata"} color="green" isActive={isActive(1)}>
             <CollapsibleExplanation title="Spiegazione">
                 <div>
-                    <p>Le disequazioni prodotto hanno la forma:</p>
-                    <Latex>{"(ax + b)(cx + d) \\, \\text{op} \\, 0"}</Latex>
-                    <p>dove "op" può essere <Latex>{">"}</Latex>, <Latex>{"<"}</Latex>, <Latex>{"\\geq"}</Latex>, o <Latex>{"\\leq"}</Latex>.</p>
-                    <p>Ogni fattore è un binomio di primo grado.</p>
+                    {ineq.mode === "prodotto" ? (
+                        <>
+                            <p>Le disequazioni prodotto hanno la forma:</p>
+                            <Latex>{"(ax + b)(cx + d) \\, \\text{op} \\, 0"}</Latex>
+                            <p>dove "op" può essere <Latex>{">"}</Latex>, <Latex>{"<"}</Latex>, <Latex>{"\\geq"}</Latex>, o <Latex>{"\\leq"}</Latex>.</p>
+                        </>
+                    ) : (
+                        <>
+                            <p>Le disequazioni fratte hanno la forma:</p>
+                            <Latex>{"\\dfrac{N(x)}{D(x)} \\, \\text{op} \\, 0"}</Latex>
+                            <p>Il procedimento è analogo alle disequazioni prodotto, ma gli zeri del denominatore sono <strong>sempre esclusi</strong> dalla soluzione (il denominatore non può mai valere zero).</p>
+                        </>
+                    )}
                 </div>
             </CollapsibleExplanation>
             <div style={{ fontSize: 13, color: "#64748b", marginBottom: 8 }}>Forma della disequazione:</div>
@@ -833,11 +904,28 @@ export default function DisequazioniProdottoDemo() {
                     display: "inline-block",
                 }}
             >
-                <Latex>{originalInequality}</Latex>
+                <Latex display>{originalInequality}</Latex>
             </div>
             <div style={{ marginTop: 8, fontSize: 12, color: "#64748b" }}>
-                <span>Numero di fattori: {ineq.factors.length} ({ineq.factors.length === 2 ? 'più comune' : 'meno comune'})</span>
+                {ineq.mode === "prodotto" ? (
+                    <span>Tipo: prodotto • Fattori: {ineq.numeratorFactors.length}</span>
+                ) : (
+                    <span>Tipo: fratta • 1 fattore al numeratore, 1 al denominatore</span>
+                )}
             </div>
+            {ineq.mode === "fratta" && (
+                <div style={{
+                    marginTop: 8,
+                    padding: "6px 10px",
+                    background: "#faf5ff",
+                    borderRadius: 4,
+                    border: "1px solid #e9d5ff",
+                    fontSize: 12,
+                    color: "#7c3aed"
+                }}>
+                    ⚠️ Condizione di esistenza: il denominatore non può essere zero
+                </div>
+            )}
         </StepCard>
     );
 
@@ -850,7 +938,9 @@ export default function DisequazioniProdottoDemo() {
                         <li>Se il coefficiente di x è positivo, la soluzione è <Latex>{"x > -\\frac{b}{a}"}</Latex></li>
                         <li>Se il coefficiente di x è negativo, la soluzione è <Latex>{"x < -\\frac{b}{a}"}</Latex></li>
                     </ul>
-                    <p>Questo ci permette di determinare dove ciascun fattore è positivo o negativo.</p>
+                    {ineq.mode === "fratta" && (
+                        <p>I fattori del <strong style={{ color: "#7c3aed" }}>denominatore (D)</strong> sono evidenziati. Le loro radici saranno sempre escluse dalla soluzione.</p>
+                    )}
                 </div>
             </CollapsibleExplanation>
             <div style={{ padding: "8px 12px", background: "#fff", borderRadius: 6 }}>
@@ -863,13 +953,21 @@ export default function DisequazioniProdottoDemo() {
                 <div style={{ marginTop: 12, paddingTop: 8, borderTop: "1px solid #e2e8f0" }}>
                     <div style={{ fontSize: 13, color: "#64748b" }}>Riassunto:</div>
                     <div style={{ fontSize: 14 }}>
-                        {ineq.factors.map((factor, idx) => (
-                            <div key={idx} style={{ marginBottom: 4 }}>
-                                <Latex>
-                                    {`${factorsLatex.split(" \\cdot ")[idx]} > 0 \\quad \\Rightarrow \\quad ${factor.coefficient > 0 ? 'x >' : 'x <'} ${formatNumberLatex(factor.root)}`}
-                                </Latex>
-                            </div>
-                        ))}
+                        {allFactorsForSummary.map((factor, idx) => {
+                            const isDenom = idx >= ineq.numeratorFactors.length;
+                            const factorLatex = formatFactorLatex(factor);
+                            return (
+                                <div key={idx} style={{
+                                    marginBottom: 4,
+                                    color: isDenom ? "#7c3aed" : undefined,
+                                }}>
+                                    <Latex>
+                                        {`${factorLatex} > 0 \\quad \\Rightarrow \\quad ${factor.coefficient > 0 ? 'x >' : 'x <'} ${formatNumberLatex(factor.root)}`}
+                                    </Latex>
+                                    {isDenom && <span style={{ fontSize: 11, marginLeft: 6 }}>(D)</span>}
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
             </div>
@@ -884,15 +982,23 @@ export default function DisequazioniProdottoDemo() {
                     <ul>
                         <li>Gli intervalli determinati dalle radici dei fattori</li>
                         <li>Il segno di ciascun fattore in ogni intervallo</li>
-                        <li>Il segno del prodotto (applicando la regola dei segni)</li>
+                        <li>Il segno del {ineq.mode === "fratta" ? "quoziente" : "prodotto"} (applicando la regola dei segni)</li>
                     </ul>
-                    <p>I cerchi indicano dove ogni fattore si annulla (vale 0).</p>
+                    {ineq.mode === "fratta" && (
+                        <p>Il simbolo <strong style={{ color: "#7c3aed" }}>∄</strong> indica i punti in cui il denominatore si annulla e il quoziente <strong>non esiste</strong>.</p>
+                    )}
                 </div>
             </CollapsibleExplanation>
 
             <div style={{ background: "#fff", borderRadius: 8, padding: 16, marginBottom: 12 }}>
                 <div style={{ fontSize: 12, color: "#64748b", marginBottom: 12 }}>Grafico dei segni:</div>
-                <SignChart factors={ineq.factors} roots={ineq.roots} isMobile={isMobile} />
+                <SignChart
+                    numeratorFactors={ineq.numeratorFactors}
+                    denominatorFactors={ineq.denominatorFactors}
+                    roots={ineq.roots}
+                    denominatorRoots={ineq.denominatorRoots}
+                    isMobile={isMobile}
+                />
             </div>
 
             <div style={{ background: "#fff", borderRadius: 8, padding: 12 }}>
@@ -903,7 +1009,7 @@ export default function DisequazioniProdottoDemo() {
                     borderRadius: 4,
                     marginBottom: 10
                 }}>
-                    <Latex>{`${factorsLatex} ${ineq.inequalityType} 0`}</Latex>
+                    <Latex display>{originalInequality}</Latex>
                 </div>
 
                 <div style={{
@@ -920,93 +1026,93 @@ export default function DisequazioniProdottoDemo() {
                     <div style={{ fontSize: 12, color: "#64748b" }}>
                         {ineq.inequalityType === ">" || ineq.inequalityType === "<"
                             ? "Disequazione stretta: le radici NON sono incluse"
-                            : "Disequazione larga: le radici SONO incluse"}
+                            : "Disequazione larga: le radici del numeratore sono incluse"}
                     </div>
+                    {ineq.mode === "fratta" && (
+                        <div style={{ fontSize: 12, color: "#7c3aed", marginTop: 4, fontWeight: 600 }}>
+                            ⚠️ Le radici del denominatore sono SEMPRE escluse
+                        </div>
+                    )}
                 </div>
             </div>
         </StepCard>
     );
 
     const Step4 = (
-        <StepCard
-            stepNumber={4}
-            title="Soluzione"
-            color="green"
-            isActive={isActive(4)}
-            fullWidth
-        >
+        <StepCard stepNumber={4} title="Soluzione" color="green" isActive={isActive(4)} fullWidth>
             <CollapsibleExplanation title="Spiegazione">
                 <div>
-                    <p>Dallo schema dei segni, selezioniamo gli intervalli in cui il prodotto ha il segno richiesto:</p>
+                    <p>Dallo schema dei segni, selezioniamo gli intervalli in cui il {ineq.mode === "fratta" ? "quoziente" : "prodotto"} ha il segno richiesto:</p>
                     <ul>
                         <li>Per <Latex>{"> 0"}</Latex> o <Latex>{"\\geq 0"}</Latex>: intervalli con segno <Latex>{"+"}</Latex></li>
                         <li>Per <Latex>{"< 0"}</Latex> o <Latex>{"\\leq 0"}</Latex>: intervalli con segno <Latex>{"-"}</Latex></li>
                     </ul>
                     <p>Cerchio pieno = punto incluso, cerchio vuoto = punto escluso.</p>
+                    {ineq.mode === "fratta" && (
+                        <p>Il cerchio barrato <span style={{ color: "#7c3aed" }}>⊘</span> indica un punto dove la funzione non esiste (denominatore = 0), sempre escluso.</p>
+                    )}
                 </div>
             </CollapsibleExplanation>
 
-            {/* Grafico della soluzione */}
             <div style={{ background: "#fff", borderRadius: 8, padding: 16, marginBottom: 12 }}>
                 <div style={{ fontSize: 12, color: "#64748b", marginBottom: 12 }}>Rappresentazione grafica:</div>
                 <SolutionChart
-                    factors={ineq.factors}
+                    numeratorFactors={ineq.numeratorFactors}
+                    denominatorFactors={ineq.denominatorFactors}
                     roots={ineq.roots}
+                    denominatorRoots={ineq.denominatorRoots}
                     inequalityType={ineq.inequalityType}
                     isMobile={isMobile}
                 />
             </div>
 
-            <div
-                style={{
-                    background: "#f0fdf4",
-                    borderRadius: 8,
-                    padding: 12,
-                    border: "1px solid #bbf7d0"
-                }}
-            >
-                <div
-                    style={{
-                        fontWeight: 700,
-                        marginBottom: 8,
-                        color: "#166534",
-                        fontSize: isMobile ? 16 : 18,
-                    }}
-                >
+            <div style={{
+                background: "#f0fdf4",
+                borderRadius: 8,
+                padding: 12,
+                border: "1px solid #bbf7d0"
+            }}>
+                <div style={{
+                    fontWeight: 700,
+                    marginBottom: 8,
+                    color: "#166534",
+                    fontSize: isMobile ? 16 : 18,
+                }}>
                     Soluzione in forma algebrica
                 </div>
-
-                <div
-                    style={{
-                        fontSize: isMobile ? 16 : 18,
-                        padding: "8px 12px",
-                        background: "#fff",
-                        borderRadius: 6,
-                        marginBottom: 12,
-                        overflowX: "auto",
-                    }}
-                >
+                <div style={{
+                    fontSize: isMobile ? 16 : 18,
+                    padding: "8px 12px",
+                    background: "#fff",
+                    borderRadius: 6,
+                    marginBottom: 12,
+                    overflowX: "auto",
+                }}>
                     <Latex display>{ineq.solutionLatex}</Latex>
                 </div>
 
                 <div style={{ fontSize: 12, color: "#64748b", marginBottom: 6 }}>Notazione intervalli:</div>
-                <div
-                    style={{
-                        fontSize: isMobile ? 14 : 16,
-                        padding: "8px 12px",
-                        background: "#fff7ed",
-                        borderRadius: 6,
-                        border: "1px solid #fed7aa",
-                        overflowX: "auto",
-                    }}
-                >
+                <div style={{
+                    fontSize: isMobile ? 14 : 16,
+                    padding: "8px 12px",
+                    background: "#fff7ed",
+                    borderRadius: 6,
+                    border: "1px solid #fed7aa",
+                    overflowX: "auto",
+                }}>
                     <Latex display>{ineq.solutionSetLatex}</Latex>
                 </div>
 
                 <div style={{ marginTop: 12, fontSize: 12, color: "#64748b" }}>
-                    {ineq.inequalityType === ">" || ineq.inequalityType === "<"
-                        ? "Disequazione stretta: estremi esclusi (parentesi tonde)"
-                        : "Disequazione larga: estremi inclusi (parentesi quadre)"}
+                    {ineq.mode === "fratta" ? (
+                        ineq.inequalityType === ">" || ineq.inequalityType === "<"
+                            ? "Disequazione stretta: tutti gli estremi sono esclusi (parentesi tonde)"
+                            : "Disequazione larga: le radici del numeratore sono incluse (parentesi quadre), le radici del denominatore sono sempre escluse (parentesi tonde)"
+                    ) : (
+                        ineq.inequalityType === ">" || ineq.inequalityType === "<"
+                            ? "Disequazione stretta: estremi esclusi (parentesi tonde)"
+                            : "Disequazione larga: estremi inclusi (parentesi quadre)"
+                    )}
                 </div>
             </div>
         </StepCard>
@@ -1016,7 +1122,9 @@ export default function DisequazioniProdottoDemo() {
         <div style={{ fontSize: 13 }}>
             <ol style={{ margin: 0, paddingLeft: 20 }}>
                 <li>
-                    <strong>Forma fattorizzata</strong>: <Latex>{"(ax+b)(cx+d) \\, \\text{op} \\, 0"}</Latex>
+                    <strong>Forma fattorizzata</strong>: {ineq.mode === "fratta"
+                    ? <Latex>{"\\frac{N(x)}{D(x)} \\, \\text{op} \\, 0"}</Latex>
+                    : <Latex>{"(ax+b)(cx+d) \\, \\text{op} \\, 0"}</Latex>}
                 </li>
                 <li>
                     <strong>Studio separato</strong>: risolvi ciascun fattore <Latex>{"> 0"}</Latex>
@@ -1025,7 +1133,7 @@ export default function DisequazioniProdottoDemo() {
                     <strong>Schema dei segni</strong>: costruisci tabella con intervalli e segni
                 </li>
                 <li>
-                    <strong>Regola dei segni</strong>: determina il segno del prodotto
+                    <strong>Regola dei segni</strong>: determina il segno del {ineq.mode === "fratta" ? "quoziente" : "prodotto"}
                 </li>
                 <li>
                     <strong>Soluzione</strong>: seleziona gli intervalli con il segno richiesto
@@ -1034,12 +1142,22 @@ export default function DisequazioniProdottoDemo() {
             <div style={{ marginTop: 12, padding: 8, background: "#f8fafc", borderRadius: 4 }}>
                 <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Regola dei segni:</div>
                 <div style={{ fontSize: 11 }}>
-                    <Latex>{"+ \\times + = +"}</Latex><br/>
-                    <Latex>{"+ \\times - = -"}</Latex><br/>
-                    <Latex>{"- \\times + = -"}</Latex><br/>
+                    <Latex>{"+ \\times + = +"}</Latex><br />
+                    <Latex>{"+ \\times - = -"}</Latex><br />
+                    <Latex>{"- \\times + = -"}</Latex><br />
                     <Latex>{"- \\times - = +"}</Latex>
                 </div>
             </div>
+            {ineq.mode === "fratta" && (
+                <div style={{ marginTop: 12, padding: 8, background: "#faf5ff", borderRadius: 4, border: "1px solid #e9d5ff" }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4, color: "#7c3aed" }}>Nota per le disequazioni fratte:</div>
+                    <div style={{ fontSize: 11 }}>
+                        La regola dei segni per il quoziente è la stessa del prodotto.<br />
+                        Gli zeri del denominatore sono <strong>sempre esclusi</strong> dalla soluzione,<br />
+                        anche nelle disequazioni con ≤ o ≥.
+                    </div>
+                </div>
+            )}
         </div>
     );
 
@@ -1047,7 +1165,10 @@ export default function DisequazioniProdottoDemo() {
 
     if (isMobile) {
         return (
-            <DemoContainer title="Disequazioni Prodotto" description="Risolvi disequazioni prodotto passo dopo passo">
+            <DemoContainer
+                title="Disequazioni Prodotto e disequazioni fratte"
+                description="Risolvi disequazioni passo dopo passo"
+            >
                 <div style={{ marginBottom: 12 }}>
                     <GenerateButton text="Nuova" onClick={handleGenerate} />
                 </div>
@@ -1100,7 +1221,10 @@ export default function DisequazioniProdottoDemo() {
 
     if (isTablet) {
         return (
-            <DemoContainer title="Disequazioni Prodotto" description="Risolvi disequazioni prodotto passo dopo passo">
+            <DemoContainer
+                title="Disequazioni Prodotto e disequazioni fratte"
+                description="Risolvi disequazioni passo dopo passo"
+            >
                 <div style={{ marginBottom: 16 }}>
                     <GenerateButton text="Nuova disequazione" onClick={handleGenerate} />
                 </div>
@@ -1124,13 +1248,8 @@ export default function DisequazioniProdottoDemo() {
                     {Step2}
                 </ResponsiveGrid>
 
-                <div style={{ marginTop: 12 }}>
-                    {Step3}
-                </div>
-
-                <div style={{ marginTop: 12 }}>
-                    {Step4}
-                </div>
+                <div style={{ marginTop: 12 }}>{Step3}</div>
+                <div style={{ marginTop: 12 }}>{Step4}</div>
 
                 <div style={{ marginTop: 16 }}>
                     <CollapsiblePanel title="💡 Metodo di risoluzione" defaultOpen={false}>
@@ -1144,7 +1263,10 @@ export default function DisequazioniProdottoDemo() {
     // ============ DESKTOP ============
 
     return (
-        <DemoContainer title="Disequazioni Prodotto" description="Risolvi disequazioni prodotto passo dopo passo">
+        <DemoContainer
+            title="Disequazioni Prodotto e disequazioni fratte"
+            description="Risolvi disequazioni passo dopo passo"
+        >
             <div style={{ marginBottom: 20 }}>
                 <GenerateButton text="Nuova disequazione" onClick={handleGenerate} />
             </div>
