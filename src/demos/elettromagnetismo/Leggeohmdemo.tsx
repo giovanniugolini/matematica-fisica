@@ -260,14 +260,14 @@ function CircuitDiagram({ voltage, current, resistance, isOn, onToggle, material
                 {showFlow && (
                     <>
                         <line
-                            x1={batX} y1={topY} x2={batX} y2={midY - 26}
+                            x1={batX} y1={midY - 26} x2={batX} y2={topY}
                             stroke={wireColor}
                             strokeWidth={2.5}
                             strokeDasharray="8,16"
                             style={{ animation: `flowCurrent ${animDuration} linear infinite` }}
                         />
                         <line
-                            x1={batX} y1={midY + 26} x2={batX} y2={botY}
+                            x1={batX} y1={botY} x2={batX} y2={midY + 26}
                             stroke={wireColor}
                             strokeWidth={2.5}
                             strokeDasharray="8,16"
