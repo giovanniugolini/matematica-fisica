@@ -249,6 +249,13 @@ function formatFactorLatex(factor: Factor): string {
     const coeff = factor.coefficient;
     const constant = factor.constant;
 
+    // Se la costante è 0, mostra solo il monomio: (x), (-x), (2x)
+    if (constant === 0) {
+        if (coeff === 1) return "(x)";
+        if (coeff === -1) return "(-x)";
+        return `(${formatNumberLatex(coeff)}x)`;
+    }
+
     if (coeff === 1) {
         return `(x ${constant >= 0 ? '+' : ''} ${formatNumberLatex(constant)})`;
     } else if (coeff === -1) {
@@ -333,6 +340,11 @@ function SignChart({ numeratorFactors, denominatorFactors, roots, denominatorRoo
     const formatFactorName = (factor: Factor): string => {
         const coeff = factor.coefficient;
         const constant = factor.constant;
+        if (constant === 0) {
+            if (coeff === 1) return "x";
+            if (coeff === -1) return "−x";
+            return `${coeff}x`;
+        }
         if (coeff === 1) return `x ${constant >= 0 ? '+' : '−'} ${Math.abs(constant)}`;
         if (coeff === -1) return `−x ${constant >= 0 ? '+' : '−'} ${Math.abs(constant)}`;
         return `${coeff}x ${constant >= 0 ? '+' : '−'} ${Math.abs(constant)}`;
@@ -838,15 +850,26 @@ export default function DisequazioniProdottoDemo() {
             const isDenom = index >= ineq.numeratorFactors.length;
             const label = isDenom ? "\\;(\\text{D})" : "";
 
+            // Formatta "ax + b > 0" gestendo b=0
+            const fmtPoly = (c: number, k: number) => {
+                if (k === 0) {
+                    if (c === 1) return "x";
+                    if (c === -1) return "-x";
+                    return `${formatNumberLatex(c)}x`;
+                }
+                const cStr = c === 1 ? "x" : c === -1 ? "-x" : `${formatNumberLatex(c)}x`;
+                return `${cStr} ${k >= 0 ? '+' : ''} ${formatNumberLatex(k)}`;
+            };
+
             if (coeff === 1) {
-                latex += `& x ${constTerm >= 0 ? '+' : ''} ${formatNumberLatex(constTerm)} > 0 ${label}\\\\\n`;
+                latex += `& ${fmtPoly(1, constTerm)} > 0 ${label}\\\\\n`;
                 latex += `& x > ${formatNumberLatex(-constTerm)} \\\\\n`;
             } else if (coeff === -1) {
-                latex += `& -x ${constTerm >= 0 ? '+' : ''} ${formatNumberLatex(constTerm)} > 0 ${label}\\\\\n`;
+                latex += `& ${fmtPoly(-1, constTerm)} > 0 ${label}\\\\\n`;
                 latex += `& -x > ${formatNumberLatex(-constTerm)} \\\\\n`;
                 latex += `& x < ${formatNumberLatex(constTerm)} \\\\\n`;
             } else {
-                latex += `& ${formatNumberLatex(coeff)}x ${constTerm >= 0 ? '+' : ''} ${formatNumberLatex(constTerm)} > 0 ${label}\\\\\n`;
+                latex += `& ${fmtPoly(coeff, constTerm)} > 0 ${label}\\\\\n`;
                 if (coeff > 0) {
                     latex += `& ${formatNumberLatex(coeff)}x > ${formatNumberLatex(-constTerm)} \\\\\n`;
                     latex += `& x > \\frac{${formatNumberLatex(-constTerm)}}{${formatNumberLatex(coeff)}} \\\\\n`;
