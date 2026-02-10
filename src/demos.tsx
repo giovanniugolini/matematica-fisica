@@ -215,4 +215,14 @@ export const demos: DemoInfo[] = [
         title: "La prima legge di Ohm (laboratorio online)",
         Component: React.lazy(() => import("./demos/elettromagnetismo/Leggeohmdemo.tsx")),
     },
+    {
+        slug: "sistemi-secondo-grado",
+        title: "Sistemi di Secondo grado (step by step)",
+        Component: React.lazy(() => import("./demos/equazioni/SistemiSecondoGrado.tsx")),
+    },
+    {
+        slug: "funzioni-continue",
+        title: "Funzioni Continue",
+        Component: React.lazy(() => import("./demos/funzioni/FunzioniContinueDemo.tsx")),
+    },
 ];
