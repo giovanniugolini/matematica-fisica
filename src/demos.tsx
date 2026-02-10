@@ -220,4 +220,9 @@ export const demos: DemoInfo[] = [
         title: "Sistemi di Secondo grado (step by step)",
         Component: React.lazy(() => import("./demos/equazioni/SistemiSecondoGrado.tsx")),
     },
+    {
+        slug: "funzioni-continue",
+        title: "Funzioni Continue",
+        Component: React.lazy(() => import("./demos/funzioni/FunzioniContinueDemo.tsx")),
+    },
 ];

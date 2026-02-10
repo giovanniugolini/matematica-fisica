@@ -50,6 +50,7 @@ const categories: Category[] = [
                     "limite-infinito-finito",
                     "limite-finito-infinito",
                     "limite-infinito-infinito",
+                    "funzioni-continue"
                 ],
             },
             {
@@ -171,7 +172,8 @@ const newDemoSlugs = new Set([
     "quiz-vettori",
     "risoluzione-di-un-triangolo-rettangolo",
     "legge-hom",
-    "sistemi-secondo-grado"
+    "sistemi-secondo-grado",
+    "funzioni-continue"
 ]);
 
 // ============ COMPONENTI ============
