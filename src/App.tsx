@@ -67,6 +67,7 @@ const categories: Category[] = [
                 slugs: [
                     "angolo-rotazione",
                     "archi-associati",
+                    "equazioni-goniometriche"
                 ],
             },
             {
@@ -173,7 +174,8 @@ const newDemoSlugs = new Set([
     "risoluzione-di-un-triangolo-rettangolo",
     "legge-hom",
     "sistemi-secondo-grado",
-    "funzioni-continue"
+    "funzioni-continue",
+    "equazioni-goniometriche"
 ]);
 
 // ============ COMPONENTI ============
