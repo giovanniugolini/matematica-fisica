@@ -225,4 +225,9 @@ export const demos: DemoInfo[] = [
         title: "Funzioni Continue",
         Component: React.lazy(() => import("./demos/funzioni/FunzioniContinueDemo.tsx")),
     },
+    {
+        slug: "equazioni-goniometriche",
+        title: "Equazioni Goniometriche",
+        Component: React.lazy(() => import("./demos/goniometria/EquazioniGoniometricheDemo.tsx")),
+    },
 ];
