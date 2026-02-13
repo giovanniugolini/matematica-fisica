@@ -460,8 +460,8 @@ export default function MottoCircolareUniformeDemo() {
     const [currentT, setCurrentT] = useState(0);
     const [maxT, setMaxT] = useState(10);
     const [isPlaying, setIsPlaying] = useState(false);
-    const [showVelocity, setShowVelocity] = useState(true);
-    const [showAcceleration, setShowAcceleration] = useState(true);
+    const [showVelocity, setShowVelocity] = useState(false);
+    const [showAcceleration, setShowAcceleration] = useState(false);
     const [showTrajectory, setShowTrajectory] = useState(true);
     const [omegaUnit, setOmegaUnit] = useState<"rad/s" | "hz">("rad/s");
     const [showPeriodExplanation, setShowPeriodExplanation] = useState(false);
