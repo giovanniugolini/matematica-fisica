@@ -29,17 +29,17 @@ interface LabState {
 
 // ============ COSTANTI ============
 
-const V_MIN = 0;
-const V_MAX = 24;
-const V_STEP = 0.5;
+const V_MIN = 0.1;
+const V_MAX = 9;
+const V_STEP = 0.1;
 
 const R_MIN = 1;
-const R_MAX = 100;
+const R_MAX = 500;
 const R_STEP = 1;
 
 const I_MIN = 0;
-const I_MAX = 5;
-const I_STEP = 0.01;
+const I_MAX = 0.9;    // 900 mA
+const I_STEP = 0.001; // 1 mA
 
 // ============ HELPER ============
 
@@ -55,22 +55,26 @@ function formatValue(value: number, decimals: number = 2): string {
     return "—";
 }
 
+function fmtR(r: number): string {
+    if (r < 10) return formatValue(r, 2);
+    return formatValue(r, 0);
+}
+
 // ============ MATERIALI OHMICI ============
 
 interface OhmicMaterial {
     name: string;
-    resistance: number; // Ω (valori tipici per un filo di ~1m, sezione ~1mm²)
+    resistance: number; // R (Ω) per filo 1 km, sezione 1 mm², a 20 °C
     color: string;
     emoji: string;
 }
 
 const OHMIC_MATERIALS: OhmicMaterial[] = [
-    { name: "Argento", resistance: 2, color: "#c0c0c0", emoji: "🥈" },
-    { name: "Rame", resistance: 2, color: "#b87333", emoji: "🟤" },
-    { name: "Alluminio", resistance: 3, color: "#a8a9ad", emoji: "⬜" },
-    { name: "Ferro", resistance: 12, color: "#434343", emoji: "⬛" },
-    { name: "Costantana", resistance: 50, color: "#8b7355", emoji: "🟫" },
-    { name: "Nicromo", resistance: 100, color: "#555555", emoji: "🔘" },
+    { name: "Argento", resistance: 16, color: "#c0c0c0", emoji: "🥈" },
+    { name: "Rame", resistance: 17, color: "#b87333", emoji: "🟤" },
+    { name: "Oro", resistance: 24, color: "#ffd700", emoji: "🥇" },
+    { name: "Alluminio", resistance: 28, color: "#a8a9ad", emoji: "⬜" },
+    { name: "Costantana", resistance: 490, color: "#8b7355", emoji: "🟫" },
 ];
 
 // ============ COMPONENTE CIRCUITO SVG ============
@@ -370,7 +374,7 @@ function CircuitDiagram({ voltage, current, resistance, isOn, onToggle, material
                 </text>
                 {/* Valore sotto */}
                 <text x={ampX} y={topY + ampR + 16} fontSize={fsValue} fill="#334155" fontWeight="bold" textAnchor="middle">
-                    {isOn ? `${formatValue(current)} A` : "0 A"}
+                    {isOn ? `${formatValue(current * 1000, 1)} mA` : "0 mA"}
                 </text>
             </g>
 
@@ -454,7 +458,7 @@ function CircuitDiagram({ voltage, current, resistance, isOn, onToggle, material
                     fontWeight="bold"
                     textAnchor="end"
                 >
-                    {formatValue(resistance, 0)} Ω
+                    {fmtR(resistance)} Ω
                 </text>
             </g>
 
@@ -625,7 +629,7 @@ function LabSlider({
                         </span>
                     )}
                     <span style={{ fontSize: 20, fontWeight: 700, color: "#0f172a" }}>
-                        {formatValue(value, symbol === "R" ? 0 : 2)}
+                        {symbol === "R" ? fmtR(value) : formatValue(value, 2)}
                     </span>
                     <span style={{ fontSize: 13, color: "#64748b" }}>{unit}</span>
                 </div>
@@ -676,36 +680,36 @@ function VIChart({ resistance, currentPoint, isMobile = false }: VIChartProps) {
     const plotW = w - padding.left - padding.right;
     const plotH = h - padding.top - padding.bottom;
 
-    // Assi FISSI: così la pendenza cambia visivamente al variare di R
-    const maxI = I_MAX;   // 5 A
-    const maxV = V_MAX;   // 24 V
+    // Assi fissi
+    const maxV = V_MAX;           // 9 V
+    const maxI_mA = I_MAX * 1000; // 900 mA
 
-    const scaleX = (i: number) => padding.left + (i / maxI) * plotW;
-    const scaleY = (v: number) => padding.top + plotH - (v / maxV) * plotH;
+    const scaleX = (v: number) => padding.left + (v / maxV) * plotW;
+    const scaleY = (i_mA: number) => padding.top + plotH - (i_mA / maxI_mA) * plotH;
 
-    // Linea della legge di Ohm: V = R * I (si ferma quando V > maxV)
+    // Linea della legge di Ohm: I = V / R → in mA: I_mA = (V / R) * 1000
     const linePoints: string[] = [];
     const steps = 100;
     for (let k = 0; k <= steps; k++) {
-        const i = (k / steps) * maxI;
-        const v = resistance * i;
-        if (v <= maxV) {
-            linePoints.push(`${scaleX(i)},${scaleY(v)}`);
+        const v = (k / steps) * maxV;
+        const i_mA = (v / resistance) * 1000;
+        if (i_mA <= maxI_mA) {
+            linePoints.push(`${scaleX(v)},${scaleY(i_mA)}`);
         }
     }
     const linePath = linePoints.join(" ");
 
     // Griglia
-    const gridLinesI = 5;
-    const gridLinesV = 6;
-    const stepI = maxI / gridLinesI;
+    const gridLinesV = 9;
+    const gridLinesI = 6;  // 0, 150, 300, 450, 600, 750, 900
     const stepV = maxV / gridLinesV;
+    const stepI_mA = maxI_mA / gridLinesI;
 
     const fontSize = isMobile ? 10 : 12;
 
     // Posizione label R sulla retta (al 40% del range visibile)
-    const labelI = Math.min(maxI * 0.4, maxV / resistance * 0.7);
-    const labelV = resistance * labelI;
+    const labelV = Math.min(maxV * 0.4, maxI_mA * resistance / 1000 * 0.7);
+    const labelI_mA = (labelV / resistance) * 1000;
 
     return (
         <svg
@@ -716,26 +720,26 @@ function VIChart({ resistance, currentPoint, isMobile = false }: VIChartProps) {
             <rect x={0} y={0} width={w} height={h} rx={8} fill="#fafafa" />
 
             {/* Griglia */}
-            {Array.from({ length: gridLinesI + 1 }).map((_, idx) => {
-                const i = idx * stepI;
-                const x = scaleX(i);
+            {Array.from({ length: gridLinesV + 1 }).map((_, idx) => {
+                const v = idx * stepV;
+                const x = scaleX(v);
                 return (
-                    <g key={`grid-i-${idx}`}>
+                    <g key={`grid-v-${idx}`}>
                         <line x1={x} y1={padding.top} x2={x} y2={padding.top + plotH} stroke="#e5e7eb" strokeWidth={1} />
                         <text x={x} y={h - 8} fontSize={fontSize} fill="#64748b" textAnchor="middle">
-                            {formatValue(i, 1)}
+                            {formatValue(v, 0)}
                         </text>
                     </g>
                 );
             })}
-            {Array.from({ length: gridLinesV + 1 }).map((_, idx) => {
-                const v = idx * stepV;
-                const y = scaleY(v);
+            {Array.from({ length: gridLinesI + 1 }).map((_, idx) => {
+                const i_mA = idx * stepI_mA;
+                const y = scaleY(i_mA);
                 return (
-                    <g key={`grid-v-${idx}`}>
+                    <g key={`grid-i-${idx}`}>
                         <line x1={padding.left} y1={y} x2={padding.left + plotW} y2={y} stroke="#e5e7eb" strokeWidth={1} />
                         <text x={padding.left - 8} y={y + 4} fontSize={fontSize} fill="#64748b" textAnchor="end">
-                            {formatValue(v, 0)}
+                            {formatValue(i_mA, 0)}
                         </text>
                     </g>
                 );
@@ -747,7 +751,7 @@ function VIChart({ resistance, currentPoint, isMobile = false }: VIChartProps) {
 
             {/* Label assi */}
             <text x={w / 2} y={h - 0} fontSize={fontSize} fill="#334155" fontWeight="bold" textAnchor="middle">
-                I (A)
+                ΔV (Volt)
             </text>
             <text
                 x={12}
@@ -758,10 +762,10 @@ function VIChart({ resistance, currentPoint, isMobile = false }: VIChartProps) {
                 textAnchor="middle"
                 transform={`rotate(-90, 12, ${h / 2 - 20})`}
             >
-                ΔV (Volt)
+                I (mA)
             </text>
 
-            {/* Retta V = R · I (conduttore ohmico) */}
+            {/* Retta I = V / R (conduttore ohmico) */}
             <polyline
                 points={linePath}
                 fill="none"
@@ -770,44 +774,44 @@ function VIChart({ resistance, currentPoint, isMobile = false }: VIChartProps) {
                 strokeLinecap="round"
             />
 
-            {/* Label R sulla retta */}
-            {linePoints.length > 2 && labelV <= maxV && (
+            {/* Label 1/R sulla retta */}
+            {linePoints.length > 2 && labelI_mA <= maxI_mA && (
                 <text
-                    x={scaleX(labelI) + 6}
-                    y={scaleY(labelV) - 8}
+                    x={scaleX(labelV) + 6}
+                    y={scaleY(labelI_mA) - 8}
                     fontSize={fontSize}
                     fill="#2563eb"
                     fontWeight="bold"
                 >
-                    R = {formatValue(resistance, 0)} Ω
+                    1/R = {(1 / resistance) >= 1 ? formatValue(1 / resistance, 2) : formatValue(1 / resistance, 3)}
                 </text>
             )}
 
             {/* Punto corrente */}
             {currentPoint.i >= 0 && currentPoint.v >= 0 &&
-                currentPoint.i <= maxI && currentPoint.v <= maxV && (
+                currentPoint.i * 1000 <= maxI_mA && currentPoint.v <= maxV && (
                     <g>
                         <line
-                            x1={scaleX(currentPoint.i)}
+                            x1={scaleX(currentPoint.v)}
                             y1={padding.top + plotH}
-                            x2={scaleX(currentPoint.i)}
-                            y2={scaleY(currentPoint.v)}
+                            x2={scaleX(currentPoint.v)}
+                            y2={scaleY(currentPoint.i * 1000)}
                             stroke="#ef4444"
                             strokeWidth={1}
                             strokeDasharray="4,3"
                         />
                         <line
                             x1={padding.left}
-                            y1={scaleY(currentPoint.v)}
-                            x2={scaleX(currentPoint.i)}
-                            y2={scaleY(currentPoint.v)}
+                            y1={scaleY(currentPoint.i * 1000)}
+                            x2={scaleX(currentPoint.v)}
+                            y2={scaleY(currentPoint.i * 1000)}
                             stroke="#ef4444"
                             strokeWidth={1}
                             strokeDasharray="4,3"
                         />
                         <circle
-                            cx={scaleX(currentPoint.i)}
-                            cy={scaleY(currentPoint.v)}
+                            cx={scaleX(currentPoint.v)}
+                            cy={scaleY(currentPoint.i * 1000)}
                             r={6}
                             fill="#ef4444"
                             stroke="#fff"
@@ -838,17 +842,17 @@ function OhmicComparisonChart({ isMobile = false }: OhmicComparisonChartProps) {
 
     const fontSize = isMobile ? 10 : 12;
 
-    // Retta ohmica (lineare)
+    // Retta ohmica (lineare): I = V/R → x = ΔV, y = I
     const ohmicPoints: string[] = [];
     for (let t = 0; t <= 1; t += 0.02) {
         ohmicPoints.push(`${scaleX(t)},${scaleY(t * 0.85)}`);
     }
 
-    // Curva non ohmica (esponenziale-like)
+    // Curva non ohmica (esponenziale-like): I cresce lentamente poi esplode
     const nonOhmicPoints: string[] = [];
     for (let t = 0; t <= 1; t += 0.02) {
-        const v = Math.pow(t, 2.2) * 0.95;
-        nonOhmicPoints.push(`${scaleX(t)},${scaleY(Math.min(v, 1))}`);
+        const i = Math.pow(t, 2.2) * 0.95;
+        nonOhmicPoints.push(`${scaleX(t)},${scaleY(Math.min(i, 1))}`);
     }
 
     return (
@@ -864,7 +868,7 @@ function OhmicComparisonChart({ isMobile = false }: OhmicComparisonChartProps) {
             <line x1={padding.left} y1={padding.top + plotH} x2={padding.left + plotW} y2={padding.top + plotH} stroke="#334155" strokeWidth={2} />
 
             {/* Label assi */}
-            <text x={w / 2} y={h - 4} fontSize={fontSize} fill="#334155" fontWeight="bold" textAnchor="middle">I</text>
+            <text x={w / 2} y={h - 4} fontSize={fontSize} fill="#334155" fontWeight="bold" textAnchor="middle">ΔV</text>
             <text
                 x={14}
                 y={h / 2 - 15}
@@ -874,7 +878,7 @@ function OhmicComparisonChart({ isMobile = false }: OhmicComparisonChartProps) {
                 textAnchor="middle"
                 transform={`rotate(-90, 14, ${h / 2 - 15})`}
             >
-                ΔV
+                I
             </text>
 
             {/* Retta conduttore ohmico */}
@@ -973,7 +977,7 @@ function VerificationBox({ voltage, resistance, current, solveFor }: Verificatio
                     borderRadius: 6,
                 }}>
                     <Latex display>
-                        {`${formatValue(voltage, 2)} \\text{ V} = ${formatValue(resistance, 0)} \\; \\Omega \\cdot ${formatValue(current, 2)} \\text{ A}`}
+                        {`${formatValue(voltage, 2)} \\text{ V} = ${fmtR(resistance)} \\; \\Omega \\cdot ${formatValue(current * 1000, 1)} \\cdot 10^{-3} \\text{ A}`}
                     </Latex>
                 </div>
 
@@ -1011,9 +1015,9 @@ export default function LeggeOhmDemo() {
     const { isMobile, isTablet } = useBreakpoint();
 
     const [state, setState] = useState<LabState>({
-        voltage: 12,
-        resistance: 20,
-        current: 0.6,
+        voltage: 4.5,
+        resistance: 100,
+        current: 0.045,  // 45 mA
         solveFor: "I",
     });
 
@@ -1141,14 +1145,14 @@ export default function LeggeOhmDemo() {
             <LabSlider
                 label="Corrente"
                 symbol="I"
-                unit="A"
-                value={computedState.current}
-                min={I_MIN}
-                max={I_MAX}
-                step={I_STEP}
+                unit="mA"
+                value={computedState.current * 1000}
+                min={I_MIN * 1000}
+                max={I_MAX * 1000}
+                step={I_STEP * 1000}
                 color="#2563eb"
                 computed={state.solveFor === "I"}
-                onChange={handleCurrentChange}
+                onChange={(mA) => handleCurrentChange(mA / 1000)}
             />
         </div>
     );
@@ -1339,7 +1343,7 @@ export default function LeggeOhmDemo() {
                 })}
             </div>
             <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 6 }}>
-                Valori indicativi per un filo di 1 m e sezione 1 mm²
+                Valori approssimati di resistenza per un filo di 1 km, sezione 1 mm², a 20 °C
             </div>
         </div>
     );
@@ -1367,11 +1371,11 @@ export default function LeggeOhmDemo() {
 
     const ChartCard = (
         <div style={sectionStyle}>
-            <div style={sectionTitleStyle}>📈 Grafico V-I</div>
+            <div style={sectionTitleStyle}>📈 Grafico I-V</div>
             <CollapsibleExplanation title="Come si legge il grafico">
                 <div>
-                    <p>Il grafico mostra la relazione lineare tra corrente (I) e tensione (V) per la resistenza selezionata.</p>
-                    <p>La <strong>pendenza</strong> della retta è uguale alla resistenza R: più è ripida, maggiore è la resistenza.</p>
+                    <p>Il grafico mostra la relazione lineare tra tensione (ΔV) e corrente (I) per la resistenza selezionata.</p>
+                    <p>La <strong>pendenza</strong> della retta è uguale a 1/R: più è ripida, minore è la resistenza (il conduttore lascia passare più corrente).</p>
                     <p>Il <strong>punto rosso</strong> rappresenta la condizione attuale del circuito.</p>
                 </div>
             </CollapsibleExplanation>
@@ -1390,7 +1394,7 @@ export default function LeggeOhmDemo() {
                 color: "#1e40af",
                 lineHeight: 1.5,
             }}>
-                Nei <strong>materiali ohmici</strong> (come i metalli), la tensione ΔV e la corrente I sono <strong>direttamente proporzionali</strong>: il grafico è una retta passante per l'origine. Il coefficiente angolare della retta è la resistenza R.
+                Nei <strong>materiali ohmici</strong> (come i metalli), la tensione ΔV e la corrente I sono <strong>direttamente proporzionali</strong>: il grafico è una retta passante per l'origine. Il coefficiente angolare della retta è 1/R.
             </div>
         </div>
     );
