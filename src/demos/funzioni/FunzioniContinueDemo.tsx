@@ -574,12 +574,12 @@ color: example.fa !== undefined ? "#16a34a" : "#dc2626",
 );
 
 const Step2 = (
-<StepCard stepNumber={2} title="Limiti laterali" color="blue" isActive={isActive(2)}>
+<StepCard stepNumber={2} title="Limiti" color="blue" isActive={isActive(2)}>
 <CollapsibleExplanation title="Limiti destro e sinistro">
 <div>
 <p>Si calcolano i <strong>limiti laterali</strong>:</p>
 <Latex display>{"\\lim_{x \\to x_0^-} f(x) \\quad \\text{e} \\quad \\lim_{x \\to x_0^+} f(x)"}</Latex>
-<p>Se sono entrambi finiti e uguali, il limite bilatero esiste.</p>
+<p>Se sono entrambi finiti e uguali, il limite esiste.</p>
 </div>
 </CollapsibleExplanation>
 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
@@ -602,7 +602,7 @@ border: "1px solid #e2e8f0", fontSize: isMobile ? 14 : 16,
 marginTop: 10, padding: "8px 12px", background: "#f8fafc", borderRadius: 8,
 border: "1px solid #e2e8f0", fontSize: isMobile ? 14 : 16,
 }}>
-<div style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}>Limite bilatero:</div>
+<div style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}>Limite:</div>
 <Latex>{`\\lim_{x \\to ${example.aLatex}} f(x) = ${example.limitLatex}`}</Latex>
 </div>
 </StepCard>
@@ -757,7 +757,7 @@ const SummaryTable = (
 <Latex>{"\\lim^-"}</Latex> e <Latex>{"\\lim^+"}</Latex>
 </th>
 <th style={{ padding: "8px 10px", textAlign: "center", borderBottom: "2px solid #cbd5e1" }}>
-<Latex>{"\\lim"}</Latex> bilatero
+<Latex>{"\\lim"}</Latex>
 </th>
 <th style={{ padding: "8px 10px", textAlign: "center", borderBottom: "2px solid #cbd5e1" }}>
 <Latex>{"f(x_0)"}</Latex>
