@@ -50,7 +50,8 @@ const categories: Category[] = [
                     "limite-infinito-finito",
                     "limite-finito-infinito",
                     "limite-infinito-infinito",
-                    "funzioni-continue"
+                    "funzioni-continue",
+                    "proprieta-funzioni-continue"
                 ],
             },
             {
@@ -175,7 +176,8 @@ const newDemoSlugs = new Set([
     "legge-hom",
     "sistemi-secondo-grado",
     "funzioni-continue",
-    "equazioni-goniometriche"
+    "equazioni-goniometriche",
+    "proprieta-funzioni-continue"
 ]);
 
 // ============ COMPONENTI ============
