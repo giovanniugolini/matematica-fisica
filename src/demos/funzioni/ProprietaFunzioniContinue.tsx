@@ -140,6 +140,7 @@ interface GraphProps {
     yClip?: number;
     specialPoints?: { x: number; y: number; color: string; label: string; labelPos?: "above" | "below" | "left" | "right" }[];
     hLines?: { y: number; color: string; label: string; dashed?: boolean }[];
+    projections?: { x: number; y: number; color: string; label: string }[];
     showZeroLine?: boolean;
     highlightZeros?: boolean;
     asymptoteX?: number;
@@ -151,6 +152,7 @@ function FunctionGraph({
                            yClip = 12,
                            specialPoints = [],
                            hLines = [],
+                           projections = [],
                            showZeroLine = false,
                            highlightZeros = false,
                            asymptoteX,
@@ -338,6 +340,28 @@ function FunctionGraph({
                         <text x={tx} y={ty} textAnchor={anchor} fontSize={11}
                               fill={sp.color} fontWeight={700}>
                             {sp.label}
+                        </text>
+                    </g>
+                );
+            })}
+
+            {/* Projections: vertical dashed line from x-axis to curve point, label on x-axis */}
+            {projections.map((proj, i) => {
+                const px = sx(proj.x);
+                const pyAxis = sy(0);
+                const pyCurve = sy(proj.y);
+                return (
+                    <g key={`proj-${i}`}>
+                        {/* Vertical dashed line from x-axis to curve */}
+                        <line x1={px} y1={pyAxis} x2={px} y2={pyCurve}
+                              stroke={proj.color} strokeWidth={1.5} strokeDasharray="5,4" />
+                        {/* Dot on the curve at (x₀, k) */}
+                        <circle cx={px} cy={pyCurve} r={5}
+                                fill={proj.color} stroke="#fff" strokeWidth={1.5} />
+                        {/* Label on x-axis */}
+                        <text x={px} y={pyAxis + 16} textAnchor="middle" fontSize={11}
+                              fill={proj.color} fontWeight={700}>
+                            {proj.label}
                         </text>
                     </g>
                 );
@@ -793,12 +817,12 @@ function TabDarboux({ isMobile }: { isMobile: boolean }) {
     specialPts.push({ x: ext.maxX, y: M, color: "#dc2626", label: `M`, labelPos: "above" });
     specialPts.push({ x: ext.minX, y: m, color: "#2563eb", label: `m`, labelPos: "below" });
 
+    const projections: GraphProps["projections"] = [];
     for (let i = 0; i < intersections.length; i++) {
-        specialPts.push({
+        projections.push({
             x: intersections[i], y: k,
             color: "#9333ea",
             label: intersections.length === 1 ? "x₀" : `x${i + 1}`,
-            labelPos: "below",
         });
     }
 
@@ -876,6 +900,7 @@ function TabDarboux({ isMobile }: { isMobile: boolean }) {
                 width={gw} height={gh}
                 specialPoints={specialPts}
                 hLines={hLines}
+                projections={projections}
             />
 
             <IpotesiBadges ipotesi={sc.ipotesi} />
