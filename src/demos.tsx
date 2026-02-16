@@ -230,4 +230,9 @@ export const demos: DemoInfo[] = [
         title: "Equazioni Goniometriche",
         Component: React.lazy(() => import("./demos/goniometria/EquazioniGoniometricheDemo.tsx")),
     },
+    {
+        slug: "proprieta-funzioni-continue",
+        title: "Proprietà delle funzioni continue",
+        Component: React.lazy(() => import("./demos/funzioni/ProprietaFunzioniContinue.tsx")),
+    },
 ];
