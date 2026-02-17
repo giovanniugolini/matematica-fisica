@@ -235,4 +235,9 @@ export const demos: DemoInfo[] = [
         title: "Proprietà delle funzioni continue",
         Component: React.lazy(() => import("./demos/funzioni/ProprietaFunzioniContinue.tsx")),
     },
+    {
+        slug: "forze",
+        title: "Le Forze",
+        Component: React.lazy(() => import("./demos/dinamica/ForzeDemo.tsx")),
+    },
 ];

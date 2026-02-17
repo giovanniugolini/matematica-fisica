@@ -105,6 +105,13 @@ const categories: Category[] = [
                 ],
             },
             {
+                id: "dinamica",
+                name: "Dinamica",
+                slugs: [
+                    "forze"
+                ],
+            },
+            {
                 id: "elettromagnetismo",
                 name: "Elettromagnetismo",
                 slugs: [
@@ -177,7 +184,8 @@ const newDemoSlugs = new Set([
     "sistemi-secondo-grado",
     "funzioni-continue",
     "equazioni-goniometriche",
-    "proprieta-funzioni-continue"
+    "proprieta-funzioni-continue",
+    "forze"
 ]);
 
 // ============ COMPONENTI ============
