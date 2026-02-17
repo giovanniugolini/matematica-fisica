@@ -238,6 +238,6 @@ export const demos: DemoInfo[] = [
     {
         slug: "forze",
         title: "Le Forze",
-        Component: React.lazy(() => import("./demos/dinamica/ForzeDemo.tsx")),
+        Component: React.lazy(() => import("./demos/vettori-piano/ForzeDemo.tsx")),
     },
 ];

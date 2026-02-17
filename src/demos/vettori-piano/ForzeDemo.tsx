@@ -517,7 +517,7 @@ const ForzaDemo: React.FC = () => {
         }}>
             <div style={{ maxWidth: 880, margin: "0 auto" }}>
                 {/* Header */}
-                <a href="/" style={{
+                <a href="/public" style={{
                     display: "inline-flex", alignItems: "center", gap: 6,
                     color: "#3182ce", textDecoration: "none", fontSize: 14, marginBottom: 12,
                     fontWeight: 500

@@ -91,7 +91,8 @@ const categories: Category[] = [
                 slugs: [
                     "vettori-punta-coda",
                     "vettore-per-escalare",
-                    "componenti-cartesiane-vettore"
+                    "componenti-cartesiane-vettore",
+                    "forze"
                 ]
             },
             {
@@ -104,13 +105,7 @@ const categories: Category[] = [
                     "moto-circolare-uniforme"
                 ],
             },
-            {
-                id: "dinamica",
-                name: "Dinamica",
-                slugs: [
-                    "forze"
-                ],
-            },
+
             {
                 id: "elettromagnetismo",
                 name: "Elettromagnetismo",
