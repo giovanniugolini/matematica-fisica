@@ -773,16 +773,25 @@ const FRICTION_MATERIALS = [
     { material: "Articolazione ginocchio",     mud: 0.003, mus: 0.01 },
 ];
 
-function SpringSVG({ k, x, isMobile }: { k: number; x: number; isMobile: boolean }) {
-    const W = isMobile ? 300 : 420;
+interface SpringSVGProps {
+    k: number;
+    x: number;
+    isMobile: boolean;
+    showElasticForce?: boolean;
+    showAppliedForce?: boolean;
+    showDisplacement?: boolean;
+}
+
+function SpringSVG({ k, x, isMobile, showElasticForce = true, showAppliedForce = true, showDisplacement = true }: SpringSVGProps) {
+    const W = isMobile ? 340 : 480;
     const H = 140;
     const wallX = 30;
-    const restX = wallX + 60;
+    const restX = wallX + 120; // Più spazio per la compressione
     const isCompressed = x < 0;
     const maxExtRight = W - restX - 70;
-    const maxExtLeft = restX - wallX - 16;
+    const maxExtLeft = restX - wallX - 20;
     const maxAllowed = isCompressed ? maxExtLeft : maxExtRight;
-    const extPx = Math.min(Math.abs(x) * 300, maxAllowed);
+    const extPx = Math.min(Math.abs(x) * 250, maxAllowed);
     const tipX = isCompressed ? restX - extPx : restX + extPx;
     const numCoils = 7;
     const coilH = 12;
@@ -849,7 +858,7 @@ function SpringSVG({ k, x, isMobile }: { k: number; x: number; isMobile: boolean
             <line x1={wallX} y1={springY + 16} x2={W - 10} y2={springY + 16} stroke="#94a3b8" strokeWidth={1} strokeDasharray="3,2" />
 
             {/* Displacement arrow (x) */}
-            {x !== 0 && (
+            {showDisplacement && x !== 0 && (
                 <>
                     <line x1={restX} y1={springY + 44}
                           x2={isCompressed ? tipX + 5 : tipX - 5} y2={springY + 44}
@@ -862,7 +871,7 @@ function SpringSVG({ k, x, isMobile }: { k: number; x: number; isMobile: boolean
             )}
 
             {/* FORZA ELASTICA — opposta allo spostamento */}
-            {x !== 0 && arrowLen > 0 && (
+            {showElasticForce && x !== 0 && arrowLen > 0 && (
                 <>
                     <line x1={elX1} y1={springY - 24} x2={elX2} y2={springY - 24}
                           stroke={arrowColor} strokeWidth={2.5} markerEnd="url(#aEl)" />
@@ -874,7 +883,7 @@ function SpringSVG({ k, x, isMobile }: { k: number; x: number; isMobile: boolean
             )}
 
             {/* FORZA APPLICATA — nella direzione dello spostamento */}
-            {x !== 0 && arrowLen > 0 && (
+            {showAppliedForce && x !== 0 && arrowLen > 0 && (
                 <>
                     <line x1={appX1} y1={springY + 24} x2={appX2} y2={springY + 24}
                           stroke="#3b82f6" strokeWidth={2.5} markerEnd="url(#aApp)" />
@@ -1003,8 +1012,16 @@ function ExerciseElastica() {
 
 function TabElastica({ isMobile }: { isMobile: boolean }) {
     const [k, setK] = useState<number>(50);
-    const [x, setX] = useState<number>(0.20);
-    const force = k * Math.abs(x);
+    const [appliedForce, setAppliedForce] = useState<number>(10); // Forza applicata in N (può essere negativa per compressione)
+
+    // Calcola lo spostamento dalla forza applicata: x = F / k
+    const x = appliedForce / k;
+    const force = Math.abs(appliedForce); // Modulo della forza elastica = modulo della forza applicata all'equilibrio
+
+    // Stati per le checkbox di visualizzazione
+    const [showElasticForce, setShowElasticForce] = useState(true);
+    const [showAppliedForce, setShowAppliedForce] = useState(true);
+    const [showDisplacement, setShowDisplacement] = useState(true);
 
     const FormulaCard = (
         <div style={{ padding: "14px 18px", background: "linear-gradient(135deg, #f0fdf4, #dcfce7)", borderRadius: 12, border: "2px solid #86efac" }}>
@@ -1053,24 +1070,83 @@ function TabElastica({ isMobile }: { isMobile: boolean }) {
             </div>
             <div>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4, color: "#334155" }}>
-                    <span style={{ fontWeight: 600 }}>{"Spostamento x"}</span>
-                    <span style={{ color: x >= 0 ? "#16a34a" : "#7c3aed", fontFamily: "monospace", fontWeight: 700 }}>
-                        {(x >= 0 ? "+" : "") + x.toFixed(2) + " m (" + (x >= 0 ? "allungamento" : "compressione") + ")"}
+                    <span style={{ fontWeight: 600 }}>{"Forza applicata F"}<sub>{"app"}</sub></span>
+                    <span style={{ color: "#3b82f6", fontFamily: "monospace", fontWeight: 700 }}>
+                        {(appliedForce >= 0 ? "+" : "") + appliedForce.toFixed(1) + " N (" + (appliedForce >= 0 ? "tira" : "comprime") + ")"}
                     </span>
                 </div>
-                <input type="range" min={-0.40} max={0.40} step={0.02} value={x} onChange={e => setX(+e.target.value)} style={sliderFillStyle(x, -0.40, 0.40, x >= 0 ? "#16a34a" : "#7c3aed")} />
+                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                    <input type="range" min={-40} max={40} step={1} value={appliedForce} onChange={e => setAppliedForce(+e.target.value)} style={{ ...sliderFillStyle(appliedForce, -40, 40, "#3b82f6"), flex: 1 }} />
+                    <button
+                        onClick={() => setAppliedForce(0)}
+                        style={{
+                            padding: "6px 12px",
+                            borderRadius: 6,
+                            border: "1px solid #d1d5db",
+                            background: appliedForce === 0 ? "#f1f5f9" : "#fff",
+                            color: appliedForce === 0 ? "#94a3b8" : "#334155",
+                            fontSize: 11,
+                            fontWeight: 600,
+                            cursor: appliedForce === 0 ? "default" : "pointer",
+                            whiteSpace: "nowrap",
+                        }}
+                        disabled={appliedForce === 0}
+                    >
+                        {"Equilibrio"}
+                    </button>
+                </div>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#94a3b8", marginTop: 2 }}>
-                    <span>{"← Compressione"}</span><span>{"Allungamento →"}</span>
+                    <span>{"← Comprime (−40 N)"}</span><span>{"Tira (+40 N) →"}</span>
                 </div>
             </div>
+
+            {/* Checkbox per visualizzazione */}
+            <div style={{ padding: "10px 14px", background: "#f8fafc", borderRadius: 8, border: "1px solid #e2e8f0" }}>
+                <div style={{ fontSize: 12, color: "#64748b", marginBottom: 8, fontWeight: 600 }}>{"Mostra nel grafico:"}</div>
+                <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 13 }}>
+                        <input
+                            type="checkbox"
+                            checked={showElasticForce}
+                            onChange={e => setShowElasticForce(e.target.checked)}
+                            style={{ width: 16, height: 16, accentColor: "#16a34a" }}
+                        />
+                        <span style={{ color: "#16a34a", fontWeight: 600 }}>{"Forza elastica"}</span>
+                    </label>
+                    <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 13 }}>
+                        <input
+                            type="checkbox"
+                            checked={showAppliedForce}
+                            onChange={e => setShowAppliedForce(e.target.checked)}
+                            style={{ width: 16, height: 16, accentColor: "#3b82f6" }}
+                        />
+                        <span style={{ color: "#3b82f6", fontWeight: 600 }}>{"Forza applicata"}</span>
+                    </label>
+                    <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 13 }}>
+                        <input
+                            type="checkbox"
+                            checked={showDisplacement}
+                            onChange={e => setShowDisplacement(e.target.checked)}
+                            style={{ width: 16, height: 16, accentColor: "#64748b" }}
+                        />
+                        <span style={{ color: "#64748b", fontWeight: 600 }}>{"Spostamento x"}</span>
+                    </label>
+                </div>
+            </div>
+
             <div style={{ padding: "12px 16px", background: "#fef2f2", borderRadius: 10, border: "1px solid #fecaca" }}>
                 <div style={{ color: "#dc2626", fontWeight: 700, fontSize: 14, marginBottom: 6 }}>{"Risultato"}</div>
                 <div style={{ fontFamily: "monospace", fontSize: 13, lineHeight: 2, color: "#334155" }}>
-                    {"F = k · |x| = " + k + " · " + Math.abs(x).toFixed(2) + " = "}
+                    {"x = F / k = " + Math.abs(appliedForce).toFixed(1) + " / " + k + " = "}
+                    <strong style={{ color: x >= 0 ? "#16a34a" : "#7c3aed" }}>{(x >= 0 ? "+" : "") + x.toFixed(3) + " m"}</strong>
+                    {" (" + (x >= 0 ? "allungamento" : "compressione") + ")"}
+                </div>
+                <div style={{ fontFamily: "monospace", fontSize: 13, lineHeight: 2, color: "#334155", marginTop: 4 }}>
+                    {"F"}{"ₑₗ"}{" = k · |x| = " + k + " · " + Math.abs(x).toFixed(3) + " = "}
                     <strong style={{ color: "#dc2626" }}>{force.toFixed(1) + " N"}</strong>
                 </div>
-                <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 2 }}>
-                    {"Direzione: opposta allo spostamento (" + (x >= 0 ? "← verso sinistra" : "→ verso destra") + ")"}
+                <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 4 }}>
+                    {"All'equilibrio: F"}{"ₑₗ"}{" = F"}{"ₐₚₚ"}{" (in modulo), ma "}<strong>{"direzioni opposte"}</strong>
                 </div>
             </div>
         </div>
@@ -1089,7 +1165,14 @@ function TabElastica({ isMobile }: { isMobile: boolean }) {
         <div style={{ display: "grid", gap: 14 }}>
             {FormulaCard}
             <InfoBox title="🧲 Visualizzazione interattiva della molla">
-                <SpringSVG k={k} x={x} isMobile={isMobile} />
+                <SpringSVG
+                    k={k}
+                    x={x}
+                    isMobile={isMobile}
+                    showElasticForce={showElasticForce}
+                    showAppliedForce={showAppliedForce}
+                    showDisplacement={showDisplacement}
+                />
             </InfoBox>
             {isMobile ? (
                 <>

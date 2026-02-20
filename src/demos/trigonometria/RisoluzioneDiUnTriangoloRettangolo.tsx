@@ -54,6 +54,10 @@ function arrotonda(n: number, decimali: number = 2): number {
     return Math.round(n * Math.pow(10, decimali)) / Math.pow(10, decimali);
 }
 
+function arrotondaGradi(n: number): number {
+    return Math.round(n);
+}
+
 function gradi(radianti: number): number {
     return (radianti * 180) / Math.PI;
 }
