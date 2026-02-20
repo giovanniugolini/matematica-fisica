@@ -79,6 +79,8 @@ const OHMIC_MATERIALS: OhmicMaterial[] = [
 
 // ============ COMPONENTE CIRCUITO SVG ============
 
+type CurrentDirection = "convention" | "reality";
+
 interface CircuitDiagramProps {
     voltage: number;
     current: number;
@@ -88,9 +90,10 @@ interface CircuitDiagramProps {
     materialName?: string | null;
     materialColor?: string | null;
     isMobile?: boolean;
+    currentDirection?: CurrentDirection;
 }
 
-function CircuitDiagram({ voltage, current, resistance, isOn, onToggle, materialName, materialColor, isMobile = false }: CircuitDiagramProps) {
+function CircuitDiagram({ voltage, current, resistance, isOn, onToggle, materialName, materialColor, isMobile = false, currentDirection = "convention" }: CircuitDiagramProps) {
     const w = isMobile ? 340 : 480;
     const h = isMobile ? 260 : 320;
 
@@ -101,9 +104,17 @@ function CircuitDiagram({ voltage, current, resistance, isOn, onToggle, material
     const animDuration = showFlow
         ? `${Math.max(0.25, 1.2 - 0.5 * Math.log10(Math.max(current, 0.01) / 0.01))}s`
         : "0s";
+
+    // Colori diversi per convenzione (da + a -) e realtà (da - a +)
+    const isConvention = currentDirection === "convention";
     const wireColor = showFlow
-        ? `hsl(${Math.max(200 - current * 40, 0)}, 70%, 50%)`
+        ? isConvention
+            ? `hsl(${Math.max(200 - current * 40, 0)}, 70%, 50%)`  // blu/ciano per convenzione
+            : `hsl(${Math.max(30 - current * 10, 10)}, 85%, 50%)`   // arancione/rosso per realtà
         : "#94a3b8";
+
+    // Nome animazione in base alla direzione
+    const animName = isConvention ? "flowCurrentConvention" : "flowCurrentReality";
 
     const fs = isMobile ? 10 : 12;
     const fsLabel = isMobile ? 9 : 11;
@@ -170,9 +181,13 @@ function CircuitDiagram({ voltage, current, resistance, isOn, onToggle, material
         >
             <defs>
                 <style>{`
-                    @keyframes flowCurrent {
+                    @keyframes flowCurrentConvention {
                         from { stroke-dashoffset: 24; }
                         to { stroke-dashoffset: 0; }
+                    }
+                    @keyframes flowCurrentReality {
+                        from { stroke-dashoffset: 0; }
+                        to { stroke-dashoffset: 24; }
                     }
                 `}</style>
             </defs>
@@ -250,7 +265,7 @@ function CircuitDiagram({ voltage, current, resistance, isOn, onToggle, material
                     stroke={wireColor}
                     strokeWidth={2.5}
                     strokeDasharray="8,16"
-                    style={{ animation: `flowCurrent ${animDuration} linear infinite` }}
+                    style={{ animation: `${animName} ${animDuration} linear infinite` }}
                 />
             )}
 
@@ -268,14 +283,14 @@ function CircuitDiagram({ voltage, current, resistance, isOn, onToggle, material
                             stroke={wireColor}
                             strokeWidth={2.5}
                             strokeDasharray="8,16"
-                            style={{ animation: `flowCurrent ${animDuration} linear infinite` }}
+                            style={{ animation: `${animName} ${animDuration} linear infinite` }}
                         />
                         <line
                             x1={batX} y1={botY} x2={batX} y2={midY + 26}
                             stroke={wireColor}
                             strokeWidth={2.5}
                             strokeDasharray="8,16"
-                            style={{ animation: `flowCurrent ${animDuration} linear infinite` }}
+                            style={{ animation: `${animName} ${animDuration} linear infinite` }}
                         />
                     </>
                 )}
@@ -541,10 +556,29 @@ function CircuitDiagram({ voltage, current, resistance, isOn, onToggle, material
 
             {/* ══ FRECCIA CORRENTE ══ */}
             <g>
-                <polygon
-                    points={`${ampX + ampR + 20},${topY - 5} ${ampX + ampR + 28},${topY} ${ampX + ampR + 20},${topY + 5}`}
+                {/* Freccia: punta a destra per convenzione, a sinistra per realtà */}
+                {isConvention ? (
+                    <polygon
+                        points={`${ampX + ampR + 20},${topY - 5} ${ampX + ampR + 28},${topY} ${ampX + ampR + 20},${topY + 5}`}
+                        fill={wireColor}
+                    />
+                ) : (
+                    <polygon
+                        points={`${ampX + ampR + 28},${topY - 5} ${ampX + ampR + 20},${topY} ${ampX + ampR + 28},${topY + 5}`}
+                        fill={wireColor}
+                    />
+                )}
+                {/* Simbolo della carica: + per convenzione, - per realtà (elettroni) */}
+                <text
+                    x={ampX + ampR + 24}
+                    y={topY - 12}
+                    fontSize={fs + 2}
                     fill={wireColor}
-                />
+                    fontWeight="bold"
+                    textAnchor="middle"
+                >
+                    {isConvention ? "+" : "−"}
+                </text>
                 <text
                     x={ampX + ampR + 24}
                     y={topY + ampR + 16}
@@ -1023,6 +1057,7 @@ export default function LeggeOhmDemo() {
 
     const [isOn, setIsOn] = useState(false);
     const [selectedMaterial, setSelectedMaterial] = useState<string | null>(null);
+    const [currentDirection, setCurrentDirection] = useState<CurrentDirection>("convention");
 
     // Ricalcola la grandezza selezionata
     const computedState = useMemo(() => {
@@ -1235,9 +1270,10 @@ export default function LeggeOhmDemo() {
                     materialName={selectedMaterial}
                     materialColor={OHMIC_MATERIALS.find(m => m.name === selectedMaterial)?.color || null}
                     isMobile={isMobile}
+                    currentDirection={currentDirection}
                 />
-                {/* Pulsante accendi/spegni */}
-                <div style={{ display: "flex", justifyContent: "center", marginTop: 12 }}>
+                {/* Pulsanti accendi/spegni e direzione corrente */}
+                <div style={{ display: "flex", justifyContent: "center", gap: 12, marginTop: 12, flexWrap: "wrap" }}>
                     <button
                         onClick={() => setIsOn(prev => !prev)}
                         style={{
@@ -1277,6 +1313,35 @@ export default function LeggeOhmDemo() {
                         </svg>
                         {isOn ? "SPEGNI" : "ACCENDI"}
                     </button>
+
+                    {/* Pulsante direzione corrente */}
+                    <button
+                        onClick={() => setCurrentDirection(prev => prev === "convention" ? "reality" : "convention")}
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 8,
+                            padding: "10px 20px",
+                            borderRadius: 30,
+                            border: "none",
+                            background: currentDirection === "convention"
+                                ? "linear-gradient(135deg, #3b82f6, #1d4ed8)"
+                                : "linear-gradient(135deg, #f59e0b, #d97706)",
+                            color: "#fff",
+                            fontWeight: 700,
+                            fontSize: isMobile ? 12 : 13,
+                            cursor: "pointer",
+                            boxShadow: currentDirection === "convention"
+                                ? "0 0 12px rgba(59, 130, 246, 0.4)"
+                                : "0 0 12px rgba(245, 158, 11, 0.4)",
+                            transition: "all 0.3s ease",
+                        }}
+                    >
+                        <span style={{ fontSize: isMobile ? 16 : 18 }}>
+                            {currentDirection === "convention" ? "+" : "−"}
+                        </span>
+                        {currentDirection === "convention" ? "Convenzione" : "Realta"}
+                    </button>
                 </div>
                 {/* Indicatore stato */}
                 <div style={{
@@ -1297,6 +1362,28 @@ export default function LeggeOhmDemo() {
                         transition: "all 0.3s ease",
                     }} />
                     {isOn ? "Circuito attivo" : "Circuito spento"}
+                </div>
+
+                {/* Spiegazione direzione corrente */}
+                <div style={{
+                    textAlign: "center",
+                    marginTop: 10,
+                    padding: "8px 12px",
+                    background: currentDirection === "convention" ? "#eff6ff" : "#fffbeb",
+                    borderRadius: 8,
+                    border: `1px solid ${currentDirection === "convention" ? "#bfdbfe" : "#fde68a"}`,
+                    fontSize: 12,
+                    color: currentDirection === "convention" ? "#1e40af" : "#92400e",
+                }}>
+                    {currentDirection === "convention" ? (
+                        <>
+                            <strong>Verso convenzionale:</strong> la corrente scorre dal polo <strong>+</strong> al polo <strong>−</strong> (cariche positive)
+                        </>
+                    ) : (
+                        <>
+                            <strong>Verso reale:</strong> gli elettroni (<strong>−</strong>) si muovono dal polo <strong>−</strong> al polo <strong>+</strong>
+                        </>
+                    )}
                 </div>
             </div>
         </div>
