@@ -78,6 +78,13 @@ const categories: Category[] = [
                     "risoluzione-di-un-triangolo-rettangolo",
                 ],
             },
+            {
+                id: "geometria-cartesiana",
+                name: "Geometria Cartesiana",
+                slugs: [
+                    "distanza-punto-medio",
+                ],
+            },
         ],
     },
     {
@@ -180,7 +187,8 @@ const newDemoSlugs = new Set([
     "funzioni-continue",
     "equazioni-goniometriche",
     "proprieta-funzioni-continue",
-    "forze"
+    "forze",
+    "distanza-punto-medio"
 ]);
 
 // ============ COMPONENTI ============

@@ -240,4 +240,10 @@ export const demos: DemoInfo[] = [
         title: "Le Forze",
         Component: React.lazy(() => import("./demos/vettori-piano/ForzeDemo.tsx")),
     },
+    // ============ GEOMETRIA ANALITICA ============
+    {
+        slug: "distanza-punto-medio",
+        title: "Distanza tra due punti e Punto Medio",
+        Component: React.lazy(() => import("./demos/geometria-analitica/DistanzaPuntoMedioDemo.tsx")),
+    },
 ];
