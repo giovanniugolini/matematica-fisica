@@ -83,6 +83,7 @@ const categories: Category[] = [
                 name: "Geometria Cartesiana",
                 slugs: [
                     "distanza-punto-medio",
+                    "equazione-retta",
                 ],
             },
         ],
@@ -188,7 +189,8 @@ const newDemoSlugs = new Set([
     "equazioni-goniometriche",
     "proprieta-funzioni-continue",
     "forze",
-    "distanza-punto-medio"
+    "distanza-punto-medio",
+    "equazione-retta"
 ]);
 
 // ============ COMPONENTI ============
@@ -319,11 +321,28 @@ function CategoryCard({ category, expanded, onToggle }: {
     );
 }
 
+// Estrai tutti i tag unici e conta le occorrenze
+const allTags = demos.flatMap(d => d.tags || []);
+const tagCounts = allTags.reduce((acc, tag) => {
+    acc[tag] = (acc[tag] || 0) + 1;
+    return acc;
+}, {} as Record<string, number>);
+
+// Tag popolari (ordinati per frequenza, top 15)
+const popularTags = Object.entries(tagCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 15)
+    .map(([tag]) => tag);
+
 function Home() {
     // Tutte le categorie espanse di default
     const [expanded, setExpanded] = useState<Record<string, boolean>>(
         Object.fromEntries(categories.map((c) => [c.id, true]))
     );
+
+    // Stato ricerca
+    const [searchQuery, setSearchQuery] = useState("");
+    const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
     const toggleCategory = (id: string) => {
         setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -331,6 +350,23 @@ function Home() {
 
     const totalDemos = demos.length;
     const totalTests = tests.length;
+
+    // Filtra le demo in base alla ricerca e al tag selezionato
+    const filteredSlugs = demos
+        .filter(demo => {
+            const query = searchQuery.toLowerCase().trim();
+            const matchesSearch = !query ||
+                demo.title.toLowerCase().includes(query) ||
+                (demo.tags || []).some(tag => tag.toLowerCase().includes(query));
+            const matchesTag = !selectedTag || (demo.tags || []).includes(selectedTag);
+            return matchesSearch && matchesTag;
+        })
+        .map(d => d.slug);
+
+    const isFiltering = searchQuery.trim() !== "" || selectedTag !== null;
+
+    // Set per lookup veloce
+    const filteredSlugsSet = new Set(filteredSlugs);
 
     return (
         <div style={{
@@ -386,6 +422,132 @@ function Home() {
                     </div>
                 </div>
 
+                {/* Barra di ricerca */}
+                <div style={{
+                    background: "#fff",
+                    borderRadius: 12,
+                    padding: 16,
+                    marginBottom: 16,
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+                    overflow: "hidden",
+                }}>
+                    <div style={{ position: "relative", overflow: "hidden" }}>
+                        <input
+                            type="text"
+                            placeholder="Cerca demo per titolo o argomento..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            style={{
+                                width: "100%",
+                                padding: "12px 16px 12px 44px",
+                                borderRadius: 8,
+                                border: "2px solid #e2e8f0",
+                                fontSize: 16,
+                                outline: "none",
+                                transition: "border-color 0.2s",
+                                boxSizing: "border-box",
+                            }}
+                            onFocus={(e) => e.target.style.borderColor = "#3b82f6"}
+                            onBlur={(e) => e.target.style.borderColor = "#e2e8f0"}
+                        />
+                        <span style={{
+                            position: "absolute",
+                            left: 12,
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                            fontSize: 18,
+                            pointerEvents: "none",
+                        }}>
+                            🔍
+                        </span>
+                        {searchQuery && (
+                            <button
+                                onClick={() => setSearchQuery("")}
+                                style={{
+                                    position: "absolute",
+                                    right: 12,
+                                    top: "50%",
+                                    transform: "translateY(-50%)",
+                                    background: "#e2e8f0",
+                                    border: "none",
+                                    borderRadius: "50%",
+                                    width: 24,
+                                    height: 24,
+                                    cursor: "pointer",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    fontSize: 14,
+                                    color: "#64748b",
+                                }}
+                            >
+                                ✕
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Tag popolari */}
+                    <div style={{ marginTop: 12 }}>
+                        <div style={{ fontSize: 12, color: "#64748b", marginBottom: 8 }}>
+                            Tag popolari:
+                        </div>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                            {popularTags.map(tag => (
+                                <button
+                                    key={tag}
+                                    onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
+                                    style={{
+                                        padding: "6px 12px",
+                                        borderRadius: 20,
+                                        border: selectedTag === tag ? "2px solid #3b82f6" : "1px solid #d1d5db",
+                                        background: selectedTag === tag ? "#dbeafe" : "#f8fafc",
+                                        color: selectedTag === tag ? "#1e40af" : "#475569",
+                                        fontSize: 13,
+                                        cursor: "pointer",
+                                        fontWeight: selectedTag === tag ? 600 : 400,
+                                        transition: "all 0.15s",
+                                    }}
+                                >
+                                    #{tag}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Filtro attivo */}
+                    {isFiltering && (
+                        <div style={{
+                            marginTop: 12,
+                            padding: "8px 12px",
+                            background: "#fef3c7",
+                            borderRadius: 8,
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                        }}>
+                            <span style={{ fontSize: 13, color: "#92400e" }}>
+                                {filteredSlugs.length} demo trovate
+                                {selectedTag && <span> con tag <strong>#{selectedTag}</strong></span>}
+                            </span>
+                            <button
+                                onClick={() => { setSearchQuery(""); setSelectedTag(null); }}
+                                style={{
+                                    padding: "4px 10px",
+                                    borderRadius: 6,
+                                    border: "none",
+                                    background: "#fcd34d",
+                                    color: "#78350f",
+                                    fontSize: 12,
+                                    cursor: "pointer",
+                                    fontWeight: 600,
+                                }}
+                            >
+                                Azzera filtri
+                            </button>
+                        </div>
+                    )}
+                </div>
+
                 {/* Pulsanti espandi/comprimi */}
                 <div style={{
                     display: "flex",
@@ -424,14 +586,31 @@ function Home() {
                 </div>
 
                 {/* Categorie */}
-                {categories.map((category) => (
-                    <CategoryCard
-                        key={category.id}
-                        category={category}
-                        expanded={expanded[category.id]}
-                        onToggle={() => toggleCategory(category.id)}
-                    />
-                ))}
+                {categories.map((category) => {
+                    // Filtra le sottocategorie che hanno almeno una demo visibile
+                    const filteredSubcategories = category.subcategories
+                        .map(sub => ({
+                            ...sub,
+                            slugs: isFiltering
+                                ? sub.slugs.filter(slug => filteredSlugsSet.has(slug))
+                                : sub.slugs
+                        }))
+                        .filter(sub => sub.slugs.length > 0);
+
+                    // Non mostrare categorie vuote durante il filtro
+                    if (isFiltering && filteredSubcategories.length === 0) {
+                        return null;
+                    }
+
+                    return (
+                        <CategoryCard
+                            key={category.id}
+                            category={{ ...category, subcategories: filteredSubcategories }}
+                            expanded={expanded[category.id] || isFiltering}
+                            onToggle={() => toggleCategory(category.id)}
+                        />
+                    );
+                })}
 
                 {/* Footer */}
                 <div style={{
