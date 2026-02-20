@@ -28,34 +28,34 @@ import {
 // ============ TIPI ============
 
 interface CircularMotionState {
-    t: number;            // tempo (s)
-    theta: number;        // angolo (rad) - posizione angolare
-    x: number;           // posizione x (m)
-    y: number;           // posizione y (m)
-    vx: number;          // velocità x (m/s) - componente tangenziale
-    vy: number;          // velocità y (m/s)
-    ax: number;          // accelerazione x (m/s²) - componente centripeta
-    ay: number;          // accelerazione y (m/s²)
-    v: number;           // velocità lineare (m/s) - magnitudine costante
-    a: number;           // accelerazione centripeta (m/s²) - magnitudine costante
-    omega: number;       // velocità angolare (rad/s)
-    alpha: number;       // accelerazione angolare (rad/s²) - zero per uniforme
-    period: number;      // periodo (s)
-    frequency: number;   // frequenza (Hz)
-    completedRevolutions: number; // numero di rivoluzioni completate
+    t: number;
+    theta: number;
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    ax: number;
+    ay: number;
+    v: number;
+    a: number;
+    omega: number;
+    alpha: number;
+    period: number;
+    frequency: number;
+    completedRevolutions: number;
 }
 
 interface CircularMotionParams {
-    radius: number;       // raggio (m)
-    omega0: number;       // velocità angolare iniziale (rad/s)
-    theta0: number;       // angolo iniziale (rad)
+    radius: number;
+    omega0: number;
+    theta0: number;
 }
 
 interface CircularObject {
     name: string;
     icon: string;
-    size: number;        // dimensione emoji
-    typicalRadius: number; // raggio tipico in m (per scala)
+    size: number;
+    typicalRadius: number;
     color: string;
     description: string;
 }
@@ -65,20 +65,19 @@ interface CircularObject {
 const TAU = 2 * Math.PI;
 
 const COLORS = {
-    position: "#8b5cf6",    // viola - posizione angolare
-    velocity: "#22c55e",    // verde - velocità
-    acceleration: "#ef4444", // rosso - accelerazione
-    xComponent: "#3b82f6",   // blu - componente x
-    yComponent: "#f59e0b",   // arancione - componente y
-    object1: "#3b82f6",      // blu - oggetto
+    position: "#8b5cf6",
+    velocity: "#22c55e",
+    acceleration: "#ef4444",
+    xComponent: "#3b82f6",
+    yComponent: "#f59e0b",
+    object1: "#3b82f6",
     text: "#334155",
     grid: "#e2e8f0",
     axis: "#64748b",
-    angleArc: "#8b5cf6",     // viola per arco angolo
-    angleText: "#8b5cf6",    // viola per testo angolo
+    angleArc: "#8b5cf6",
+    angleText: "#8b5cf6",
 };
 
-// Oggetti per il moto circolare (nuova selezione)
 const CIRCULAR_OBJECTS: CircularObject[] = [
     { name: "Palla", icon: "⚽", size: 32, typicalRadius: 0.11, color: "#8b5cf6", description: "Palla che ruota" },
     { name: "Terra", icon: "🌍", size: 36, typicalRadius: 6.371e6, color: "#3b82f6", description: "Rotazione terrestre" },
@@ -155,54 +154,24 @@ function FormulaRow({
 }
 
 
-// Calcola lo stato del moto circolare a un dato istante
 function calculateCircularMotion(params: CircularMotionParams, t: number): CircularMotionState {
     const { radius, omega0, theta0 } = params;
-
-    // Angolo al tempo t: θ(t) = θ₀ + ωt
     const theta = normalizeAngle(theta0 + omega0 * t);
-
-    // Posizione: x = r·cos(θ), y = r·sin(θ)
     const x = radius * Math.cos(theta);
     const y = radius * Math.sin(theta);
-
-    // Velocità lineare: v = ωr
     const v = Math.abs(omega0) * radius;
-
-    // Componenti velocità: v_x = -ωr·sin(θ), v_y = ωr·cos(θ)
     const vx = -omega0 * radius * Math.sin(theta);
     const vy = omega0 * radius * Math.cos(theta);
-
-    // Accelerazione centripeta: a = ω²r = v²/r
     const a = omega0 * omega0 * radius;
-
-    // Componenti accelerazione: a_x = -ω²r·cos(θ), a_y = -ω²r·sin(θ)
     const ax = -omega0 * omega0 * radius * Math.cos(theta);
     const ay = -omega0 * omega0 * radius * Math.sin(theta);
-
-    // Periodo e frequenza
     const period = Math.abs(omega0) > 0 ? TAU / Math.abs(omega0) : Infinity;
     const frequency = period !== Infinity ? 1 / period : 0;
-
-    // Numero di rivoluzioni completate
     const completedRevolutions = Math.floor((theta0 + omega0 * t) / TAU);
 
     return {
-        t,
-        theta,
-        x,
-        y,
-        vx,
-        vy,
-        ax,
-        ay,
-        v,
-        a,
-        omega: omega0,
-        alpha: 0,
-        period,
-        frequency,
-        completedRevolutions,
+        t, theta, x, y, vx, vy, ax, ay, v, a,
+        omega: omega0, alpha: 0, period, frequency, completedRevolutions,
     };
 }
 
@@ -218,40 +187,34 @@ interface AnimationCircularProps {
     showVelocity: boolean;
     showAcceleration: boolean;
     showTrajectory: boolean;
+    showAngle: boolean;
 }
 
-function AnimationCircular({ params1, currentT, maxT, width, height, object1, showVelocity, showAcceleration, showTrajectory }: AnimationCircularProps) {
+function AnimationCircular({ params1, currentT, maxT, width, height, object1, showVelocity, showAcceleration, showTrajectory, showAngle }: AnimationCircularProps) {
     const state1 = calculateCircularMotion(params1, currentT);
 
-    // Calcola dimensioni
     const centerX = width / 2;
     const centerY = height / 2;
 
-    // Raggio massimo per la visualizzazione
     const maxRadius = Math.max(params1.radius, 1);
     const scale = Math.min(width, height) * 0.35 / maxRadius;
 
-    // Posizioni
+    // Posizioni — Y invertito per coordinate SVG (positivo verso il basso)
     const x1 = centerX + state1.x * scale;
-    const y1 = centerY + state1.y * scale;
+    const y1 = centerY - state1.y * scale;
 
-    // Lunghezza vettori
-    const vScale = 0.8 * scale; // Scala per vettori velocità
-    const aScale = 0.6 * scale; // Scala per vettori accelerazione
+    const vScale = 0.8 * scale;
+    const aScale = 0.6 * scale;
 
-    // Angolo θ: calcola il punto sull'arco di raggio più piccolo
-    const angleRadius = 30; // Raggio fisso per l'arco dell'angolo
+    const angleRadius = 30;
     const angleStartX = centerX + angleRadius;
     const angleStartY = centerY;
 
-    // L'angolo deve seguire il senso del moto (antiorario per ω positivo)
     const angleEndX = centerX + angleRadius * Math.cos(state1.theta);
     const angleEndY = centerY - angleRadius * Math.sin(state1.theta);
 
-    // Calcola se l'angolo è maggiore di 180° per il flag large-arc
     const largeArcFlag = state1.theta > Math.PI ? 1 : 0;
 
-    // Posizione per l'etichetta dell'angolo (a metà arco)
     const midAngle = state1.theta / 2;
     const labelRadius = angleRadius * 1.4;
     const labelX = centerX + labelRadius * Math.cos(midAngle);
@@ -259,10 +222,8 @@ function AnimationCircular({ params1, currentT, maxT, width, height, object1, sh
 
     return (
         <svg width={width} height={height} style={{ display: 'block' }}>
-            {/* Sfondo bianco */}
             <rect x={0} y={0} width={width} height={height} fill="white" />
 
-            {/* Traiettoria oggetto */}
             {showTrajectory && (
                 <circle
                     cx={centerX}
@@ -275,7 +236,6 @@ function AnimationCircular({ params1, currentT, maxT, width, height, object1, sh
                 />
             )}
 
-            {/* Raggio oggetto */}
             <line
                 x1={centerX}
                 y1={centerY}
@@ -295,13 +255,11 @@ function AnimationCircular({ params1, currentT, maxT, width, height, object1, sh
                 r = {formatNumber(params1.radius, 2)} m
             </text>
 
-            {/* Centro */}
             <circle cx={centerX} cy={centerY} r={6} fill="#ef4444" />
             <text x={centerX + 10} y={centerY - 10} fontSize={12} fill="#ef4444" fontWeight={600}>
                 Centro
             </text>
 
-            {/* Vettore velocità (tangente) - mostrato solo se showVelocity è true */}
             {showVelocity && (
                 <>
                     <defs>
@@ -313,14 +271,14 @@ function AnimationCircular({ params1, currentT, maxT, width, height, object1, sh
                         x1={x1}
                         y1={y1}
                         x2={x1 + state1.vx * vScale}
-                        y2={y1 + state1.vy * vScale}
+                        y2={y1 - state1.vy * vScale}
                         stroke={COLORS.velocity}
                         strokeWidth={3}
                         markerEnd="url(#arrowV1)"
                     />
                     <text
                         x={x1 + state1.vx * vScale / 2 + 15}
-                        y={y1 + state1.vy * vScale / 2}
+                        y={y1 - state1.vy * vScale / 2}
                         fontSize={11}
                         fill={COLORS.velocity}
                         fontWeight={600}
@@ -330,7 +288,6 @@ function AnimationCircular({ params1, currentT, maxT, width, height, object1, sh
                 </>
             )}
 
-            {/* Vettore accelerazione (centripeta, verso il centro) - mostrato solo se showAcceleration è true */}
             {showAcceleration && (
                 <>
                     <defs>
@@ -342,14 +299,14 @@ function AnimationCircular({ params1, currentT, maxT, width, height, object1, sh
                         x1={x1}
                         y1={y1}
                         x2={x1 + state1.ax * aScale}
-                        y2={y1 + state1.ay * aScale}
+                        y2={y1 - state1.ay * aScale}
                         stroke={COLORS.acceleration}
                         strokeWidth={3}
                         markerEnd="url(#arrowA1)"
                     />
                     <text
                         x={x1 + state1.ax * aScale / 2 - 15}
-                        y={y1 + state1.ay * aScale / 2 - 15}
+                        y={y1 - state1.ay * aScale / 2 - 15}
                         fontSize={11}
                         fill={COLORS.acceleration}
                         fontWeight={600}
@@ -359,7 +316,6 @@ function AnimationCircular({ params1, currentT, maxT, width, height, object1, sh
                 </>
             )}
 
-            {/* Oggetto */}
             <g>
                 <circle cx={x1} cy={y1} r={object1.size / 2} fill={object1.color} opacity={0.2} />
                 <text
@@ -383,55 +339,51 @@ function AnimationCircular({ params1, currentT, maxT, width, height, object1, sh
                 </text>
             </g>
 
-            {/* Visualizzazione angolo θ - CORRETTA e centrata */}
-            <g>
-                {/* Linea orizzontale di riferimento (asse x positivo) */}
-                <line
-                    x1={centerX}
-                    y1={centerY}
-                    x2={centerX + angleRadius}
-                    y2={centerY}
-                    stroke="#94a3b8"
-                    strokeWidth={1.5}
-                    strokeDasharray="3,3"
-                />
+            {showAngle && (
+                <g>
+                    <line
+                        x1={centerX}
+                        y1={centerY}
+                        x2={centerX + angleRadius}
+                        y2={centerY}
+                        stroke="#94a3b8"
+                        strokeWidth={1.5}
+                        strokeDasharray="3,3"
+                    />
 
-                {/* Arco dell'angolo - sweep-flag=0 per senso antiorario (standard matematico) */}
-                <path
-                    d={`
+                    <path
+                        d={`
                         M ${angleStartX} ${angleStartY}
                         A ${angleRadius} ${angleRadius} 0 ${largeArcFlag} 0 ${angleEndX} ${angleEndY}
                     `}
-                    fill="none"
-                    stroke={COLORS.angleArc}
-                    strokeWidth={2}
-                />
+                        fill="none"
+                        stroke={COLORS.angleArc}
+                        strokeWidth={2}
+                    />
 
-                {/* Linea dal centro al punto sull'arco */}
-                <line
-                    x1={centerX}
-                    y1={centerY}
-                    x2={angleEndX}
-                    y2={angleEndY}
-                    stroke="#94a3b8"
-                    strokeWidth={1.5}
-                    strokeDasharray="3,3"
-                />
+                    <line
+                        x1={centerX}
+                        y1={centerY}
+                        x2={angleEndX}
+                        y2={angleEndY}
+                        stroke="#94a3b8"
+                        strokeWidth={1.5}
+                        strokeDasharray="3,3"
+                    />
 
-                {/* Etichetta dell'angolo */}
-                <text
-                    x={labelX}
-                    y={labelY}
-                    textAnchor="middle"
-                    fontSize={12}
-                    fill={COLORS.angleText}
-                    fontWeight={600}
-                >
-                    θ = {formatNumber(toDegrees(state1.theta), 1)}°
-                </text>
-            </g>
+                    <text
+                        x={labelX}
+                        y={labelY}
+                        textAnchor="middle"
+                        fontSize={12}
+                        fill={COLORS.angleText}
+                        fontWeight={600}
+                    >
+                        θ = {formatNumber(toDegrees(state1.theta), 1)}°
+                    </text>
+                </g>
+            )}
 
-            {/* Info tempo e velocità */}
             <g transform={`translate(20, 30)`}>
                 <text fontSize={14} fontWeight={600} fill={COLORS.text}>
                     t = {formatNumber(currentT, 2)} s
@@ -452,10 +404,9 @@ function AnimationCircular({ params1, currentT, maxT, width, height, object1, sh
 export default function MottoCircolareUniformeDemo() {
     const { isMobile, isTablet } = useBreakpoint();
 
-    // Parametri simulazione
     const [radius, setRadius] = useState(5);
-    const [omega, setOmega] = useState(2); // rad/s
-    const [theta0, setTheta0] = useState(0); // rad
+    const [omega, setOmega] = useState(2);
+    const [theta0, setTheta0] = useState(0);
     const [selectedObject, setSelectedObject] = useState(0);
     const [currentT, setCurrentT] = useState(0);
     const [maxT, setMaxT] = useState(10);
@@ -463,6 +414,7 @@ export default function MottoCircolareUniformeDemo() {
     const [showVelocity, setShowVelocity] = useState(false);
     const [showAcceleration, setShowAcceleration] = useState(false);
     const [showTrajectory, setShowTrajectory] = useState(true);
+    const [showAngle, setShowAngle] = useState(true);
     const [omegaUnit, setOmegaUnit] = useState<"rad/s" | "hz">("rad/s");
     const [showPeriodExplanation, setShowPeriodExplanation] = useState(false);
 
@@ -471,7 +423,6 @@ export default function MottoCircolareUniformeDemo() {
     const animationRef = useRef<number | null>(null);
     const lastTimeRef = useRef<number>(0);
 
-    // Converti omega in unità correnti
     const omegaInRadPerSec = useMemo(() => {
         switch (omegaUnit) {
             case "hz": return hzToRadPerSec(omega);
@@ -479,17 +430,14 @@ export default function MottoCircolareUniformeDemo() {
         }
     }, [omega, omegaUnit]);
 
-    // Params per oggetto
     const params1: CircularMotionParams = useMemo(() => ({
         radius,
         omega0: omegaInRadPerSec,
         theta0: toRadians(theta0),
     }), [radius, omegaInRadPerSec, theta0]);
 
-    // Stato corrente oggetto
     const currentState1 = useMemo(() => calculateCircularMotion(params1, currentT), [params1, currentT]);
 
-    // Calcola periodo massimo per impostare maxT
     useEffect(() => {
         const period = currentState1.period;
         if (period > 0 && period < 60) {
@@ -497,7 +445,6 @@ export default function MottoCircolareUniformeDemo() {
         }
     }, [currentState1.period]);
 
-    // Animazione play/pause
     useEffect(() => {
         if (isPlaying) {
             lastTimeRef.current = performance.now();
@@ -510,7 +457,7 @@ export default function MottoCircolareUniformeDemo() {
                     const newT = prev + delta;
                     if (newT >= maxT) {
                         setIsPlaying(false);
-                        return 0; // Reset al completamento
+                        return 0;
                     }
                     return newT;
                 });
@@ -532,13 +479,11 @@ export default function MottoCircolareUniformeDemo() {
         };
     }, [isPlaying, maxT]);
 
-    // Reset
     const handleReset = useCallback(() => {
         setCurrentT(0);
         setIsPlaying(false);
     }, []);
 
-    // Preset scenari (rimossi RPM)
     const presets = [
         { name: "Orbita lenta", radius: 10, omega: 0.5, unit: "rad/s" as const },
         { name: "Ruota media", radius: 5, omega: 2, unit: "rad/s" as const },
@@ -554,12 +499,10 @@ export default function MottoCircolareUniformeDemo() {
         handleReset();
     };
 
-    // Tasto per spiegare il periodo
     const handlePeriodExplanation = () => {
         setShowPeriodExplanation(!showPeriodExplanation);
     };
 
-    // Dimensioni responsive
     const animationWidth = isMobile ? 320 : isTablet ? 400 : 400;
     const animationHeight = isMobile ? 320 : isTablet ? 400 : 400;
 
@@ -571,7 +514,6 @@ export default function MottoCircolareUniformeDemo() {
                 ⚙️ Parametri di controllo
             </div>
 
-            {/* Selezione oggetto */}
             <div style={{ marginBottom: 16 }}>
                 <div style={{ fontSize: 12, color: "#64748b", marginBottom: 8 }}>
                     Seleziona oggetto:
@@ -604,7 +546,6 @@ export default function MottoCircolareUniformeDemo() {
                 </div>
             </div>
 
-            {/* Preset */}
             <div style={{ marginBottom: 16 }}>
                 <div style={{ fontSize: 12, color: "#64748b", marginBottom: 8 }}>Scenari tipici:</div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
@@ -627,7 +568,6 @@ export default function MottoCircolareUniformeDemo() {
                 </div>
             </div>
 
-            {/* Raggio */}
             <div style={{ marginBottom: 12 }}>
                 <label style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}>
                     <span>Raggio r</span>
@@ -649,7 +589,6 @@ export default function MottoCircolareUniformeDemo() {
                 </div>
             </div>
 
-            {/* Velocità angolare */}
             <div style={{ marginBottom: 12 }}>
                 <label style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}>
                     <span>Velocità angolare ω</span>
@@ -680,7 +619,6 @@ export default function MottoCircolareUniformeDemo() {
                         <button
                             key={unit}
                             onClick={() => {
-                                // Converti il valore corrente nella nuova unità
                                 let newOmega = omega;
                                 if (omegaUnit === "rad/s" && unit === "hz") newOmega = radPerSecToHz(omega);
                                 if (omegaUnit === "hz" && unit === "rad/s") newOmega = hzToRadPerSec(omega);
@@ -703,7 +641,6 @@ export default function MottoCircolareUniformeDemo() {
                 </div>
             </div>
 
-            {/* Angolo iniziale */}
             <div style={{ marginBottom: 12 }}>
                 <label style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}>
                     <span>Angolo iniziale θ₀</span>
@@ -725,7 +662,6 @@ export default function MottoCircolareUniformeDemo() {
                 </div>
             </div>
 
-            {/* Checkbox separate per vettori */}
             <div style={{ display: "grid", gap: 8, marginTop: 16 }}>
                 <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, cursor: "pointer" }}>
                     <input
@@ -751,9 +687,16 @@ export default function MottoCircolareUniformeDemo() {
                     />
                     Mostra traiettoria circolare
                 </label>
+                <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, cursor: "pointer" }}>
+                    <input
+                        type="checkbox"
+                        checked={showAngle}
+                        onChange={e => setShowAngle(e.target.checked)}
+                    />
+                    Mostra angolo θ
+                </label>
             </div>
 
-            {/* Tasto per spiegare il periodo */}
             <div style={{ marginTop: 16 }}>
                 <button
                     onClick={handlePeriodExplanation}
@@ -816,7 +759,6 @@ export default function MottoCircolareUniformeDemo() {
             </div>
 
             <div style={{ display: "grid", gap: 10 }}>
-                {/* Tempo e periodo */}
                 <div style={{ padding: 10, background: "#f8fafc", borderRadius: 8, borderLeft: `4px solid ${COLORS.text}` }}>
                     <div style={{ fontSize: 11, color: "#64748b" }}>Parametri temporali</div>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 6 }}>
@@ -840,7 +782,6 @@ export default function MottoCircolareUniformeDemo() {
                     </div>
                 </div>
 
-                {/* Oggetto - Posizione e angolo */}
                 <div style={{ padding: 10, background: "#dbeafe", borderRadius: 8, borderLeft: "4px solid #3b82f6" }}>
                     <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}>
                         {object1.icon} {object1.name} - Posizione
@@ -864,7 +805,6 @@ export default function MottoCircolareUniformeDemo() {
                     </div>
                 </div>
 
-                {/* Oggetto - Velocità */}
                 <div style={{ padding: 10, background: "#f0fdf4", borderRadius: 8, borderLeft: "4px solid #22c55e" }}>
                     <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}>
                         {object1.icon} {object1.name} - Velocità
@@ -891,7 +831,6 @@ export default function MottoCircolareUniformeDemo() {
                     </div>
                 </div>
 
-                {/* Oggetto - Accelerazione */}
                 <div style={{ padding: 10, background: "#fef2f2", borderRadius: 8, borderLeft: "4px solid #ef4444" }}>
                     <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}>
                         {object1.icon} {object1.name} - Accelerazione
@@ -925,7 +864,6 @@ export default function MottoCircolareUniformeDemo() {
             </div>
 
             <div style={{ display: "grid", gap: 16, fontSize: 13 }}>
-                {/* Definizione */}
                 <div style={{ padding: 12, background: "#f0fdfa", borderRadius: 8 }}>
                     <div style={{ fontWeight: 600, color: "#0f766e", marginBottom: 8 }}>
                         🎯 Definizione
@@ -936,7 +874,6 @@ export default function MottoCircolareUniformeDemo() {
                     </div>
                 </div>
 
-                {/* 1. Legge oraria */}
                 <div>
                     <div style={{ fontWeight: 600, color: COLORS.position, marginBottom: 4 }}>
                         1. Legge oraria angolare
@@ -945,7 +882,6 @@ export default function MottoCircolareUniformeDemo() {
                         <Latex>{"\\theta(t) = \\theta_0 + \\omega t"}</Latex>
                     </div>
 
-                    {/* valori sotto come nel MUA */}
                     <div style={{ fontSize: 12, color: "#64748b", marginTop: 6 }}>
                         <Latex>{`
             \\theta(${formatNumber(currentState1.t, 2)}) =
@@ -957,7 +893,6 @@ export default function MottoCircolareUniformeDemo() {
                     </div>
                 </div>
 
-                {/* 2. Periodo e frequenza */}
                 <div>
                     <div style={{ fontWeight: 600, color: "#8b5cf6", marginBottom: 4 }}>
                         2. Periodo e frequenza
@@ -979,7 +914,6 @@ export default function MottoCircolareUniformeDemo() {
                     </div>
                 </div>
 
-                {/* 3. Velocità lineare */}
                 <div>
                     <div style={{ fontWeight: 600, color: COLORS.velocity, marginBottom: 4 }}>
                         3. Velocità lineare e angolare
@@ -998,7 +932,6 @@ export default function MottoCircolareUniformeDemo() {
                     </div>
                 </div>
 
-                {/* 4. Accelerazione centripeta */}
                 <div>
                     <div style={{ fontWeight: 600, color: COLORS.acceleration, marginBottom: 4 }}>
                         4. Accelerazione centripeta
@@ -1019,7 +952,6 @@ export default function MottoCircolareUniformeDemo() {
                     </div>
                 </div>
 
-                {/* Note importanti */}
                 <div style={{ padding: 12, background: "#fef3c7", borderRadius: 8 }}>
                     <div style={{ fontWeight: 600, color: "#92400e", marginBottom: 8 }}>
                         💡 Osservazioni importanti
@@ -1028,7 +960,7 @@ export default function MottoCircolareUniformeDemo() {
                         1. <strong>Periodo (T)</strong>: tempo necessario per un giro completo.<br />
                         2. <strong>Frequenza (f)</strong>: numero di giri al secondo (f = 1/T).<br />
                         3. La <strong>velocità</strong> è tangente alla traiettoria.<br />
-                        4. L’<strong>accelerazione</strong> è sempre verso il centro.<br />
+                        4. L'<strong>accelerazione</strong> è sempre verso il centro.<br />
                         5. <strong>v ⟂ a</strong>.
                     </div>
                 </div>
@@ -1074,6 +1006,7 @@ export default function MottoCircolareUniformeDemo() {
                     showVelocity={showVelocity}
                     showAcceleration={showAcceleration}
                     showTrajectory={showTrajectory}
+                    showAngle={showAngle}
                 />
             </div>
         </ResponsiveCard>
@@ -1142,10 +1075,8 @@ export default function MottoCircolareUniformeDemo() {
             description="Simulazione interattiva con vettori velocità e accelerazione centripeta"
             maxWidth={1300}
         >
-            {/* Controlli Play */}
             {PlaybackControls}
 
-            {/* ============ LAYOUT MOBILE ============ */}
             {isMobile && (
                 <div style={{ display: "grid", gap: 12 }}>
                     {AnimationPanel}
@@ -1156,10 +1087,8 @@ export default function MottoCircolareUniformeDemo() {
                 </div>
             )}
 
-            {/* ============ LAYOUT TABLET ============ */}
             {isTablet && (
                 <div style={{ display: "grid", gap: 16 }}>
-                    {/* Riga 1: Animazione e Controlli */}
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                         {AnimationPanel}
                         <div style={{ display: "grid", gap: 12, alignContent: "start" }}>
@@ -1168,7 +1097,6 @@ export default function MottoCircolareUniformeDemo() {
                         </div>
                     </div>
 
-                    {/* Riga 2: Formule */}
                     <div style={{ display: "grid", gap: 12 }}>
                         {FormulasPanel}
                         {ConversionPanel}
@@ -1176,22 +1104,18 @@ export default function MottoCircolareUniformeDemo() {
                 </div>
             )}
 
-            {/* ============ LAYOUT DESKTOP ============ */}
             {!isMobile && !isTablet && (
                 <div style={{ display: "grid", gridTemplateColumns: "400px 1fr 1fr", gap: 16 }}>
-                    {/* Colonna 1: Animazione */}
                     <div style={{ display: "grid", gap: 12, alignContent: "start" }}>
                         {AnimationPanel}
                     </div>
 
-                    {/* Colonna 2: Controlli + Valori */}
                     <div style={{ display: "grid", gap: 12, alignContent: "start" }}>
                         {ControlsPanel}
                         {ValuesPanel}
                         {ConversionPanel}
                     </div>
 
-                    {/* Colonna 3: Formule in evidenza */}
                     <div style={{ display: "grid", gap: 12, alignContent: "start" }}>
                         {FormulasPanel}
                     </div>
