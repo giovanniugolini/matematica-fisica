@@ -1219,7 +1219,7 @@ function FrictionSVG({ mass, appliedF, mud, mus, isMobile }: { mass: number; app
         <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: H, display: "block", background: "#fafbfc", borderRadius: 10, border: "1px solid #e2e8f0" }}>
             <defs>
                 <marker id="aFA" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#3b82f6" /></marker>
-                <marker id="aFF" markerWidth="8" markerHeight="6" refX="1" refY="3" orient="auto"><path d="M8,0 L0,3 L8,6" fill={isMoving ? "#dc2626" : "#f59e0b"} /></marker>
+                <marker id="aFF" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill={isMoving ? "#dc2626" : "#f59e0b"} /></marker>
                 <marker id="aFW" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5" fill="#6b7280" /></marker>
                 <marker id="aFN" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5" fill="#8b5cf6" /></marker>
             </defs>
