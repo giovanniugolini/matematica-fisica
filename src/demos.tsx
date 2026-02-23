@@ -262,4 +262,10 @@ export const demos: DemoInfo[] = [
         Component: React.lazy(() => import("./demos/geometria-analitica/EquazioneRettaDemo.tsx")),
         tags: ["geometria", "retta", "coefficiente angolare", "piano cartesiano", "funzioni lineari"],
     },
+    {
+        slug: "parabola",
+        title: "La Parabola: luogo geometrico ed equazioni",
+        Component: React.lazy(() => import("./demos/geometria-analitica/ParabolaDemo.tsx")),
+        tags: ["geometria", "parabola", "fuoco", "direttrice", "vertice", "analisi", "funzioni"],
+    },
 ];

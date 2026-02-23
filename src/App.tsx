@@ -84,6 +84,7 @@ const categories: Category[] = [
                 slugs: [
                     "distanza-punto-medio",
                     "equazione-retta",
+                    "parabola",
                 ],
             },
         ],
@@ -192,7 +193,8 @@ const newDemoSlugs = new Set([
     "forze",
     "distanza-punto-medio",
     "equazione-retta",
-    "seconda-legge-ohm"
+    "seconda-legge-ohm",
+    "parabola",
 ]);
 
 // ============ COMPONENTI ============
