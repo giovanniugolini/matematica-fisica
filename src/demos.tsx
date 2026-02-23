@@ -215,6 +215,12 @@ export const demos: DemoInfo[] = [
         tags: ["elettromagnetismo", "ohm", "resistenza", "corrente", "laboratorio", "fisica"],
     },
     {
+        slug: "seconda-legge-ohm",
+        title: "La seconda legge di Ohm — R = ρl/A",
+        Component: React.lazy(() => import("./demos/elettromagnetismo/SecondaLeggeOhmDemo.tsx")),
+        tags: ["elettromagnetismo", "ohm", "resistenza", "resistività", "conduttore", "sezione", "lunghezza", "fisica"],
+    },
+    {
         slug: "sistemi-secondo-grado",
         title: "Sistemi di Secondo grado (step by step)",
         Component: React.lazy(() => import("./demos/equazioni/SistemiSecondoGrado.tsx")),

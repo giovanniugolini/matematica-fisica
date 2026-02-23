@@ -121,7 +121,8 @@ const categories: Category[] = [
                     "campo-elettrico",
                     "legge-di-coulomb",
                     "condensatore",
-                    "legge-hom"
+                    "legge-hom",
+                    "seconda-legge-ohm"
                 ],
             },
             {
@@ -190,7 +191,8 @@ const newDemoSlugs = new Set([
     "proprieta-funzioni-continue",
     "forze",
     "distanza-punto-medio",
-    "equazione-retta"
+    "equazione-retta",
+    "seconda-legge-ohm"
 ]);
 
 // ============ COMPONENTI ============
