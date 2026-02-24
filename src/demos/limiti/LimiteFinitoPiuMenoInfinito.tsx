@@ -292,7 +292,8 @@ export default function LimiteFinitoPiuMenoInfinito() {
 
     return (
         <div style={pageWrap}>
-            <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 6 }}>
+            <a href="#/" style={{ color: "#3b82f6", textDecoration: "none", fontSize: 14 }}>← Torna alla home</a>
+            <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 6, marginTop: 8 }}>
                 Limite finito per x → ±∞
             </h1>
             <p style={{ color: "#475569", marginBottom: 12 }}>

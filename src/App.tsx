@@ -51,7 +51,8 @@ const categories: Category[] = [
                     "limite-finito-infinito",
                     "limite-infinito-infinito",
                     "funzioni-continue",
-                    "proprieta-funzioni-continue"
+                    "proprieta-funzioni-continue",
+                    "asintoti",
                 ],
             },
             {
@@ -195,6 +196,7 @@ const newDemoSlugs = new Set([
     "equazione-retta",
     "seconda-legge-ohm",
     "parabola",
+    "asintoti",
 ]);
 
 // ============ COMPONENTI ============

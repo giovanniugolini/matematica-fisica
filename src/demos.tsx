@@ -268,4 +268,10 @@ export const demos: DemoInfo[] = [
         Component: React.lazy(() => import("./demos/geometria-analitica/ParabolaDemo.tsx")),
         tags: ["geometria", "parabola", "fuoco", "direttrice", "vertice", "analisi", "funzioni"],
     },
+    {
+        slug: "asintoti",
+        title: "Asintoti: orizzontali, verticali e obliqui",
+        Component: React.lazy(() => import("./demos/funzioni/AsintotiDemo")),
+        tags: ["asintoti", "limiti", "analisi", "funzioni", "orizzontale", "verticale", "obliquo"],
+    },
 ];

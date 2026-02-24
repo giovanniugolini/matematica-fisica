@@ -184,7 +184,8 @@ export default function LimiteInfinitoPuntoFinito() {
 
     return (
         <div style={{ maxWidth: 1100, margin: "0 auto", padding: 16 }}>
-            <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 6 }}>
+            <a href="#/" style={{ color: "#3b82f6", textDecoration: "none", fontSize: 14 }}>← Torna alla home</a>
+            <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 6, marginTop: 8 }}>
                 Limite infinito per x → x₀ finito
             </h1>
             <p style={{ color: "#475569", marginBottom: 12 }}>
