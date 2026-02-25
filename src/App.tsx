@@ -170,6 +170,8 @@ const categories: Category[] = [
                 name: "Fisica",
                 slugs: [
                     "quiz-vettori",
+                    "quiz-forza-peso",
+                    "quiz-forza-elastica",
                 ],
             },
         ],
@@ -197,6 +199,8 @@ const newDemoSlugs = new Set([
     "seconda-legge-ohm",
     "parabola",
     "asintoti",
+    "quiz-forza-peso",
+    "quiz-forza-elastica",
 ]);
 
 // ============ COMPONENTI ============

@@ -364,7 +364,7 @@ export function QuizFeedback({
                 <span style={{ fontWeight: 600 }}>{title}</span>
             </div>
             <div style={{ fontSize: 14, lineHeight: 1.5 }}>
-                {isCorrect ? explanation : explanation}
+                <MixedLatex>{explanation}</MixedLatex>
             </div>
             {showCorrectAnswer && !isCorrect && correctAnswerText && (
                 <div
@@ -375,7 +375,7 @@ export function QuizFeedback({
                         fontSize: 14,
                     }}
                 >
-                    <strong>Risposta corretta:</strong> {correctAnswerText}
+                    <strong>Risposta corretta:</strong> <MixedLatex>{correctAnswerText}</MixedLatex>
                 </div>
             )}
         </div>

@@ -34,4 +34,18 @@ export const tests: TestInfo[] = [
         type: "quiz",
         questionCount: 8,
     },
+    {
+        slug: "quiz-forza-peso",
+        title: "Quiz: Forza e Forza Peso",
+        Component: React.lazy(() => import("./demos/quiz/QuizForzaPesoDemo")),
+        type: "quiz",
+        questionCount: 10,
+    },
+    {
+        slug: "quiz-forza-elastica",
+        title: "Quiz: Forza Elastica",
+        Component: React.lazy(() => import("./demos/quiz/QuizForzaElasticaDemo")),
+        type: "quiz",
+        questionCount: 10,
+    },
 ];

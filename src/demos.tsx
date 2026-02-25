@@ -209,6 +209,18 @@ export const demos: DemoInfo[] = [
         tags: ["quiz", "vettori", "fisica", "verifica"],
     },
     {
+        slug: "quiz-forza-peso",
+        title: "Quiz: Forza e Forza Peso",
+        Component: React.lazy(() => import("./demos/quiz/QuizForzaPesoDemo")),
+        tags: ["quiz", "forza", "peso", "massa", "newton", "dinamometro", "fisica", "verifica"],
+    },
+    {
+        slug: "quiz-forza-elastica",
+        title: "Quiz: Forza Elastica",
+        Component: React.lazy(() => import("./demos/quiz/QuizForzaElasticaDemo")),
+        tags: ["quiz", "forza elastica", "hooke", "molla", "costante elastica", "fisica", "verifica"],
+    },
+    {
         slug: "legge-hom",
         title: "La prima legge di Ohm (laboratorio online)",
         Component: React.lazy(() => import("./demos/elettromagnetismo/Leggeohmdemo.tsx")),
