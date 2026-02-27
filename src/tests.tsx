@@ -54,4 +54,10 @@ export const tests: TestInfo[] = [
         Component: React.lazy(() => import("./demos/quiz/InversioneFormuleGame")),
         type: "quiz",
     },
+    {
+        slug: "escape-room",
+        title: "Gioco: Escape Room di Fisica & Matematica",
+        Component: React.lazy(() => import("./demos/quiz/EscapeRoomGame")),
+        type: "quiz",
+    },
 ];

@@ -292,4 +292,10 @@ export const demos: DemoInfo[] = [
         Component: React.lazy(() => import("./demos/funzioni/AsintotiDemo")),
         tags: ["asintoti", "limiti", "analisi", "funzioni", "orizzontale", "verticale", "obliquo"],
     },
+    {
+        slug: "escape-room",
+        title: "Gioco: Escape Room di Fisica & Matematica",
+        Component: React.lazy(() => import("./demos/quiz/EscapeRoomGame")),
+        tags: ["quiz", "gioco", "fisica", "matematica", "escape room", "densità", "pressione", "velocità", "sistemi"],
+    },
 ];

@@ -179,6 +179,7 @@ const categories: Category[] = [
                 name: "Giochi",
                 slugs: [
                     "gioco-inversione-formule",
+                    "escape-room",
                 ],
             },
         ],
@@ -209,6 +210,7 @@ const newDemoSlugs = new Set([
     "asintoti",
     "quiz-forza-peso",
     "quiz-forza-elastica",
+    "escape-room",
 ]);
 
 // ============ COMPONENTI ============
