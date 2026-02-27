@@ -424,6 +424,15 @@ export default function InversioneFormuleGame() {
         setPhase("playing");
     }
 
+    // ─── Link torna alla home ───
+    const BackLink = (
+        <div style={{ marginBottom: 12 }}>
+            <a href="#/" style={{ color: "#3b82f6", textDecoration: "none", fontSize: 14 }}>
+                ← Torna alla home
+            </a>
+        </div>
+    );
+
     // ─── Subcomponent: barra vite + punteggio ───
     const Header = (
         <div style={{
@@ -457,6 +466,7 @@ export default function InversioneFormuleGame() {
     if (phase === "start") {
         return (
             <div style={{ maxWidth: 540, margin: "0 auto", padding: isMobile ? "16px 12px" : "24px 16px" }}>
+                {BackLink}
                 <div style={{
                     textAlign: "center", padding: isMobile ? "28px 20px" : "40px 32px",
                     background: "#fff", borderRadius: 20,
@@ -492,6 +502,7 @@ export default function InversioneFormuleGame() {
         const isRecord = score > bestScore && bestScore > 0;
         return (
             <div style={{ maxWidth: 540, margin: "0 auto", padding: isMobile ? "16px 12px" : "24px 16px" }}>
+                {BackLink}
                 <div style={{
                     textAlign: "center", padding: isMobile ? "28px 20px" : "40px 32px",
                     background: "#fff", borderRadius: 20,
@@ -537,6 +548,7 @@ export default function InversioneFormuleGame() {
         const lastResult = currentChallenge.steps[currentChallenge.steps.length - 1].resultLatex;
         return (
             <div style={{ maxWidth: 540, margin: "0 auto", padding: isMobile ? "16px 12px" : "24px 16px" }}>
+                {BackLink}
                 {Header}
                 <div style={{
                     textAlign: "center", padding: isMobile ? "24px 16px" : "32px 28px",
@@ -577,6 +589,7 @@ export default function InversioneFormuleGame() {
         const { correct } = feedback;
         return (
             <div style={{ maxWidth: 540, margin: "0 auto", padding: isMobile ? "16px 12px" : "24px 16px" }}>
+                {BackLink}
                 {Header}
                 <div style={{
                     background: "#fff", borderRadius: 20,
@@ -646,6 +659,7 @@ export default function InversioneFormuleGame() {
     // ─── PLAYING ───
     return (
         <div style={{ maxWidth: 540, margin: "0 auto", padding: isMobile ? "16px 12px" : "24px 16px" }}>
+            {BackLink}
             {Header}
 
             <div style={{
