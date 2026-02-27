@@ -2,7 +2,7 @@
  * EquazioniGoniometricheDemo - Equazioni goniometriche elementari
  *
  * Tipi: sin x = m, cos x = m, tan x = m
- * Livelli: Elementare (sin/cos/tan x = m) | Con sostituzione (sin f(x) = m)
+ * Livelli: Elementare (sin/cos/tan x = m) | Con sostituzione (sin f(x) = m) | Omogenea (sin f(x) = sin g(x))
  *
  * Step:
  *   1. Tipo e condizioni (|m| ≤ 1 per sin/cos, sempre per tan)
@@ -34,7 +34,7 @@ import { randomChoice } from "../../utils/math";
 // ============ TIPI ============
 
 type FuncType = "sin" | "cos" | "tan";
-type Difficulty = "elementare" | "sostituzione";
+type Difficulty = "elementare" | "sostituzione" | "omogenea" | "quadratica";
 
 interface TrigEq {
     funcType: FuncType;
@@ -175,6 +175,393 @@ const IMPOSSIBLE_VALS: NonNotableVal[] = [
     { m: 1.5, mL: "\\frac{3}{2}" },
     { m: -1.5, mL: "-\\frac{3}{2}" },
 ];
+
+// ============ EQUAZIONI f(x) = g(x) ============
+
+interface TrigEqFG {
+    funcType: FuncType;
+    leftArgLatex: string;       // LaTeX argomento sinistro
+    rightArgLatex: string;      // LaTeX argomento destro
+    formulaRef: string;         // "[10]", "[11]", "[12]"
+    family1SetupLatex: string;  // espansione prima famiglia
+    family2SetupLatex: string | null; // espansione seconda famiglia
+    family1SolveLatex: string;  // risoluzione per x, prima famiglia
+    family2SolveLatex: string | null; // risoluzione per x, seconda famiglia
+    sol1Latex: string;          // soluzione finale prima famiglia
+    sol2Latex: string | null;   // soluzione finale seconda famiglia (null se coincide con sol1)
+}
+
+const SIN_FG_TEMPLATES: TrigEqFG[] = [
+    {
+        funcType: "sin", leftArgLatex: "2x", rightArgLatex: "x",
+        formulaRef: "[10]",
+        family1SetupLatex: "2x = x + 2k\\pi",
+        family2SetupLatex: "2x = \\pi - x + 2k\\pi",
+        family1SolveLatex: "x = 2k\\pi",
+        family2SolveLatex: "3x = \\pi + 2k\\pi \\;\\Rightarrow\\; x = \\dfrac{\\pi}{3} + \\dfrac{2k\\pi}{3}",
+        sol1Latex: "x = 2k\\pi",
+        sol2Latex: "x = \\dfrac{\\pi}{3} + \\dfrac{2k\\pi}{3}",
+    },
+    {
+        funcType: "sin", leftArgLatex: "3x", rightArgLatex: "x",
+        formulaRef: "[10]",
+        family1SetupLatex: "3x = x + 2k\\pi",
+        family2SetupLatex: "3x = \\pi - x + 2k\\pi",
+        family1SolveLatex: "2x = 2k\\pi \\;\\Rightarrow\\; x = k\\pi",
+        family2SolveLatex: "4x = \\pi + 2k\\pi \\;\\Rightarrow\\; x = \\dfrac{\\pi}{4} + \\dfrac{k\\pi}{2}",
+        sol1Latex: "x = k\\pi",
+        sol2Latex: "x = \\dfrac{\\pi}{4} + \\dfrac{k\\pi}{2}",
+    },
+    {
+        funcType: "sin",
+        leftArgLatex: "2x",
+        rightArgLatex: "x - \\dfrac{\\pi}{2}",
+        formulaRef: "[10]",
+        family1SetupLatex: "2x = x - \\dfrac{\\pi}{2} + 2k\\pi",
+        family2SetupLatex: "2x = \\pi - \\!\\left(x - \\dfrac{\\pi}{2}\\right) + 2k\\pi",
+        family1SolveLatex: "x = -\\dfrac{\\pi}{2} + 2k\\pi",
+        family2SolveLatex: "3x = \\dfrac{3\\pi}{2} + 2k\\pi \\;\\Rightarrow\\; x = \\dfrac{\\pi}{2} + \\dfrac{2k\\pi}{3}",
+        sol1Latex: "x = -\\dfrac{\\pi}{2} + 2k\\pi",
+        sol2Latex: "x = \\dfrac{\\pi}{2} + \\dfrac{2k\\pi}{3}",
+    },
+    {
+        funcType: "sin",
+        leftArgLatex: "x + \\dfrac{\\pi}{6}",
+        rightArgLatex: "x - \\dfrac{\\pi}{6}",
+        formulaRef: "[10]",
+        family1SetupLatex: "x + \\dfrac{\\pi}{6} = x - \\dfrac{\\pi}{6} + 2k\\pi \\;\\Rightarrow\\; \\dfrac{\\pi}{3} = 2k\\pi \\text{ (impossibile)}",
+        family2SetupLatex: "x + \\dfrac{\\pi}{6} = \\pi - \\!\\left(x - \\dfrac{\\pi}{6}\\right) + 2k\\pi",
+        family1SolveLatex: "\\text{Nessuna soluzione (prima famiglia impossibile)}",
+        family2SolveLatex: "2x = \\pi + 2k\\pi \\;\\Rightarrow\\; x = \\dfrac{\\pi}{2} + k\\pi",
+        sol1Latex: "x = \\dfrac{\\pi}{2} + k\\pi",
+        sol2Latex: null,
+    },
+    {
+        funcType: "sin",
+        leftArgLatex: "2x - \\dfrac{\\pi}{6}",
+        rightArgLatex: "x + \\dfrac{\\pi}{6}",
+        formulaRef: "[10]",
+        family1SetupLatex: "2x - \\dfrac{\\pi}{6} = x + \\dfrac{\\pi}{6} + 2k\\pi",
+        family2SetupLatex: "2x - \\dfrac{\\pi}{6} = \\pi - \\!\\left(x + \\dfrac{\\pi}{6}\\right) + 2k\\pi",
+        family1SolveLatex: "x = \\dfrac{\\pi}{3} + 2k\\pi",
+        family2SolveLatex: "3x = \\pi + 2k\\pi \\;\\Rightarrow\\; x = \\dfrac{\\pi}{3} + \\dfrac{2k\\pi}{3}",
+        sol1Latex: "x = \\dfrac{\\pi}{3} + 2k\\pi",
+        sol2Latex: "x = \\dfrac{\\pi}{3} + \\dfrac{2k\\pi}{3}",
+    },
+    {
+        funcType: "sin",
+        leftArgLatex: "x + \\dfrac{\\pi}{4}",
+        rightArgLatex: "\\dfrac{\\pi}{4} - x",
+        formulaRef: "[10]",
+        family1SetupLatex: "x + \\dfrac{\\pi}{4} = \\dfrac{\\pi}{4} - x + 2k\\pi",
+        family2SetupLatex: "x + \\dfrac{\\pi}{4} = \\pi - \\!\\left(\\dfrac{\\pi}{4} - x\\right) + 2k\\pi \\;\\Rightarrow\\; \\dfrac{\\pi}{4} = \\dfrac{3\\pi}{4} + 2k\\pi \\text{ (imp.)}",
+        family1SolveLatex: "2x = 2k\\pi \\;\\Rightarrow\\; x = k\\pi",
+        family2SolveLatex: "\\text{Nessuna soluzione (seconda famiglia impossibile)}",
+        sol1Latex: "x = k\\pi",
+        sol2Latex: null,
+    },
+];
+
+const COS_FG_TEMPLATES: TrigEqFG[] = [
+    {
+        funcType: "cos", leftArgLatex: "x", rightArgLatex: "3x",
+        formulaRef: "[11]",
+        family1SetupLatex: "x = 3x + 2k\\pi",
+        family2SetupLatex: "x = -3x + 2k\\pi",
+        family1SolveLatex: "-2x = 2k\\pi \\;\\Rightarrow\\; x = -k\\pi = k\\pi",
+        family2SolveLatex: "4x = 2k\\pi \\;\\Rightarrow\\; x = \\dfrac{k\\pi}{2}",
+        sol1Latex: "x = k\\pi",
+        sol2Latex: "x = \\dfrac{k\\pi}{2}",
+    },
+    {
+        funcType: "cos", leftArgLatex: "2x", rightArgLatex: "x",
+        formulaRef: "[11]",
+        family1SetupLatex: "2x = x + 2k\\pi",
+        family2SetupLatex: "2x = -x + 2k\\pi",
+        family1SolveLatex: "x = 2k\\pi",
+        family2SolveLatex: "3x = 2k\\pi \\;\\Rightarrow\\; x = \\dfrac{2k\\pi}{3}",
+        sol1Latex: "x = 2k\\pi",
+        sol2Latex: "x = \\dfrac{2k\\pi}{3}",
+    },
+    {
+        funcType: "cos",
+        leftArgLatex: "2x",
+        rightArgLatex: "x + \\dfrac{\\pi}{3}",
+        formulaRef: "[11]",
+        family1SetupLatex: "2x = x + \\dfrac{\\pi}{3} + 2k\\pi",
+        family2SetupLatex: "2x = -\\!\\left(x + \\dfrac{\\pi}{3}\\right) + 2k\\pi",
+        family1SolveLatex: "x = \\dfrac{\\pi}{3} + 2k\\pi",
+        family2SolveLatex: "3x = -\\dfrac{\\pi}{3} + 2k\\pi \\;\\Rightarrow\\; x = -\\dfrac{\\pi}{9} + \\dfrac{2k\\pi}{3}",
+        sol1Latex: "x = \\dfrac{\\pi}{3} + 2k\\pi",
+        sol2Latex: "x = -\\dfrac{\\pi}{9} + \\dfrac{2k\\pi}{3}",
+    },
+    {
+        funcType: "cos",
+        leftArgLatex: "x + \\dfrac{\\pi}{4}",
+        rightArgLatex: "x - \\dfrac{\\pi}{4}",
+        formulaRef: "[11]",
+        family1SetupLatex: "x + \\dfrac{\\pi}{4} = x - \\dfrac{\\pi}{4} + 2k\\pi \\;\\Rightarrow\\; \\dfrac{\\pi}{2} = 2k\\pi \\text{ (impossibile)}",
+        family2SetupLatex: "x + \\dfrac{\\pi}{4} = -\\!\\left(x - \\dfrac{\\pi}{4}\\right) + 2k\\pi",
+        family1SolveLatex: "\\text{Nessuna soluzione (prima famiglia impossibile)}",
+        family2SolveLatex: "2x = 2k\\pi \\;\\Rightarrow\\; x = k\\pi",
+        sol1Latex: "x = k\\pi",
+        sol2Latex: null,
+    },
+    {
+        funcType: "cos",
+        leftArgLatex: "3x - \\dfrac{\\pi}{6}",
+        rightArgLatex: "x + \\dfrac{\\pi}{6}",
+        formulaRef: "[11]",
+        family1SetupLatex: "3x - \\dfrac{\\pi}{6} = x + \\dfrac{\\pi}{6} + 2k\\pi",
+        family2SetupLatex: "3x - \\dfrac{\\pi}{6} = -\\!\\left(x + \\dfrac{\\pi}{6}\\right) + 2k\\pi",
+        family1SolveLatex: "2x = \\dfrac{\\pi}{3} + 2k\\pi \\;\\Rightarrow\\; x = \\dfrac{\\pi}{6} + k\\pi",
+        family2SolveLatex: "4x = 2k\\pi \\;\\Rightarrow\\; x = \\dfrac{k\\pi}{2}",
+        sol1Latex: "x = \\dfrac{\\pi}{6} + k\\pi",
+        sol2Latex: "x = \\dfrac{k\\pi}{2}",
+    },
+];
+
+const TAN_FG_TEMPLATES: TrigEqFG[] = [
+    {
+        funcType: "tan", leftArgLatex: "x", rightArgLatex: "3x",
+        formulaRef: "[12]",
+        family1SetupLatex: "x = 3x + k\\pi",
+        family2SetupLatex: null,
+        family1SolveLatex: "-2x = k\\pi \\;\\Rightarrow\\; x = -\\dfrac{k\\pi}{2} = \\dfrac{k\\pi}{2}",
+        family2SolveLatex: null,
+        sol1Latex: "x = \\dfrac{k\\pi}{2}",
+        sol2Latex: null,
+    },
+    {
+        funcType: "tan", leftArgLatex: "2x", rightArgLatex: "x",
+        formulaRef: "[12]",
+        family1SetupLatex: "2x = x + k\\pi",
+        family2SetupLatex: null,
+        family1SolveLatex: "x = k\\pi",
+        family2SolveLatex: null,
+        sol1Latex: "x = k\\pi",
+        sol2Latex: null,
+    },
+    {
+        funcType: "tan",
+        leftArgLatex: "\\dfrac{\\pi}{4} - x",
+        rightArgLatex: "x",
+        formulaRef: "[12]",
+        family1SetupLatex: "\\dfrac{\\pi}{4} - x = x + k\\pi",
+        family2SetupLatex: null,
+        family1SolveLatex: "\\dfrac{\\pi}{4} = 2x + k\\pi \\;\\Rightarrow\\; x = \\dfrac{\\pi}{8} + \\dfrac{k\\pi}{2}",
+        family2SolveLatex: null,
+        sol1Latex: "x = \\dfrac{\\pi}{8} + \\dfrac{k\\pi}{2}",
+        sol2Latex: null,
+    },
+    {
+        funcType: "tan",
+        leftArgLatex: "3x - \\dfrac{\\pi}{4}",
+        rightArgLatex: "x + \\dfrac{\\pi}{4}",
+        formulaRef: "[12]",
+        family1SetupLatex: "3x - \\dfrac{\\pi}{4} = x + \\dfrac{\\pi}{4} + k\\pi",
+        family2SetupLatex: null,
+        family1SolveLatex: "2x = \\dfrac{\\pi}{2} + k\\pi \\;\\Rightarrow\\; x = \\dfrac{\\pi}{4} + \\dfrac{k\\pi}{2}",
+        family2SolveLatex: null,
+        sol1Latex: "x = \\dfrac{\\pi}{4} + \\dfrac{k\\pi}{2}",
+        sol2Latex: null,
+    },
+    {
+        funcType: "tan",
+        leftArgLatex: "2x",
+        rightArgLatex: "x + \\dfrac{\\pi}{6}",
+        formulaRef: "[12]",
+        family1SetupLatex: "2x = x + \\dfrac{\\pi}{6} + k\\pi",
+        family2SetupLatex: null,
+        family1SolveLatex: "x = \\dfrac{\\pi}{6} + k\\pi",
+        family2SolveLatex: null,
+        sol1Latex: "x = \\dfrac{\\pi}{6} + k\\pi",
+        sol2Latex: null,
+    },
+    {
+        funcType: "tan",
+        leftArgLatex: "x - \\dfrac{\\pi}{3}",
+        rightArgLatex: "\\dfrac{\\pi}{3} - x",
+        formulaRef: "[12]",
+        family1SetupLatex: "x - \\dfrac{\\pi}{3} = \\dfrac{\\pi}{3} - x + k\\pi",
+        family2SetupLatex: null,
+        family1SolveLatex: "2x = \\dfrac{2\\pi}{3} + k\\pi \\;\\Rightarrow\\; x = \\dfrac{\\pi}{3} + \\dfrac{k\\pi}{2}",
+        family2SolveLatex: null,
+        sol1Latex: "x = \\dfrac{\\pi}{3} + \\dfrac{k\\pi}{2}",
+        sol2Latex: null,
+    },
+];
+
+function generateFGEq(funcType: FuncType): TrigEqFG {
+    const pool = funcType === "sin" ? SIN_FG_TEMPLATES
+               : funcType === "cos" ? COS_FG_TEMPLATES
+               : TAN_FG_TEMPLATES;
+    return randomChoice(pool);
+}
+
+// ============ EQUAZIONI DI SECONDO GRADO ============
+
+interface TrigEqQuad {
+    funcType: FuncType;
+    step1Latex: string;  // sostituzione + equazione in t
+    step2Latex: string;  // risoluzione equazione quadratica → radici
+    step3Latex: string;  // equazioni elementari func(x) = t_i
+    step4Latex: string;  // soluzioni finali in x
+}
+
+const COS_QUAD_TEMPLATES: TrigEqQuad[] = [
+    {
+        funcType: "cos",
+        step1Latex: "\\text{Poniamo } t = \\cos x: \\quad 2t^2 - t - 1 = 0",
+        step2Latex: "t = \\frac{1 \\pm \\sqrt{1 + 8}}{4} = \\frac{1 \\pm 3}{4} \\quad\\Rightarrow\\quad t_1 = 1, \\quad t_2 = -\\dfrac{1}{2}",
+        step3Latex: "\\cos x = 1 \\qquad \\lor \\qquad \\cos x = -\\dfrac{1}{2}",
+        step4Latex: "x = 2k\\pi \\qquad \\lor \\qquad x = \\pm\\dfrac{2\\pi}{3} + 2k\\pi",
+    },
+    {
+        funcType: "cos",
+        step1Latex: "\\text{Poniamo } t = \\cos x: \\quad t^2 - t = 0 \\;\\Rightarrow\\; t(t - 1) = 0",
+        step2Latex: "t_1 = 0, \\qquad t_2 = 1",
+        step3Latex: "\\cos x = 0 \\qquad \\lor \\qquad \\cos x = 1",
+        step4Latex: "x = \\dfrac{\\pi}{2} + k\\pi \\qquad \\lor \\qquad x = 2k\\pi",
+    },
+    {
+        funcType: "cos",
+        step1Latex: "\\text{Poniamo } t = \\cos x: \\quad 2t^2 + t - 1 = 0 \\;\\Rightarrow\\; (2t - 1)(t + 1) = 0",
+        step2Latex: "t_1 = \\dfrac{1}{2}, \\qquad t_2 = -1",
+        step3Latex: "\\cos x = \\dfrac{1}{2} \\qquad \\lor \\qquad \\cos x = -1",
+        step4Latex: "x = \\pm\\dfrac{\\pi}{3} + 2k\\pi \\qquad \\lor \\qquad x = \\pi + 2k\\pi",
+    },
+    {
+        funcType: "cos",
+        step1Latex: "\\text{Poniamo } t = \\cos x: \\quad 4t^2 - 3 = 0 \\;\\Rightarrow\\; t^2 = \\dfrac{3}{4} \\;\\Rightarrow\\; t = \\pm\\dfrac{\\sqrt{3}}{2}",
+        step2Latex: "t_1 = \\dfrac{\\sqrt{3}}{2}, \\qquad t_2 = -\\dfrac{\\sqrt{3}}{2}",
+        step3Latex: "\\cos x = \\dfrac{\\sqrt{3}}{2} \\qquad \\lor \\qquad \\cos x = -\\dfrac{\\sqrt{3}}{2}",
+        step4Latex: "x = \\pm\\dfrac{\\pi}{6} + 2k\\pi \\qquad \\lor \\qquad x = \\pm\\dfrac{5\\pi}{6} + 2k\\pi",
+    },
+    {
+        funcType: "cos",
+        step1Latex: "\\text{Poniamo } t = \\cos x: \\quad t^2 + t - 2 = 0 \\;\\Rightarrow\\; (t + 2)(t - 1) = 0",
+        step2Latex: "t_1 = -2 \\;(|t_1| > 1 \\text{: imp.}), \\qquad t_2 = 1",
+        step3Latex: "\\cos x = -2 \\text{ (impossibile)} \\qquad \\lor \\qquad \\cos x = 1",
+        step4Latex: "x = 2k\\pi",
+    },
+];
+
+const SIN_QUAD_TEMPLATES: TrigEqQuad[] = [
+    {
+        funcType: "sin",
+        step1Latex: "\\text{Poniamo } t = \\sin x: \\quad 2t^2 - t - 1 = 0 \\;\\Rightarrow\\; (2t + 1)(t - 1) = 0",
+        step2Latex: "t_1 = -\\dfrac{1}{2}, \\qquad t_2 = 1",
+        step3Latex: "\\sin x = -\\dfrac{1}{2} \\qquad \\lor \\qquad \\sin x = 1",
+        step4Latex: "x = -\\dfrac{\\pi}{6} + 2k\\pi \\;\\lor\\; x = \\dfrac{7\\pi}{6} + 2k\\pi \\qquad \\lor \\qquad x = \\dfrac{\\pi}{2} + 2k\\pi",
+    },
+    {
+        funcType: "sin",
+        step1Latex: "\\text{Poniamo } t = \\sin x: \\quad t^2 - t = 0 \\;\\Rightarrow\\; t(t - 1) = 0",
+        step2Latex: "t_1 = 0, \\qquad t_2 = 1",
+        step3Latex: "\\sin x = 0 \\qquad \\lor \\qquad \\sin x = 1",
+        step4Latex: "x = k\\pi \\qquad \\lor \\qquad x = \\dfrac{\\pi}{2} + 2k\\pi",
+    },
+    {
+        funcType: "sin",
+        step1Latex: "\\text{Poniamo } t = \\sin x: \\quad 4t^2 - 1 = 0 \\;\\Rightarrow\\; t = \\pm\\dfrac{1}{2}",
+        step2Latex: "t_1 = \\dfrac{1}{2}, \\qquad t_2 = -\\dfrac{1}{2}",
+        step3Latex: "\\sin x = \\dfrac{1}{2} \\qquad \\lor \\qquad \\sin x = -\\dfrac{1}{2}",
+        step4Latex: "x = \\pm\\dfrac{\\pi}{6} + k\\pi",
+    },
+    {
+        funcType: "sin",
+        step1Latex: "\\text{Poniamo } t = \\sin x: \\quad 2t^2 + t - 1 = 0 \\;\\Rightarrow\\; (2t - 1)(t + 1) = 0",
+        step2Latex: "t_1 = \\dfrac{1}{2}, \\qquad t_2 = -1",
+        step3Latex: "\\sin x = \\dfrac{1}{2} \\qquad \\lor \\qquad \\sin x = -1",
+        step4Latex: "x = \\dfrac{\\pi}{6} + 2k\\pi \\;\\lor\\; x = \\dfrac{5\\pi}{6} + 2k\\pi \\qquad \\lor \\qquad x = -\\dfrac{\\pi}{2} + 2k\\pi",
+    },
+    {
+        funcType: "sin",
+        step1Latex: "\\text{Poniamo } t = \\sin x: \\quad 2t^2 - 3t + 1 = 0 \\;\\Rightarrow\\; (2t - 1)(t - 1) = 0",
+        step2Latex: "t_1 = \\dfrac{1}{2}, \\qquad t_2 = 1",
+        step3Latex: "\\sin x = \\dfrac{1}{2} \\qquad \\lor \\qquad \\sin x = 1",
+        step4Latex: "x = \\dfrac{\\pi}{6} + 2k\\pi \\;\\lor\\; x = \\dfrac{5\\pi}{6} + 2k\\pi \\qquad \\lor \\qquad x = \\dfrac{\\pi}{2} + 2k\\pi",
+    },
+];
+
+const TAN_QUAD_TEMPLATES: TrigEqQuad[] = [
+    {
+        funcType: "tan",
+        step1Latex: "\\text{Poniamo } t = \\tan x: \\quad t^2 - t = 0 \\;\\Rightarrow\\; t(t - 1) = 0",
+        step2Latex: "t_1 = 0, \\qquad t_2 = 1",
+        step3Latex: "\\tan x = 0 \\qquad \\lor \\qquad \\tan x = 1",
+        step4Latex: "x = k\\pi \\qquad \\lor \\qquad x = \\dfrac{\\pi}{4} + k\\pi",
+    },
+    {
+        funcType: "tan",
+        step1Latex: "\\text{Poniamo } t = \\tan x: \\quad t^2 - 3 = 0 \\;\\Rightarrow\\; t = \\pm\\sqrt{3}",
+        step2Latex: "t_1 = \\sqrt{3}, \\qquad t_2 = -\\sqrt{3}",
+        step3Latex: "\\tan x = \\sqrt{3} \\qquad \\lor \\qquad \\tan x = -\\sqrt{3}",
+        step4Latex: "x = \\dfrac{\\pi}{3} + k\\pi \\qquad \\lor \\qquad x = -\\dfrac{\\pi}{3} + k\\pi",
+    },
+    {
+        funcType: "tan",
+        step1Latex: "\\text{Poniamo } t = \\tan x: \\quad t^2 - (1+\\sqrt{3})t + \\sqrt{3} = 0 \\;\\Rightarrow\\; (t-1)(t-\\sqrt{3}) = 0",
+        step2Latex: "t_1 = 1, \\qquad t_2 = \\sqrt{3}",
+        step3Latex: "\\tan x = 1 \\qquad \\lor \\qquad \\tan x = \\sqrt{3}",
+        step4Latex: "x = \\dfrac{\\pi}{4} + k\\pi \\qquad \\lor \\qquad x = \\dfrac{\\pi}{3} + k\\pi",
+    },
+    {
+        funcType: "tan",
+        step1Latex: "\\text{Poniamo } t = \\tan x: \\quad t^2 + (1-\\sqrt{3})t - \\sqrt{3} = 0 \\;\\Rightarrow\\; (t-\\sqrt{3})(t+1) = 0",
+        step2Latex: "t_1 = \\sqrt{3}, \\qquad t_2 = -1",
+        step3Latex: "\\tan x = \\sqrt{3} \\qquad \\lor \\qquad \\tan x = -1",
+        step4Latex: "x = \\dfrac{\\pi}{3} + k\\pi \\qquad \\lor \\qquad x = -\\dfrac{\\pi}{4} + k\\pi",
+    },
+    {
+        funcType: "tan",
+        step1Latex: "\\text{Poniamo } t = \\tan x: \\quad \\sqrt{3}\\,t^2 - (\\sqrt{3}+1)t + 1 = 0 \\;\\Rightarrow\\; (\\sqrt{3}\\,t - 1)(t - 1) = 0",
+        step2Latex: "t_1 = \\dfrac{1}{\\sqrt{3}} = \\dfrac{\\sqrt{3}}{3}, \\qquad t_2 = 1",
+        step3Latex: "\\tan x = \\dfrac{\\sqrt{3}}{3} \\qquad \\lor \\qquad \\tan x = 1",
+        step4Latex: "x = \\dfrac{\\pi}{6} + k\\pi \\qquad \\lor \\qquad x = \\dfrac{\\pi}{4} + k\\pi",
+    },
+];
+
+// Equazione testuale per quadratica (ricavata dal step1)
+const QUAD_EQUATION_LABELS: Record<string, string> = {
+    "2cos²x - cos x - 1": "2\\cos^2 x - \\cos x - 1 = 0",
+    "cos²x - cos x":      "\\cos^2 x - \\cos x = 0",
+    "2cos²x + cos x - 1": "2\\cos^2 x + \\cos x - 1 = 0",
+    "4cos²x - 3":         "4\\cos^2 x - 3 = 0",
+    "cos²x + cos x - 2":  "\\cos^2 x + \\cos x - 2 = 0",
+    "2sin²x - sin x - 1": "2\\sin^2 x - \\sin x - 1 = 0",
+    "sin²x - sin x":      "\\sin^2 x - \\sin x = 0",
+    "4sin²x - 1":         "4\\sin^2 x - 1 = 0",
+    "2sin²x + sin x - 1": "2\\sin^2 x + \\sin x - 1 = 0",
+    "2sin²x - 3sin x + 1":"2\\sin^2 x - 3\\sin x + 1 = 0",
+    "tan²x - tan x":      "\\tan^2 x - \\tan x = 0",
+    "tan²x - 3":          "\\tan^2 x - 3 = 0",
+    "tan²x-(1+√3)tan x+√3":"\\tan^2 x - (1+\\sqrt{3})\\tan x + \\sqrt{3} = 0",
+    "tan²x+(1-√3)tan x-√3":"\\tan^2 x + (1-\\sqrt{3})\\tan x - \\sqrt{3} = 0",
+    "√3tan²x-(√3+1)tan x+1":"\\sqrt{3}\\,\\tan^2 x - (\\sqrt{3}+1)\\tan x + 1 = 0",
+};
+
+const QUAD_EQ_LABELS: string[][] = [
+    ["2cos²x - cos x - 1","cos²x - cos x","2cos²x + cos x - 1","4cos²x - 3","cos²x + cos x - 2"],
+    ["2sin²x - sin x - 1","sin²x - sin x","4sin²x - 1","2sin²x + sin x - 1","2sin²x - 3sin x + 1"],
+    ["tan²x - tan x","tan²x - 3","tan²x-(1+√3)tan x+√3","tan²x+(1-√3)tan x-√3","√3tan²x-(√3+1)tan x+1"],
+];
+
+function getQuadEqLabel(funcType: FuncType, idx: number): string {
+    const pool = funcType === "sin" ? QUAD_EQ_LABELS[1] : funcType === "cos" ? QUAD_EQ_LABELS[0] : QUAD_EQ_LABELS[2];
+    return QUAD_EQUATION_LABELS[pool[idx]] ?? "";
+}
+
+function generateQuadEq(funcType: FuncType): { template: TrigEqQuad; eqLatex: string } {
+    const pool = funcType === "sin" ? SIN_QUAD_TEMPLATES
+               : funcType === "cos" ? COS_QUAD_TEMPLATES
+               : TAN_QUAD_TEMPLATES;
+    const idx = Math.floor(Math.random() * pool.length);
+    const template = pool[idx];
+    const eqLatex = getQuadEqLabel(funcType, idx);
+    return { template, eqLatex };
+}
 
 // ============ GENERATORE ============
 
@@ -1153,26 +1540,48 @@ export default function EquazioniGoniometricheDemo() {
     const [funcType, setFuncType] = useState<FuncType>("sin");
     const [difficulty, setDifficulty] = useState<Difficulty>("elementare");
     const [eq, setEq] = useState<TrigEq>(() => generateTrigEq("sin", "elementare"));
+    const [fgEq, setFgEq] = useState<TrigEqFG>(() => generateFGEq("sin"));
+    const [quadState, setQuadState] = useState<{ template: TrigEqQuad; eqLatex: string }>(
+        () => generateQuadEq("sin")
+    );
 
     const { currentStep, nextStep, prevStep, showAll, reset } = useStepNavigation(4);
     const isActive = (n: number) => currentStep >= n - 1;
 
     const handleGenerate = useCallback(() => {
-        setEq(generateTrigEq(funcType, difficulty));
+        if (difficulty === "omogenea") {
+            setFgEq(generateFGEq(funcType));
+        } else if (difficulty === "quadratica") {
+            setQuadState(generateQuadEq(funcType));
+        } else {
+            setEq(generateTrigEq(funcType, difficulty));
+        }
         reset();
     }, [funcType, difficulty, reset]);
 
     const handleFuncChange = useCallback((v: string) => {
         const f = v as FuncType;
         setFuncType(f);
-        setEq(generateTrigEq(f, difficulty));
+        if (difficulty === "omogenea") {
+            setFgEq(generateFGEq(f));
+        } else if (difficulty === "quadratica") {
+            setQuadState(generateQuadEq(f));
+        } else {
+            setEq(generateTrigEq(f, difficulty));
+        }
         reset();
     }, [difficulty, reset]);
 
     const handleDifficultyChange = useCallback((v: string) => {
         const d = v as Difficulty;
         setDifficulty(d);
-        setEq(generateTrigEq(funcType, d));
+        if (d === "omogenea") {
+            setFgEq(generateFGEq(funcType));
+        } else if (d === "quadratica") {
+            setQuadState(generateQuadEq(funcType));
+        } else {
+            setEq(generateTrigEq(funcType, d));
+        }
         reset();
     }, [funcType, reset]);
 
@@ -1325,6 +1734,171 @@ export default function EquazioniGoniometricheDemo() {
         </StepCard>
     );
 
+    // ── STEP CARDS per equazioni f(x) = g(x) ──
+
+    const schemaLabel = fgEq.funcType === "sin"
+        ? "\\sin f(x) = \\sin g(x) \\;\\Leftrightarrow\\; f(x) = g(x) + 2k\\pi \\;\\lor\\; f(x) = \\pi - g(x) + 2k\\pi"
+        : fgEq.funcType === "cos"
+        ? "\\cos f(x) = \\cos g(x) \\;\\Leftrightarrow\\; f(x) = \\pm g(x) + 2k\\pi"
+        : "\\tan f(x) = \\tan g(x) \\;\\Leftrightarrow\\; f(x) = g(x) + k\\pi";
+
+    const fgEquationLatex = `\\${fgEq.funcType}\\left(${fgEq.leftArgLatex}\\right) = \\${fgEq.funcType}\\left(${fgEq.rightArgLatex}\\right)`;
+
+    const FGStep1 = (
+        <StepCard stepNumber={1} title="Schema risolutivo" color="green" isActive={isActive(1)}>
+            <CollapsibleExplanation title="Perché si usa questo schema?">
+                <div style={{ fontSize: 13, lineHeight: 1.7 }}>
+                    {fgEq.funcType === "sin" && (
+                        <p>Due angoli hanno lo stesso seno se e solo se sono <strong>uguali</strong> o <strong>supplementari</strong>, a meno di multipli di <Latex>{"2\\pi"}</Latex>.</p>
+                    )}
+                    {fgEq.funcType === "cos" && (
+                        <p>Due angoli hanno lo stesso coseno se e solo se sono <strong>uguali od opposti</strong>, a meno di multipli di <Latex>{"2\\pi"}</Latex>.</p>
+                    )}
+                    {fgEq.funcType === "tan" && (
+                        <p>Due angoli diversi da <Latex>{"\\frac{\\pi}{2} + k\\pi"}</Latex> hanno la stessa tangente se e solo se sono <strong>uguali</strong>, a meno di multipli di <Latex>{"\\pi"}</Latex>.</p>
+                    )}
+                </div>
+            </CollapsibleExplanation>
+            <div style={{
+                padding: "10px 14px", background: "#f0fdf4", borderRadius: 8,
+                border: "1px solid #86efac", fontSize: isMobile ? 13 : 14,
+                textAlign: "center",
+            }}>
+                <Latex display>{schemaLabel}</Latex>
+            </div>
+            <div style={{
+                marginTop: 8, padding: "8px 12px", background: "#eff6ff", borderRadius: 6,
+                border: "1px solid #bfdbfe", fontSize: 13,
+            }}>
+                <strong>Identificazione:</strong> <Latex>{`f(x) = ${fgEq.leftArgLatex}, \\quad g(x) = ${fgEq.rightArgLatex}`}</Latex>
+            </div>
+        </StepCard>
+    );
+
+    const FGStep2 = (
+        <StepCard stepNumber={2} title="Prima famiglia" color="blue" isActive={isActive(2)}>
+            <CollapsibleExplanation title="Come si risolve?">
+                <div style={{ fontSize: 13, lineHeight: 1.7 }}>
+                    <p>Si porta tutto a sinistra e si risolve l'equazione lineare in <Latex>{"x"}</Latex>.</p>
+                </div>
+            </CollapsibleExplanation>
+            <div style={{ padding: "10px 14px", background: "#eff6ff", borderRadius: 8, border: "1px solid #bfdbfe", fontSize: isMobile ? 13 : 14 }}>
+                <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4, fontWeight: 600 }}>IMPOSTAZIONE</div>
+                <Latex display>{fgEq.family1SetupLatex}</Latex>
+            </div>
+            <div style={{ padding: "10px 14px", background: "#fff", borderRadius: 8, border: "1px solid #e2e8f0", fontSize: isMobile ? 13 : 14, marginTop: 6 }}>
+                <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4, fontWeight: 600 }}>RISOLUZIONE</div>
+                <Latex display>{fgEq.family1SolveLatex}</Latex>
+            </div>
+        </StepCard>
+    );
+
+    const hasTwoFamilies = fgEq.family2SetupLatex !== null;
+
+    const FGStep3 = (
+        <StepCard stepNumber={3} title={hasTwoFamilies ? "Seconda famiglia" : "Seconda famiglia"} color="amber" isActive={isActive(3)}>
+            {hasTwoFamilies ? (
+                <>
+                    <div style={{ padding: "10px 14px", background: "#fff7ed", borderRadius: 8, border: "1px solid #fed7aa", fontSize: isMobile ? 13 : 14 }}>
+                        <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4, fontWeight: 600 }}>IMPOSTAZIONE</div>
+                        <Latex display>{fgEq.family2SetupLatex!}</Latex>
+                    </div>
+                    <div style={{ padding: "10px 14px", background: "#fff", borderRadius: 8, border: "1px solid #e2e8f0", fontSize: isMobile ? 13 : 14, marginTop: 6 }}>
+                        <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4, fontWeight: 600 }}>RISOLUZIONE</div>
+                        <Latex display>{fgEq.family2SolveLatex ?? "\\text{—}"}</Latex>
+                    </div>
+                </>
+            ) : (
+                <div style={{ padding: "10px 14px", background: "#f8fafc", borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 13, color: "#64748b" }}>
+                    {fgEq.funcType === "tan"
+                        ? <p>La tangente ha periodo <Latex>{"\\pi"}</Latex>, quindi c'è <strong>un'unica famiglia</strong> di soluzioni.</p>
+                        : <p>La prima famiglia è l'unica possibile (la seconda porta a un'equazione impossibile).</p>
+                    }
+                </div>
+            )}
+        </StepCard>
+    );
+
+    const FGStep4 = (
+        <StepCard stepNumber={4} title="Soluzioni" color="purple" isActive={isActive(4)}>
+            <div style={{
+                padding: "12px 16px", background: "#f0fdf4", borderRadius: 8,
+                border: "2px solid #86efac", textAlign: "center", fontSize: isMobile ? 15 : 17,
+            }}>
+                <Latex display>{fgEq.sol1Latex + (fgEq.sol2Latex ? `, \\quad k \\in \\mathbb{Z}` : `, \\quad k \\in \\mathbb{Z}`)}</Latex>
+                {fgEq.sol2Latex && (
+                    <div style={{ marginTop: 8 }}>
+                        <Latex display>{fgEq.sol2Latex + ", \\quad k \\in \\mathbb{Z}"}</Latex>
+                    </div>
+                )}
+            </div>
+            {fgEq.funcType === "tan" && (
+                <div style={{ marginTop: 8, padding: "8px 12px", background: "#fef9c3", borderRadius: 6, border: "1px solid #fde047", fontSize: 12, color: "#713f12" }}>
+                    Condizioni di esistenza: le soluzioni devono soddisfare <Latex>{`${fgEq.leftArgLatex} \\neq \\frac{\\pi}{2} + n\\pi`}</Latex> e <Latex>{`${fgEq.rightArgLatex} \\neq \\frac{\\pi}{2} + n\\pi`}</Latex>.
+                </div>
+            )}
+        </StepCard>
+    );
+
+    // ── STEP CARDS per equazioni di 2° grado ──
+
+    const { template: quadTpl } = quadState;
+    const funcNameLatex = `\\${quadTpl.funcType}`;
+
+    const QStep1 = (
+        <StepCard stepNumber={1} title="Riconoscimento e sostituzione" color="green" isActive={isActive(1)}>
+            <CollapsibleExplanation title="Come si riconosce un'equazione di 2° grado?">
+                <div style={{ fontSize: 13, lineHeight: 1.7 }}>
+                    <p>Se l'equazione contiene <Latex>{`${funcNameLatex}^2 x`}</Latex>, <Latex>{`${funcNameLatex} x`}</Latex> e termini costanti, si tratta di un'equazione di <strong>2° grado</strong> nella variabile <Latex>{`t = ${funcNameLatex} x`}</Latex>.</p>
+                    <p>Si risolve come una normale equazione quadratica in <Latex>{"t"}</Latex>, poi si torna alla variabile originale.</p>
+                </div>
+            </CollapsibleExplanation>
+            <div style={{ padding: "10px 14px", background: "#f0fdf4", borderRadius: 8, border: "1px solid #86efac", fontSize: isMobile ? 13 : 14 }}>
+                <Latex display>{quadTpl.step1Latex}</Latex>
+            </div>
+        </StepCard>
+    );
+
+    const QStep2 = (
+        <StepCard stepNumber={2} title="Radici dell'equazione in t" color="blue" isActive={isActive(2)}>
+            <CollapsibleExplanation title="Formula quadratica">
+                <div style={{ fontSize: 13, lineHeight: 1.7 }}>
+                    <p>Si usa la formula risolutiva <Latex>{"t = \\dfrac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}"}</Latex> oppure si fattorizza direttamente.</p>
+                    {quadTpl.funcType !== "tan" && (
+                        <p>Attenzione: per <Latex>{`${funcNameLatex} x`}</Latex> le soluzioni devono soddisfare <Latex>{`|t| \\leq 1`}</Latex>, altrimenti l'equazione elementare è <strong>impossibile</strong>.</p>
+                    )}
+                </div>
+            </CollapsibleExplanation>
+            <div style={{ padding: "10px 14px", background: "#eff6ff", borderRadius: 8, border: "1px solid #bfdbfe", fontSize: isMobile ? 13 : 14 }}>
+                <Latex display>{quadTpl.step2Latex}</Latex>
+            </div>
+        </StepCard>
+    );
+
+    const QStep3 = (
+        <StepCard stepNumber={3} title="Equazioni elementari" color="amber" isActive={isActive(3)}>
+            <CollapsibleExplanation title="Come si risolve ciascuna equazione elementare?">
+                <div style={{ fontSize: 13, lineHeight: 1.7 }}>
+                    <p>Per ogni radice <Latex>{"t_i"}</Latex> accettabile si risolve l'equazione elementare <Latex>{`${funcNameLatex} x = t_i`}</Latex> con le formule standard.</p>
+                </div>
+            </CollapsibleExplanation>
+            <div style={{ padding: "10px 14px", background: "#fff7ed", borderRadius: 8, border: "1px solid #fed7aa", fontSize: isMobile ? 13 : 14 }}>
+                <Latex display>{quadTpl.step3Latex}</Latex>
+            </div>
+        </StepCard>
+    );
+
+    const QStep4 = (
+        <StepCard stepNumber={4} title="Soluzioni" color="purple" isActive={isActive(4)}>
+            <div style={{
+                padding: "12px 16px", background: "#f0fdf4", borderRadius: 8,
+                border: "2px solid #86efac", textAlign: "center", fontSize: isMobile ? 14 : 16,
+            }}>
+                <Latex display>{quadTpl.step4Latex + ", \\quad k \\in \\mathbb{Z}"}</Latex>
+            </div>
+        </StepCard>
+    );
+
     // ── PANNELLO FORMULE ──
 
     const FormulasContent = (
@@ -1403,14 +1977,16 @@ export default function EquazioniGoniometricheDemo() {
     // ── LAYOUT ──
 
     // Contenuto tab ESERCIZI
+    const isOmogenea = difficulty === "omogenea";
+    const isQuadratica = difficulty === "quadratica";
     const ExercisesContent = (
         <div style={{ display: "grid", gap: 12 }}>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 <ResponsiveButtonGroup
                     options={[
-                        { label: isMobile ? "sin" : "sin x = m", value: "sin" },
-                        { label: isMobile ? "cos" : "cos x = m", value: "cos" },
-                        { label: isMobile ? "tan" : "tan x = m", value: "tan" },
+                        { label: "sin", value: "sin" },
+                        { label: "cos", value: "cos" },
+                        { label: "tan", value: "tan" },
                     ]}
                     selectedValue={funcType}
                     onChange={handleFuncChange}
@@ -1418,7 +1994,9 @@ export default function EquazioniGoniometricheDemo() {
                 <ResponsiveButtonGroup
                     options={[
                         { label: "Elementare", value: "elementare" },
-                        { label: isMobile ? "Sostituzione" : "Con sostituzione", value: "sostituzione" },
+                        { label: isMobile ? "Sost." : "Sostituzione", value: "sostituzione" },
+                        { label: isMobile ? "f=g" : "f(x)=g(x)", value: "omogenea" },
+                        { label: isMobile ? "2°gr." : "2° grado", value: "quadratica" },
                     ]}
                     selectedValue={difficulty}
                     onChange={handleDifficultyChange}
@@ -1427,33 +2005,157 @@ export default function EquazioniGoniometricheDemo() {
 
             <GenerateButton text={isMobile ? "Nuova" : "Nuova equazione"} onClick={handleGenerate} />
 
-            <ProblemCard label={isMobile ? "Risolvi:" : "Risolvi l'equazione:"}>
-                <div style={{ textAlign: "center", fontSize: isMobile ? 18 : 20 }}>
-                    <Latex display>{equationLatex}</Latex>
-                </div>
-                {steps.hasSubstitution && (
-                    <div style={{ textAlign: "center", fontSize: 12, color: "#64748b", marginTop: 4 }}>
-                        Equazione con argomento composto → sostituzione
-                    </div>
-                )}
-            </ProblemCard>
-
-            <NavigationButtons currentStep={currentStep} totalSteps={4} onNext={nextStep} onPrev={prevStep} onShowAll={showAll} />
-
-            {isMobile ? (
+            {isOmogenea ? (
                 <>
-                    {Step1}{Step2}{Step3}{Step4}
+                    <ProblemCard label={isMobile ? "Risolvi:" : "Risolvi l'equazione:"}>
+                        <div style={{ textAlign: "center", fontSize: isMobile ? 17 : 19 }}>
+                            <Latex display>{fgEquationLatex}</Latex>
+                        </div>
+                        <div style={{ textAlign: "center", fontSize: 12, color: "#64748b", marginTop: 4 }}>
+                            Equazione del tipo <Latex>{`\\${fgEq.funcType} f(x) = \\${fgEq.funcType} g(x)`}</Latex>
+                        </div>
+                    </ProblemCard>
+
+                    <NavigationButtons currentStep={currentStep} totalSteps={4} onNext={nextStep} onPrev={prevStep} onShowAll={showAll} />
+
+                    {isMobile ? (
+                        <>
+                            {FGStep1}{FGStep2}{FGStep3}{FGStep4}
+                        </>
+                    ) : (
+                        <>
+                            <ResponsiveGrid columns={{ tablet: 2, desktop: 2 }} gap={12}>
+                                {FGStep1}
+                                {FGStep2}
+                            </ResponsiveGrid>
+                            <div>{FGStep3}</div>
+                            <div>{FGStep4}</div>
+                        </>
+                    )}
+                </>
+            ) : isQuadratica ? (
+                <>
+                    <ProblemCard label={isMobile ? "Risolvi:" : "Risolvi l'equazione:"}>
+                        <div style={{ textAlign: "center", fontSize: isMobile ? 17 : 19 }}>
+                            <Latex display>{quadState.eqLatex}</Latex>
+                        </div>
+                        <div style={{ textAlign: "center", fontSize: 12, color: "#64748b", marginTop: 4 }}>
+                            Equazione di 2° grado in <Latex>{`\\${quadTpl.funcType} x`}</Latex> — sostituzione <Latex>{`t = \\${quadTpl.funcType} x`}</Latex>
+                        </div>
+                    </ProblemCard>
+
+                    <NavigationButtons currentStep={currentStep} totalSteps={4} onNext={nextStep} onPrev={prevStep} onShowAll={showAll} />
+
+                    {isMobile ? (
+                        <>
+                            {QStep1}{QStep2}{QStep3}{QStep4}
+                        </>
+                    ) : (
+                        <>
+                            <ResponsiveGrid columns={{ tablet: 2, desktop: 2 }} gap={12}>
+                                {QStep1}
+                                {QStep2}
+                            </ResponsiveGrid>
+                            <div>{QStep3}</div>
+                            <div>{QStep4}</div>
+                        </>
+                    )}
                 </>
             ) : (
                 <>
-                    <ResponsiveGrid columns={{ tablet: 2, desktop: 2 }} gap={12}>
-                        {Step1}
-                        {Step2}
-                    </ResponsiveGrid>
-                    <div>{Step3}</div>
-                    <div>{Step4}</div>
+                    <ProblemCard label={isMobile ? "Risolvi:" : "Risolvi l'equazione:"}>
+                        <div style={{ textAlign: "center", fontSize: isMobile ? 18 : 20 }}>
+                            <Latex display>{equationLatex}</Latex>
+                        </div>
+                        {steps.hasSubstitution && (
+                            <div style={{ textAlign: "center", fontSize: 12, color: "#64748b", marginTop: 4 }}>
+                                Equazione con argomento composto → sostituzione
+                            </div>
+                        )}
+                    </ProblemCard>
+
+                    <NavigationButtons currentStep={currentStep} totalSteps={4} onNext={nextStep} onPrev={prevStep} onShowAll={showAll} />
+
+                    {isMobile ? (
+                        <>
+                            {Step1}{Step2}{Step3}{Step4}
+                        </>
+                    ) : (
+                        <>
+                            <ResponsiveGrid columns={{ tablet: 2, desktop: 2 }} gap={12}>
+                                {Step1}
+                                {Step2}
+                            </ResponsiveGrid>
+                            <div>{Step3}</div>
+                            <div>{Step4}</div>
+                        </>
+                    )}
                 </>
             )}
+        </div>
+    );
+
+    // ── FORMULE f(x) = g(x) ──
+
+    const FGFormulasContent = (
+        <div style={{ fontSize: 13, lineHeight: 1.9 }}>
+            <div style={{ marginBottom: 14 }}>
+                <div style={{ fontWeight: 700, color: "#1e40af", marginBottom: 4 }}>
+                    sin f(x) = sin g(x)
+                </div>
+                <Latex display>{"\\sin f(x) = \\sin g(x) \\;\\Leftrightarrow\\; \\begin{cases} f(x) = g(x) + 2k\\pi \\\\ \\lor \\\\ f(x) = \\pi - g(x) + 2k\\pi \\end{cases} k \\in \\mathbb{Z}"}</Latex>
+            </div>
+            <div style={{ marginBottom: 14 }}>
+                <div style={{ fontWeight: 700, color: "#1e40af", marginBottom: 4 }}>
+                    cos f(x) = cos g(x)
+                </div>
+                <Latex display>{"\\cos f(x) = \\cos g(x) \\;\\Leftrightarrow\\; f(x) = \\pm\\, g(x) + 2k\\pi, \\quad k \\in \\mathbb{Z}"}</Latex>
+            </div>
+            <div style={{ marginBottom: 14 }}>
+                <div style={{ fontWeight: 700, color: "#1e40af", marginBottom: 4 }}>
+                    tan f(x) = tan g(x)
+                </div>
+                <Latex display>{"\\tan f(x) = \\tan g(x) \\;\\Leftrightarrow\\; f(x) = g(x) + k\\pi, \\quad k \\in \\mathbb{Z}"}</Latex>
+                <div style={{ fontSize: 11, color: "#64748b" }}>con <Latex>{"f(x), g(x) \\neq \\frac{\\pi}{2} + k\\pi"}</Latex></div>
+            </div>
+            <div style={{
+                padding: "10px 12px", background: "#fef9c3", borderRadius: 8,
+                border: "1px solid #fde047", fontSize: 12, lineHeight: 1.7,
+            }}>
+                <div style={{ fontWeight: 700, color: "#713f12", marginBottom: 6 }}>Riduzioni utili</div>
+                <div><Latex>{"\\sin f(x) = -\\sin g(x)"}</Latex> <span style={{ color: "#64748b" }}>→</span> <Latex>{"\\sin f(x) = \\sin[-g(x)]"}</Latex></div>
+                <div><Latex>{"\\sin f(x) = \\cos g(x)"}</Latex> <span style={{ color: "#64748b" }}>→</span> <Latex>{"\\sin f(x) = \\sin\\!\\left[\\tfrac{\\pi}{2} - g(x)\\right]"}</Latex></div>
+                <div><Latex>{"\\cos f(x) = -\\cos g(x)"}</Latex> <span style={{ color: "#64748b" }}>→</span> <Latex>{"\\cos f(x) = \\cos[\\pi - g(x)]"}</Latex></div>
+                <div><Latex>{"\\tan f(x) = -\\tan g(x)"}</Latex> <span style={{ color: "#64748b" }}>→</span> <Latex>{"\\tan f(x) = \\tan[-g(x)]"}</Latex></div>
+                <div><Latex>{"\\tan f(x) = \\cot g(x)"}</Latex> <span style={{ color: "#64748b" }}>→</span> <Latex>{"\\tan f(x) = \\tan\\!\\left[\\tfrac{\\pi}{2} - g(x)\\right]"}</Latex></div>
+            </div>
+        </div>
+    );
+
+    // ── TEORIA 2° GRADO ──
+
+    const QuadTheoryContent = (
+        <div style={{ fontSize: 13, lineHeight: 1.8 }}>
+            <p style={{ marginBottom: 8 }}>
+                Le equazioni di <strong>secondo grado in seno, coseno o tangente</strong> hanno la forma
+                <Latex display>{"a\\cdot[\\text{func}]^2 x + b\\cdot[\\text{func}]\\, x + c = 0"}</Latex>
+                Si risolvono con la <strong>sostituzione</strong> <Latex>{"t = \\text{func}\\, x"}</Latex>, che le riduce a equazioni quadratiche elementari.
+            </p>
+            <div style={{ padding: "10px 12px", background: "#eff6ff", borderRadius: 8, border: "1px solid #bfdbfe", marginBottom: 10 }}>
+                <div style={{ fontWeight: 700, color: "#1e40af", marginBottom: 4 }}>Metodo</div>
+                <ol style={{ margin: 0, paddingLeft: 18, lineHeight: 2 }}>
+                    <li>Poni <Latex>{"t = \\sin x"}</Latex> (o <Latex>{"\\cos x"}</Latex> o <Latex>{"\\tan x"}</Latex>) e scrivi l'equazione in <Latex>{"t"}</Latex></li>
+                    <li>Risolvi la quadratica → radici <Latex>{"t_1, t_2"}</Latex></li>
+                    <li>Per sin/cos: scarta le radici con <Latex>{"|t_i| > 1"}</Latex></li>
+                    <li>Per ogni radice accettabile risolvi l'equazione elementare <Latex>{"\\text{func}\\, x = t_i"}</Latex></li>
+                </ol>
+            </div>
+            <div style={{ padding: "10px 12px", background: "#fef9c3", borderRadius: 8, border: "1px solid #fde047", fontSize: 12 }}>
+                <div style={{ fontWeight: 700, color: "#713f12", marginBottom: 4 }}>Esempio (dal libro)</div>
+                <Latex display>{"2\\cos^2 x - \\cos x - 1 = 0"}</Latex>
+                <div>Poni <Latex>{"t = \\cos x"}</Latex>: <Latex>{"\\;2t^2 - t - 1 = 0 \\;\\Rightarrow\\; t = 1 \\;\\lor\\; t = -\\tfrac{1}{2}"}</Latex></div>
+                <Latex display>{"\\cos x = 1 \\;\\Rightarrow\\; x = 2k\\pi \\qquad \\cos x = -\\tfrac{1}{2} \\;\\Rightarrow\\; x = \\pm\\tfrac{2\\pi}{3} + 2k\\pi"}</Latex>
+            </div>
         </div>
     );
 
@@ -1470,12 +2172,26 @@ export default function EquazioniGoniometricheDemo() {
                     <CollapsiblePanel title="📊 Angoli notevoli" defaultOpen={false}>
                         {NotableAnglesTable}
                     </CollapsiblePanel>
+                    <CollapsiblePanel title="🔁 Equazioni f(x) = g(x)" defaultOpen={false}>
+                        {FGFormulasContent}
+                    </CollapsiblePanel>
+                    <CollapsiblePanel title="🔢 Equazioni di 2° grado" defaultOpen={false}>
+                        {QuadTheoryContent}
+                    </CollapsiblePanel>
                 </>
             ) : (
-                <ResponsiveGrid columns={{ tablet: 2, desktop: 2 }} gap={12}>
-                    <InfoBox title="📐 Formule risolutive">{FormulasContent}</InfoBox>
-                    <InfoBox title="📊 Angoli notevoli">{NotableAnglesTable}</InfoBox>
-                </ResponsiveGrid>
+                <>
+                    <ResponsiveGrid columns={{ tablet: 2, desktop: 2 }} gap={12}>
+                        <InfoBox title="📐 Formule risolutive">{FormulasContent}</InfoBox>
+                        <InfoBox title="📊 Angoli notevoli">{NotableAnglesTable}</InfoBox>
+                    </ResponsiveGrid>
+                    <InfoBox title="🔁 Equazioni del tipo sin f(x) = sin g(x), cos f(x) = cos g(x), tan f(x) = tan g(x)">
+                        {FGFormulasContent}
+                    </InfoBox>
+                    <InfoBox title="🔢 Equazioni di 2° grado in seno, coseno o tangente">
+                        {QuadTheoryContent}
+                    </InfoBox>
+                </>
             )}
         </div>
     );

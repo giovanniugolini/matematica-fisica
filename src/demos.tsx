@@ -221,6 +221,12 @@ export const demos: DemoInfo[] = [
         tags: ["quiz", "forza elastica", "hooke", "molla", "costante elastica", "fisica", "verifica"],
     },
     {
+        slug: "gioco-inversione-formule",
+        title: "Gioco: Isola la variabile",
+        Component: React.lazy(() => import("./demos/quiz/InversioneFormuleGame")),
+        tags: ["quiz", "gioco", "formule", "inversione", "algebra", "fisica", "principi equivalenza"],
+    },
+    {
         slug: "legge-hom",
         title: "La prima legge di Ohm (laboratorio online)",
         Component: React.lazy(() => import("./demos/elettromagnetismo/Leggeohmdemo.tsx")),

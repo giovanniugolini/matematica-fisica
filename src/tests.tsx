@@ -48,4 +48,10 @@ export const tests: TestInfo[] = [
         type: "quiz",
         questionCount: 10,
     },
+    {
+        slug: "gioco-inversione-formule",
+        title: "Gioco: Isola la variabile",
+        Component: React.lazy(() => import("./demos/quiz/InversioneFormuleGame")),
+        type: "quiz",
+    },
 ];

@@ -174,6 +174,13 @@ const categories: Category[] = [
                     "quiz-forza-elastica",
                 ],
             },
+            {
+                id: "giochi",
+                name: "Giochi",
+                slugs: [
+                    "gioco-inversione-formule",
+                ],
+            },
         ],
     },
 ];
@@ -183,6 +190,7 @@ const demoBySlug = new Map(demos.map((d) => [d.slug, d]));
 
 // Demo nuove (mostrano tag NEW)
 const newDemoSlugs = new Set([
+    "gioco-inversione-formule",
     "segno-di-un-prodotto",
     "quiz-algebra",
     "verifica-algebra-1",
