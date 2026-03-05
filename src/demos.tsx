@@ -298,4 +298,10 @@ export const demos: DemoInfo[] = [
         Component: React.lazy(() => import("./demos/quiz/EscapeRoomGame")),
         tags: ["quiz", "gioco", "fisica", "matematica", "escape room", "densità", "pressione", "velocità", "sistemi"],
     },
+    {
+        slug: "verifica-fisica-vettori-1",
+        title: "Verifica: Vettori e Forze",
+        Component: React.lazy(() => import("./demos/quiz/VerificaFisicaVettori1")),
+        tags: ["verifica", "vettori", "forze", "fisica", "test"],
+    },
 ];

@@ -172,6 +172,7 @@ const categories: Category[] = [
                     "quiz-vettori",
                     "quiz-forza-peso",
                     "quiz-forza-elastica",
+                    "verifica-fisica-vettori-1",
                 ],
             },
             {
@@ -211,6 +212,7 @@ const newDemoSlugs = new Set([
     "quiz-forza-peso",
     "quiz-forza-elastica",
     "escape-room",
+    "verifica-fisica-vettori-1",
 ]);
 
 // ============ COMPONENTI ============
