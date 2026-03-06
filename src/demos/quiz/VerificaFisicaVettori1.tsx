@@ -720,10 +720,26 @@ export default function VerificaFisicaVettori1(): React.ReactElement {
                                         iv) Riduzione percentuale del peso
                                     </p>
                                     <div style={S.solStep}>
+                                        <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>
+                                            Proporzione: che percentuale è il peso sulla Luna rispetto a quello sulla Terra?
+                                        </p>
+                                        <DisplayMath>{"P_\\text{Terra} : P_\\text{Luna} = 100 : x \\quad\\Longrightarrow\\quad x = \\frac{P_\\text{Luna}}{P_\\text{Terra}} \\times 100"}</DisplayMath>
+                                        <DisplayMath>{"x = \\frac{129{,}6}{784} \\times 100 \\approx 16{,}5\\%"}</DisplayMath>
+                                        <p style={{ fontSize: 13, color: "#475569", marginBottom: 4 }}>
+                                            Il peso sulla Luna è circa il <strong>16,5%</strong> del peso sulla Terra, quindi la riduzione è:
+                                        </p>
+                                        <DisplayMath>{"\\Delta P\\% = 100\\% - 16{,}5\\% = 83{,}5\\%"}</DisplayMath>
+
+                                        <p style={{ fontSize: 13, fontWeight: 600, marginTop: 10, marginBottom: 4 }}>
+                                            Si può utilizzare anche una formula generale alternativa:
+                                        </p>
+                                        <DisplayMath>{"\\Delta\\% = \\frac{\\text{valore iniziale} - \\text{valore finale}}{\\text{valore iniziale}} \\times 100"}</DisplayMath>
+                                        <p style={{ fontSize: 13, color: "#475569", marginTop: 4, marginBottom: 4 }}>
+                                            Questa formula calcola direttamente di quanto percentuale è diminuita una grandezza rispetto al suo valore di partenza. Applicata al peso:
+                                        </p>
                                         <DisplayMath>{"\\Delta P\\% = \\frac{784 - 129{,}6}{784} \\times 100 = \\frac{654{,}4}{784} \\times 100 \\approx 83{,}5\\%"}</DisplayMath>
-                                        <p style={{ fontSize: 13, marginTop: 6 }}>
-                                            Il peso sulla Luna è circa il <strong>16,5%</strong> del peso sulla Terra
-                                            (si riduce dell'<strong>83,5%</strong>).
+                                        <p style={{ fontSize: 13, marginTop: 4 }}>
+                                            Il peso si riduce dell'<strong>83,5%</strong> passando dalla Terra alla Luna.
                                         </p>
                                     </div>
                                 </div>
