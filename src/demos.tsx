@@ -304,4 +304,10 @@ export const demos: DemoInfo[] = [
         Component: React.lazy(() => import("./demos/quiz/VerificaFisicaVettori1")),
         tags: ["verifica", "vettori", "forze", "fisica", "test"],
     },
+    {
+        slug: "battaglia-piano-cartesiano",
+        title: "Battaglia di Problemi: Piano Cartesiano",
+        Component: React.lazy(() => import("./demos/quiz/BattagliaProblemiDemo")),
+        tags: ["quiz", "gioco", "geometria", "piano cartesiano", "distanza", "punto medio", "retta", "2B"],
+    },
 ];

@@ -181,6 +181,7 @@ const categories: Category[] = [
                 slugs: [
                     "gioco-inversione-formule",
                     "escape-room",
+                    "battaglia-piano-cartesiano",
                 ],
             },
         ],
@@ -213,6 +214,7 @@ const newDemoSlugs = new Set([
     "quiz-forza-elastica",
     "escape-room",
     "verifica-fisica-vettori-1",
+    "battaglia-piano-cartesiano",
 ]);
 
 // ============ COMPONENTI ============
