@@ -355,7 +355,7 @@ export default function BattagliaProblemiDemo(): React.ReactElement {
                 if (s.revealed || s.timeLeft <= 0) return prev;
                 const t = s.timeLeft - 1;
                 const next = [...prev];
-                next[idx] = { ...s, timeLeft: t, timedOut: t <= 0, revealed: t <= 0 };
+                next[idx] = { ...s, timeLeft: t, timedOut: t <= 0, revealed: false };
                 return next;
             });
         }, 1000);
