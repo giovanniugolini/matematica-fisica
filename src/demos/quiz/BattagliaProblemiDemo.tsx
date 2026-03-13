@@ -322,6 +322,8 @@ interface ProbState {
 
 type Phase = "start" | "battle" | "end";
 
+const UNLOCK_PASSWORD = "343452";
+
 // ── Main Component ────────────────────────────────────────────────────────────
 
 export default function BattagliaProblemiDemo(): React.ReactElement {
@@ -337,6 +339,9 @@ export default function BattagliaProblemiDemo(): React.ReactElement {
     const [states, setStates] = useState<ProbState[]>(() =>
         probs.map(() => ({ timeLeft: SECS, revealed: false, timedOut: false, score: null }))
     );
+    const [pwdModal, setPwdModal] = useState(false);
+    const [pwdInput, setPwdInput] = useState("");
+    const [pwdError, setPwdError] = useState(false);
 
     const cur = states[idx];
     const prob = probs[idx];
@@ -494,9 +499,74 @@ export default function BattagliaProblemiDemo(): React.ReactElement {
                         <p style={{ fontSize: 13, color: "#64748b", textAlign: "center", margin: "0 0 12px" }}>
                             Risolvi sul foglio, poi verifica la soluzione.
                         </p>
-                        <button onClick={reveal} style={G.btnReveal}>
-                            ✓ Ho finito — mostra soluzione
+                        <button onClick={() => { setPwdInput(""); setPwdError(false); setPwdModal(true); }} style={G.btnReveal}>
+                            🔒 Ho finito — mostra soluzione
                         </button>
+                    </div>
+                )}
+
+                {/* Password modal */}
+                {pwdModal && (
+                    <div style={{
+                        position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)",
+                        display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000,
+                    }}>
+                        <div style={{
+                            background: "#fff", borderRadius: 16, padding: "32px 28px",
+                            maxWidth: 360, width: "90%", boxShadow: "0 8px 40px rgba(0,0,0,0.18)",
+                            textAlign: "center",
+                        }}>
+                            <div style={{ fontSize: 36, marginBottom: 12 }}>🔐</div>
+                            <h3 style={{ margin: "0 0 6px", color: "#0f172a", fontSize: 18, fontWeight: 700 }}>
+                                Soluzione protetta
+                            </h3>
+                            <p style={{ fontSize: 13, color: "#64748b", marginBottom: 20 }}>
+                                Inserisci la password per vedere la soluzione.
+                            </p>
+                            <input
+                                type="password"
+                                value={pwdInput}
+                                onChange={e => { setPwdInput(e.target.value); setPwdError(false); }}
+                                onKeyDown={e => {
+                                    if (e.key === "Enter") {
+                                        if (pwdInput === UNLOCK_PASSWORD) { setPwdModal(false); reveal(); }
+                                        else setPwdError(true);
+                                    }
+                                    if (e.key === "Escape") setPwdModal(false);
+                                }}
+                                placeholder="Password…"
+                                autoFocus
+                                style={{
+                                    width: "100%", boxSizing: "border-box",
+                                    padding: "10px 14px", fontSize: 16,
+                                    border: pwdError ? "2px solid #ef4444" : "2px solid #e2e8f0",
+                                    borderRadius: 10, outline: "none", marginBottom: 8,
+                                    textAlign: "center", letterSpacing: 4,
+                                }}
+                            />
+                            {pwdError && (
+                                <p style={{ color: "#ef4444", fontSize: 13, margin: "0 0 10px" }}>
+                                    Password errata. Riprova!
+                                </p>
+                            )}
+                            <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
+                                <button
+                                    onClick={() => setPwdModal(false)}
+                                    style={{ flex: 1, padding: "10px", background: "#f1f5f9", border: "1px solid #e2e8f0", borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: "pointer", color: "#475569" }}
+                                >
+                                    Annulla
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        if (pwdInput === UNLOCK_PASSWORD) { setPwdModal(false); reveal(); }
+                                        else setPwdError(true);
+                                    }}
+                                    style={{ flex: 1, padding: "10px", background: "#1d4ed8", border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: "pointer", color: "#fff" }}
+                                >
+                                    Sblocca
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 )}
 
