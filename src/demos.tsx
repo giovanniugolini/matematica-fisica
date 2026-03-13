@@ -305,6 +305,12 @@ export const demos: DemoInfo[] = [
         tags: ["verifica", "vettori", "forze", "fisica", "test"],
     },
     {
+        slug: "verifica-goniometria-1",
+        title: "Verifica: Equazioni Goniometriche",
+        Component: React.lazy(() => import("./demos/quiz/VerificaGoniometria1")),
+        tags: ["verifica", "goniometria", "equazioni", "matematica", "test", "seno", "coseno", "tangente", "4M"],
+    },
+    {
         slug: "battaglia-piano-cartesiano",
         title: "Battaglia di Problemi: Piano Cartesiano",
         Component: React.lazy(() => import("./demos/quiz/BattagliaProblemiDemo")),

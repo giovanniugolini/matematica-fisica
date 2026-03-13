@@ -176,6 +176,13 @@ const categories: Category[] = [
                 ],
             },
             {
+                id: "quiz-goniometria",
+                name: "Goniometria",
+                slugs: [
+                    "verifica-goniometria-1",
+                ],
+            },
+            {
                 id: "giochi",
                 name: "Giochi",
                 slugs: [
@@ -215,6 +222,7 @@ const newDemoSlugs = new Set([
     "escape-room",
     "verifica-fisica-vettori-1",
     "battaglia-piano-cartesiano",
+    "verifica-goniometria-1",
 ]);
 
 // ============ COMPONENTI ============
