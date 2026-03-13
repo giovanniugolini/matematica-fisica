@@ -60,4 +60,22 @@ export const tests: TestInfo[] = [
         Component: React.lazy(() => import("./demos/quiz/EscapeRoomGame")),
         type: "quiz",
     },
+    {
+        slug: "verifica-fisica-vettori-1",
+        title: "Verifica: Vettori e Forze",
+        Component: React.lazy(() => import("./demos/quiz/VerificaFisicaVettori1")),
+        type: "verifica",
+    },
+    {
+        slug: "verifica-goniometria-1",
+        title: "Verifica: Equazioni Goniometriche",
+        Component: React.lazy(() => import("./demos/quiz/VerificaGoniometria1")),
+        type: "verifica",
+    },
+    {
+        slug: "battaglia-piano-cartesiano",
+        title: "Battaglia di Problemi: Piano Cartesiano",
+        Component: React.lazy(() => import("./demos/quiz/BattagliaProblemiDemo")),
+        type: "quiz",
+    },
 ];
