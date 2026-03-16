@@ -183,6 +183,13 @@ const categories: Category[] = [
                 ],
             },
             {
+                id: "quiz-analisi",
+                name: "Analisi",
+                slugs: [
+                    "verifica-continuita-1",
+                ],
+            },
+            {
                 id: "giochi",
                 name: "Giochi",
                 slugs: [

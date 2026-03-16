@@ -311,6 +311,12 @@ export const demos: DemoInfo[] = [
         tags: ["verifica", "goniometria", "equazioni", "matematica", "test", "seno", "coseno", "tangente", "4M"],
     },
     {
+        slug: "verifica-continuita-1",
+        title: "Verifica: Continuità e Asintoti",
+        Component: React.lazy(() => import("./demos/quiz/VerificaContinuita1")),
+        tags: ["verifica", "continuità", "asintoti", "limiti", "matematica", "test", "5I"],
+    },
+    {
         slug: "battaglia-piano-cartesiano",
         title: "Battaglia di Problemi: Piano Cartesiano",
         Component: React.lazy(() => import("./demos/quiz/BattagliaProblemiDemo")),

@@ -73,6 +73,12 @@ export const tests: TestInfo[] = [
         type: "verifica",
     },
     {
+        slug: "verifica-continuita-1",
+        title: "Verifica: Continuità e Asintoti",
+        Component: React.lazy(() => import("./demos/quiz/VerificaContinuita1")),
+        type: "verifica",
+    },
+    {
         slug: "battaglia-piano-cartesiano",
         title: "Battaglia di Problemi: Piano Cartesiano",
         Component: React.lazy(() => import("./demos/quiz/BattagliaProblemiDemo")),
