@@ -200,12 +200,6 @@ const categories: Category[] = [
 // Mappa slug -> demo per lookup veloce
 const demoBySlug = new Map(demos.map((d) => [d.slug, d]));
 
-// Slug protetti da password
-const passwordProtectedSlugs = new Set([
-    "verifica-goniometria-2-fila-a",
-    "verifica-goniometria-2-fila-b",
-]);
-const VERIFICA_PASSWORD = "21231";
 
 // Demo nuove (mostrano tag NEW)
 const newDemoSlugs = new Set([
@@ -236,12 +230,10 @@ const newDemoSlugs = new Set([
 
 // ============ COMPONENTI ============
 
-function CategoryCard({ category, expanded, onToggle, unlockedSlugs, onClickLocked }: {
+function CategoryCard({ category, expanded, onToggle }: {
     category: Category;
     expanded: boolean;
     onToggle: () => void;
-    unlockedSlugs: Set<string>;
-    onClickLocked: (slug: string) => void;
 }) {
     // Stile speciale per la categoria Verifiche & Quiz
     const isVerifiche = category.id === "verifiche";
@@ -310,41 +302,6 @@ function CategoryCard({ category, expanded, onToggle, unlockedSlugs, onClickLock
                                 {sub.slugs.map((slug) => {
                                     const demo = demoBySlug.get(slug);
                                     if (!demo) return null;
-                                    const isLocked = passwordProtectedSlugs.has(slug) && !unlockedSlugs.has(slug);
-                                    if (isLocked) {
-                                        return (
-                                            <button
-                                                key={slug}
-                                                onClick={() => onClickLocked(slug)}
-                                                style={{
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                    gap: 8,
-                                                    padding: "10px 14px",
-                                                    background: "#f1f5f9",
-                                                    borderRadius: 8,
-                                                    color: "#94a3b8",
-                                                    border: "1px dashed #cbd5e1",
-                                                    fontSize: 14,
-                                                    cursor: "pointer",
-                                                    textAlign: "left",
-                                                    width: "100%",
-                                                    transition: "all 0.15s",
-                                                }}
-                                                onMouseEnter={(e) => {
-                                                    e.currentTarget.style.background = "#e2e8f0";
-                                                    e.currentTarget.style.color = "#475569";
-                                                }}
-                                                onMouseLeave={(e) => {
-                                                    e.currentTarget.style.background = "#f1f5f9";
-                                                    e.currentTarget.style.color = "#94a3b8";
-                                                }}
-                                            >
-                                                <span style={{ fontSize: 13 }}>🔒</span>
-                                                {demo.title}
-                                            </button>
-                                        );
-                                    }
                                     return (
                                         <Link
                                             key={slug}
@@ -422,27 +379,11 @@ function Home() {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
-    // Password protection
-    const [unlockedSlugs, setUnlockedSlugs] = useState<Set<string>>(new Set());
-    const [passwordModal, setPasswordModal] = useState<{ slug: string; input: string; error: boolean } | null>(null);
 
     const toggleCategory = (id: string) => {
         setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
     };
 
-    const handleClickLocked = (slug: string) => {
-        setPasswordModal({ slug, input: "", error: false });
-    };
-
-    const handlePasswordSubmit = () => {
-        if (!passwordModal) return;
-        if (passwordModal.input === VERIFICA_PASSWORD) {
-            setUnlockedSlugs(prev => new Set([...prev, passwordModal.slug]));
-            setPasswordModal(null);
-        } else {
-            setPasswordModal(m => m ? { ...m, error: true, input: "" } : null);
-        }
-    };
 
     const totalDemos = demos.length;
     const totalTests = tests.length;
@@ -681,86 +622,6 @@ function Home() {
                     </button>
                 </div>
 
-                {/* Modale password */}
-                {passwordModal && (
-                    <div style={{
-                        position: "fixed", inset: 0,
-                        background: "rgba(0,0,0,0.45)",
-                        zIndex: 1000,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                    }}
-                        onClick={() => setPasswordModal(null)}
-                    >
-                        <div style={{
-                            background: "#fff",
-                            borderRadius: 16,
-                            padding: "32px 36px",
-                            maxWidth: 360,
-                            width: "90%",
-                            boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
-                        }}
-                            onClick={e => e.stopPropagation()}
-                        >
-                            <div style={{ fontSize: 32, textAlign: "center", marginBottom: 12 }}>🔒</div>
-                            <div style={{ fontSize: 17, fontWeight: 700, textAlign: "center", marginBottom: 6, color: "#0f172a" }}>
-                                Contenuto protetto
-                            </div>
-                            <div style={{ fontSize: 13, textAlign: "center", color: "#64748b", marginBottom: 20 }}>
-                                Inserisci il codice per accedere
-                            </div>
-                            <input
-                                type="password"
-                                autoFocus
-                                placeholder="Codice..."
-                                value={passwordModal.input}
-                                onChange={e => setPasswordModal(m => m ? { ...m, input: e.target.value, error: false } : null)}
-                                onKeyDown={e => { if (e.key === "Enter") handlePasswordSubmit(); }}
-                                style={{
-                                    width: "100%",
-                                    padding: "12px 14px",
-                                    borderRadius: 8,
-                                    border: passwordModal.error ? "2px solid #ef4444" : "2px solid #e2e8f0",
-                                    fontSize: 18,
-                                    textAlign: "center",
-                                    letterSpacing: 6,
-                                    outline: "none",
-                                    boxSizing: "border-box",
-                                    marginBottom: 6,
-                                }}
-                            />
-                            {passwordModal.error && (
-                                <div style={{ color: "#ef4444", fontSize: 13, textAlign: "center", marginBottom: 8 }}>
-                                    Codice errato. Riprova.
-                                </div>
-                            )}
-                            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-                                <button
-                                    onClick={() => setPasswordModal(null)}
-                                    style={{
-                                        flex: 1, padding: "10px 0", borderRadius: 8,
-                                        border: "1px solid #e2e8f0", background: "#f8fafc",
-                                        color: "#475569", fontSize: 14, cursor: "pointer",
-                                    }}
-                                >
-                                    Annulla
-                                </button>
-                                <button
-                                    onClick={handlePasswordSubmit}
-                                    style={{
-                                        flex: 1, padding: "10px 0", borderRadius: 8,
-                                        border: "none", background: "#1e40af",
-                                        color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer",
-                                    }}
-                                >
-                                    Sblocca
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
                 {/* Categorie */}
                 {categories.map((category) => {
                     // Filtra le sottocategorie che hanno almeno una demo visibile
@@ -784,8 +645,6 @@ function Home() {
                             category={{ ...category, subcategories: filteredSubcategories }}
                             expanded={expanded[category.id] || isFiltering}
                             onToggle={() => toggleCategory(category.id)}
-                            unlockedSlugs={unlockedSlugs}
-                            onClickLocked={handleClickLocked}
                         />
                     );
                 })}
