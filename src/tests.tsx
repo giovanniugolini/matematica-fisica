@@ -73,6 +73,18 @@ export const tests: TestInfo[] = [
         type: "verifica",
     },
     {
+        slug: "verifica-goniometria-2-fila-a",
+        title: "Verifica: Equazioni Goniometriche – Fila A",
+        Component: React.lazy(() => import("./demos/quiz/VerificaGoniometria2FilaA")),
+        type: "verifica",
+    },
+    {
+        slug: "verifica-goniometria-2-fila-b",
+        title: "Verifica: Equazioni Goniometriche – Fila B",
+        Component: React.lazy(() => import("./demos/quiz/VerificaGoniometria2FilaB")),
+        type: "verifica",
+    },
+    {
         slug: "battaglia-piano-cartesiano",
         title: "Battaglia di Problemi: Piano Cartesiano",
         Component: React.lazy(() => import("./demos/quiz/BattagliaProblemiDemo")),

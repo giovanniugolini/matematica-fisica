@@ -311,6 +311,18 @@ export const demos: DemoInfo[] = [
         tags: ["verifica", "goniometria", "equazioni", "matematica", "test", "seno", "coseno", "tangente", "4M"],
     },
     {
+        slug: "verifica-goniometria-2-fila-a",
+        title: "Verifica: Equazioni Goniometriche – Fila A",
+        Component: React.lazy(() => import("./demos/quiz/VerificaGoniometria2FilaA")),
+        tags: ["verifica", "goniometria", "equazioni", "matematica", "test", "seno", "coseno", "tangente", "4M", "fila A"],
+    },
+    {
+        slug: "verifica-goniometria-2-fila-b",
+        title: "Verifica: Equazioni Goniometriche – Fila B",
+        Component: React.lazy(() => import("./demos/quiz/VerificaGoniometria2FilaB")),
+        tags: ["verifica", "goniometria", "equazioni", "matematica", "test", "seno", "coseno", "tangente", "4M", "fila B"],
+    },
+    {
         slug: "battaglia-piano-cartesiano",
         title: "Battaglia di Problemi: Piano Cartesiano",
         Component: React.lazy(() => import("./demos/quiz/BattagliaProblemiDemo")),
