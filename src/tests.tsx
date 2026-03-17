@@ -79,6 +79,12 @@ export const tests: TestInfo[] = [
         type: "verifica",
     },
     {
+        slug: "verifica-piano-cartesiano-1",
+        title: "Verifica: Piano Cartesiano e Retta",
+        Component: React.lazy(() => import("./demos/quiz/VerificaPianoCartesiano1")),
+        type: "verifica",
+    },
+    {
         slug: "battaglia-piano-cartesiano",
         title: "Battaglia di Problemi: Piano Cartesiano",
         Component: React.lazy(() => import("./demos/quiz/BattagliaProblemiDemo")),

@@ -190,6 +190,13 @@ const categories: Category[] = [
                 ],
             },
             {
+                id: "quiz-geometria-cartesiana",
+                name: "Geometria Cartesiana",
+                slugs: [
+                    "verifica-piano-cartesiano-1",
+                ],
+            },
+            {
                 id: "giochi",
                 name: "Giochi",
                 slugs: [
