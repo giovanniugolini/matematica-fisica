@@ -287,6 +287,12 @@ export const demos: DemoInfo[] = [
         tags: ["geometria", "parabola", "fuoco", "direttrice", "vertice", "analisi", "funzioni"],
     },
     {
+        slug: "retta-e-parabola",
+        title: "La Retta e la Parabola: posizione reciproca e tangente (step by step)",
+        Component: React.lazy(() => import("./demos/geometria-analitica/RettaParabolaDemo")),
+        tags: ["geometria", "retta", "parabola", "delta", "secante", "tangente", "esterna", "step-by-step"],
+    },
+    {
         slug: "asintoti",
         title: "Asintoti: orizzontali, verticali e obliqui",
         Component: React.lazy(() => import("./demos/funzioni/AsintotiDemo")),

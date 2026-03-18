@@ -86,6 +86,7 @@ const categories: Category[] = [
                     "distanza-punto-medio",
                     "equazione-retta",
                     "parabola",
+                    "retta-e-parabola",
                 ],
             },
         ],
