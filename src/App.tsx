@@ -125,7 +125,8 @@ const categories: Category[] = [
                     "legge-di-coulomb",
                     "condensatore",
                     "legge-hom",
-                    "seconda-legge-ohm"
+                    "seconda-legge-ohm",
+                    "resistenze-serie-parallelo"
                 ],
             },
             {

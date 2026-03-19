@@ -239,6 +239,12 @@ export const demos: DemoInfo[] = [
         tags: ["elettromagnetismo", "ohm", "resistenza", "resistività", "conduttore", "sezione", "lunghezza", "fisica"],
     },
     {
+        slug: "resistenze-serie-parallelo",
+        title: "Resistenze in Serie e in Parallelo (laboratorio)",
+        Component: React.lazy(() => import("./demos/elettromagnetismo/ResistenzeSerieParalleloDemo")),
+        tags: ["elettromagnetismo", "resistenza", "serie", "parallelo", "circuiti", "ohm", "laboratorio", "fisica"],
+    },
+    {
         slug: "sistemi-secondo-grado",
         title: "Sistemi di Secondo grado (step by step)",
         Component: React.lazy(() => import("./demos/equazioni/SistemiSecondoGrado.tsx")),
