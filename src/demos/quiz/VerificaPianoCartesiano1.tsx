@@ -736,9 +736,10 @@ export default function VerificaPianoCartesiano1(): React.ReactElement {
 
                                 <div style={S.solDomanda}>
                                     <span style={S.solLabel}>b) Equazione della retta per A(1,1) con m = 2</span>
-                                    <p style={S.solText}>Si usa la formula <L s="$y - y_1 = m(x - x_1)$" />:</p>
+                                    <p style={S.solText}>Si usa la forma <L s="$y = mx + q$" /> con <L s="$m = 2$" />. Si sostituiscono le coordinate di <L s="$A(1,\,1)$" /> per trovare <L s="$q$" />:</p>
                                     <div style={S.solStep}>
-                                        <DisplayMath>{"y - 1 = 2(x - 1) \\quad\\Rightarrow\\quad y = 2x - 2 + 1 \\quad\\Rightarrow\\quad \\boxed{y = 2x - 1}"}</DisplayMath>
+                                        <DisplayMath>{"1 = 2 \\cdot 1 + q \\quad\\Rightarrow\\quad q = 1 - 2 = -1"}</DisplayMath>
+                                        <DisplayMath>{"\\boxed{y = 2x - 1}"}</DisplayMath>
                                     </div>
                                 </div>
 
