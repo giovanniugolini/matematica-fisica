@@ -134,8 +134,8 @@ function Toolbox({ selected, onSelect, isMobile }: {
             padding: "10px 14px", display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap",
         }}>
             <span style={{ fontSize: 12, fontWeight: 700, color: "#64748b" }}>🔧 Strumenti:</span>
-            {btn("ammeter", "Amperometro (in serie)", "A", AM_COLOR)}
-            {btn("voltmeter", "Voltmetro (in parallelo)", "V", VM_COLOR)}
+            {btn("ammeter", "Amperometro", "A", AM_COLOR)}
+            {btn("voltmeter", "Voltmetro", "V", VM_COLOR)}
             {selected && (
                 <span style={{ fontSize: 12, color: "#f59e0b", fontWeight: 600 }}>
                     ↓ Clicca uno slot nel circuito
