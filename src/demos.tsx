@@ -113,6 +113,12 @@ export const demos: DemoInfo[] = [
         tags: ["funzioni", "dominio", "analisi", "step-by-step"],
     },
     {
+        slug: "funzione-esponenziale",
+        title: "La funzione esponenziale y = aˣ",
+        Component: React.lazy(() => import("./demos/funzioni/FunzioneEsponenzialeDemo")),
+        tags: ["funzioni", "esponenziale", "crescita", "decadimento", "analisi", "base"],
+    },
+    {
         slug: "disequazioni-secondo-grado",
         title: "Disequazioni di secondo grado (step-by-step)",
         Component: React.lazy(() => import("./demos/disequazioni/DisequazioniSecondoGradoDemo")),
@@ -153,6 +159,12 @@ export const demos: DemoInfo[] = [
         title: "Caduta Libera",
         Component: React.lazy(() => import("./demos/cinematica/CadutaLiberaDemo")),
         tags: ["cinematica", "caduta", "gravità", "fisica"],
+    },
+    {
+        slug: "grafico-funzioni-goniometriche",
+        title: "Grafico delle funzioni goniometriche",
+        Component: React.lazy(() => import("./demos/goniometria/GraficoFunzioniGoniometricheDemo")),
+        tags: ["goniometria", "sin", "cos", "tan", "grafici", "cerchio unitario", "funzioni"],
     },
     {
         slug: "archi-associati",

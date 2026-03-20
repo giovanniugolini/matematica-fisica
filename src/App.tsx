@@ -46,6 +46,7 @@ const categories: Category[] = [
                 slugs: [
                     "intervalli-r",
                     "domini-funzioni",
+                    "funzione-esponenziale",
                     "limite-finito-finito",
                     "limite-infinito-finito",
                     "limite-finito-infinito",
@@ -68,6 +69,7 @@ const categories: Category[] = [
                 name: "Goniometria",
                 slugs: [
                     "angolo-rotazione",
+                    "grafico-funzioni-goniometriche",
                     "archi-associati",
                     "equazioni-goniometriche"
                 ],
