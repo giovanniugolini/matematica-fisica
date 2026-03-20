@@ -287,6 +287,24 @@ export const demos: DemoInfo[] = [
         tags: ["forze", "vettori", "dinamica", "newton", "fisica"],
     },
     {
+        slug: "forza-peso",
+        title: "Forza Peso (P = mg)",
+        Component: React.lazy(() => import("./demos/vettori-piano/ForzaPesoDemo")),
+        tags: ["forze", "peso", "massa", "gravità", "pianeti", "newton", "fisica"],
+    },
+    {
+        slug: "forza-elastica",
+        title: "Forza Elastica — Legge di Hooke",
+        Component: React.lazy(() => import("./demos/vettori-piano/ForzaElasticaDemo")),
+        tags: ["forze", "elastica", "hooke", "molla", "costante elastica", "fisica"],
+    },
+    {
+        slug: "forza-attrito",
+        title: "Forza d'Attrito (statico e dinamico)",
+        Component: React.lazy(() => import("./demos/vettori-piano/ForzaAttritoDemo")),
+        tags: ["forze", "attrito", "statico", "dinamico", "coefficiente", "fisica"],
+    },
+    {
         slug: "distanza-punto-medio",
         title: "Distanza tra due punti e Punto Medio",
         Component: React.lazy(() => import("./demos/geometria-analitica/DistanzaPuntoMedioDemo.tsx")),

@@ -105,7 +105,10 @@ const categories: Category[] = [
                     "vettori-punta-coda",
                     "vettore-per-escalare",
                     "componenti-cartesiane-vettore",
-                    "forze"
+                    "forze",
+                    "forza-peso",
+                    "forza-elastica",
+                    "forza-attrito",
                 ]
             },
             {
