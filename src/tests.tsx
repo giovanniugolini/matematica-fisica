@@ -85,6 +85,12 @@ export const tests: TestInfo[] = [
         type: "verifica",
     },
     {
+        slug: "verifica-parabola-1",
+        title: "Verifica: Parabola e Sistemi di 2° grado",
+        Component: React.lazy(() => import("./demos/quiz/VerificaParabola1")),
+        type: "verifica",
+    },
+    {
         slug: "battaglia-piano-cartesiano",
         title: "Battaglia di Problemi: Piano Cartesiano",
         Component: React.lazy(() => import("./demos/quiz/BattagliaProblemiDemo")),
