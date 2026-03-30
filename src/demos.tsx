@@ -119,6 +119,12 @@ export const demos: DemoInfo[] = [
         tags: ["funzioni", "dominio", "analisi", "step-by-step"],
     },
     {
+        slug: "funzione-esponenziale",
+        title: "La funzione esponenziale y = aˣ",
+        Component: React.lazy(() => import("./demos/funzioni/FunzioneEsponenzialeDemo")),
+        tags: ["funzioni", "esponenziale", "crescita", "decadimento", "analisi", "base"],
+    },
+    {
         slug: "disequazioni-secondo-grado",
         title: "Disequazioni di secondo grado (step-by-step)",
         Component: React.lazy(() => import("./demos/disequazioni/DisequazioniSecondoGradoDemo")),
@@ -159,6 +165,12 @@ export const demos: DemoInfo[] = [
         title: "Caduta Libera",
         Component: React.lazy(() => import("./demos/cinematica/CadutaLiberaDemo")),
         tags: ["cinematica", "caduta", "gravità", "fisica"],
+    },
+    {
+        slug: "grafico-funzioni-goniometriche",
+        title: "Grafico delle funzioni goniometriche",
+        Component: React.lazy(() => import("./demos/goniometria/GraficoFunzioniGoniometricheDemo")),
+        tags: ["goniometria", "sin", "cos", "tan", "grafici", "cerchio unitario", "funzioni"],
     },
     {
         slug: "archi-associati",
@@ -281,6 +293,24 @@ export const demos: DemoInfo[] = [
         tags: ["forze", "vettori", "dinamica", "newton", "fisica"],
     },
     {
+        slug: "forza-peso",
+        title: "Forza Peso (P = mg)",
+        Component: React.lazy(() => import("./demos/vettori-piano/ForzaPesoDemo")),
+        tags: ["forze", "peso", "massa", "gravità", "pianeti", "newton", "fisica"],
+    },
+    {
+        slug: "forza-elastica",
+        title: "Forza Elastica — Legge di Hooke",
+        Component: React.lazy(() => import("./demos/vettori-piano/ForzaElasticaDemo")),
+        tags: ["forze", "elastica", "hooke", "molla", "costante elastica", "fisica"],
+    },
+    {
+        slug: "forza-attrito",
+        title: "Forza d'Attrito (statico e dinamico)",
+        Component: React.lazy(() => import("./demos/vettori-piano/ForzaAttritoDemo")),
+        tags: ["forze", "attrito", "statico", "dinamico", "coefficiente", "fisica"],
+    },
+    {
         slug: "distanza-punto-medio",
         title: "Distanza tra due punti e Punto Medio",
         Component: React.lazy(() => import("./demos/geometria-analitica/DistanzaPuntoMedioDemo.tsx")),
@@ -345,6 +375,12 @@ export const demos: DemoInfo[] = [
         title: "Verifica: Piano Cartesiano e Retta",
         Component: React.lazy(() => import("./demos/quiz/VerificaPianoCartesiano1")),
         tags: ["verifica", "piano cartesiano", "retta", "distanza", "punto medio", "matematica", "test", "2B"],
+    },
+    {
+        slug: "verifica-parabola-1",
+        title: "Verifica: Parabola e Sistemi di 2° grado",
+        Component: React.lazy(() => import("./demos/quiz/VerificaParabola1")),
+        tags: ["verifica", "parabola", "sistemi", "secondo grado", "matematica", "test", "3F"],
     },
     {
         slug: "battaglia-piano-cartesiano",

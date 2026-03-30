@@ -46,6 +46,7 @@ const categories: Category[] = [
                 slugs: [
                     "intervalli-r",
                     "domini-funzioni",
+                    "funzione-esponenziale",
                     "limite-finito-finito",
                     "limite-infinito-finito",
                     "limite-finito-infinito",
@@ -69,6 +70,7 @@ const categories: Category[] = [
                 name: "Goniometria",
                 slugs: [
                     "angolo-rotazione",
+                    "grafico-funzioni-goniometriche",
                     "archi-associati",
                     "equazioni-goniometriche"
                 ],
@@ -104,7 +106,10 @@ const categories: Category[] = [
                     "vettori-punta-coda",
                     "vettore-per-escalare",
                     "componenti-cartesiane-vettore",
-                    "forze"
+                    "forze",
+                    "forza-peso",
+                    "forza-elastica",
+                    "forza-attrito",
                 ]
             },
             {
@@ -166,6 +171,7 @@ const categories: Category[] = [
                 slugs: [
                     "quiz-algebra",
                     "verifica-algebra-1",
+                    "verifica-parabola-1",
                 ],
             },
             {
@@ -218,6 +224,7 @@ const demoBySlug = new Map(demos.map((d) => [d.slug, d]));
 
 // Demo nuove (mostrano tag NEW)
 const newDemoSlugs = new Set([
+    "verifica-parabola-1",
     "gioco-inversione-formule",
     "segno-di-un-prodotto",
     "quiz-algebra",
