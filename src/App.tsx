@@ -53,6 +53,7 @@ const categories: Category[] = [
                     "funzioni-continue",
                     "proprieta-funzioni-continue",
                     "asintoti",
+                    "derivata",
                 ],
             },
             {
@@ -175,6 +176,7 @@ const categories: Category[] = [
                     "quiz-forza-peso",
                     "quiz-forza-elastica",
                     "verifica-fisica-vettori-1",
+                    "verifica-fisica-forze-2",
                 ],
             },
             {
@@ -237,8 +239,10 @@ const newDemoSlugs = new Set([
     "quiz-forza-elastica",
     "escape-room",
     "verifica-fisica-vettori-1",
+    "verifica-fisica-forze-2",
     "battaglia-piano-cartesiano",
     "verifica-goniometria-1",
+    "derivata",
 ]);
 
 // ============ COMPONENTI ============

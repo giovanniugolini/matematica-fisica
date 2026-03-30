@@ -35,6 +35,12 @@ export const demos: DemoInfo[] = [
         tags: ["cinematica", "velocità", "secante", "derivata", "fisica"],
     },
     {
+        slug: "derivata",
+        title: "La derivata: limite del rapporto incrementale",
+        Component: React.lazy(() => import("./demos/derivata/DerivataDemo")),
+        tags: ["derivata", "rapporto incrementale", "limite", "tangente", "secante", "velocità istantanea", "analisi", "fisica"],
+    },
+    {
         slug: "legge-di-coulomb",
         title: "Legge di Coulomb (2 cariche)",
         Component: React.lazy(() => import("./demos/legge-coulomb/LeggeCoulombDemo")),
@@ -315,6 +321,12 @@ export const demos: DemoInfo[] = [
         title: "Verifica: Vettori e Forze",
         Component: React.lazy(() => import("./demos/quiz/VerificaFisicaVettori1")),
         tags: ["verifica", "vettori", "forze", "fisica", "test"],
+    },
+    {
+        slug: "verifica-fisica-forze-2",
+        title: "Verifica: Forze e Vettori — 3E (Fila A/B)",
+        Component: React.lazy(() => import("./demos/quiz/VerificaFisicaForze2")),
+        tags: ["verifica", "forze", "vettori", "fisica", "test", "3E", "fila"],
     },
     {
         slug: "verifica-goniometria-1",

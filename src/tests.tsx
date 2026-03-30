@@ -67,6 +67,12 @@ export const tests: TestInfo[] = [
         type: "verifica",
     },
     {
+        slug: "verifica-fisica-forze-2",
+        title: "Verifica: Forze e Vettori — 3E (Fila A/B)",
+        Component: React.lazy(() => import("./demos/quiz/VerificaFisicaForze2")),
+        type: "verifica",
+    },
+    {
         slug: "verifica-goniometria-1",
         title: "Verifica: Equazioni Goniometriche",
         Component: React.lazy(() => import("./demos/quiz/VerificaGoniometria1")),
