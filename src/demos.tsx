@@ -383,6 +383,12 @@ export const demos: DemoInfo[] = [
         tags: ["verifica", "parabola", "sistemi", "secondo grado", "matematica", "test", "3F"],
     },
     {
+        slug: "verifica-parabola-sistemi-3f",
+        title: "Verifica: Parabola e Sistemi — 3F (Fila A/B)",
+        Component: React.lazy(() => import("./demos/quiz/VerificaParabolaSistemi3F")),
+        tags: ["verifica", "parabola", "sistemi", "secondo grado", "matematica", "test", "3F", "31 marzo 2026"],
+    },
+    {
         slug: "battaglia-piano-cartesiano",
         title: "Battaglia di Problemi: Piano Cartesiano",
         Component: React.lazy(() => import("./demos/quiz/BattagliaProblemiDemo")),

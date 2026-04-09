@@ -172,6 +172,8 @@ const categories: Category[] = [
                     "quiz-algebra",
                     "verifica-algebra-1",
                     "verifica-parabola-1",
+                    "verifica-parabola-sistemi-3f",
+
                 ],
             },
             {
