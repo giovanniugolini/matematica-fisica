@@ -131,6 +131,12 @@ export const demos: DemoInfo[] = [
         tags: ["disequazioni", "secondo grado", "parabola", "algebra", "step-by-step"],
     },
     {
+        slug: "sistemi-primo-grado-sostituzione",
+        title: "Sistemi lineari – Metodo di sostituzione (step-by-step)",
+        Component: React.lazy(() => import("./demos/equazioni/SistemiPrimoGradoSostituzione")),
+        tags: ["sistemi", "equazioni", "primo grado", "sostituzione", "algebra", "step-by-step"],
+    },
+    {
         slug: "equazioni-secondo-grado",
         title: "Equazioni di secondo grado (step-by-step)",
         Component: React.lazy(() => import("./demos/equazioni/EquazioniSecondoGrado")),

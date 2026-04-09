@@ -36,8 +36,8 @@ const categories: Category[] = [
                     "sistemi-disequazioni",
                     "disequazioni-soluzioni",
                     "segno-di-un-prodotto",
-                    "sistemi-secondo-grado"
-
+                    "sistemi-primo-grado-sostituzione",
+                    "sistemi-secondo-grado",
                 ],
             },
             {
@@ -252,6 +252,7 @@ const newDemoSlugs = new Set([
     "battaglia-piano-cartesiano",
     "verifica-goniometria-1",
     "derivata",
+    "sistemi-primo-grado-sostituzione",
 ]);
 
 // ============ COMPONENTI ============
