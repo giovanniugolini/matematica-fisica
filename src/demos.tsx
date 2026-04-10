@@ -365,6 +365,12 @@ export const demos: DemoInfo[] = [
         tags: ["verifica", "forze", "vettori", "fisica", "test", "3E", "fila"],
     },
     {
+        slug: "verifica-fisica-forze-3f",
+        title: "Verifica: Forze elastiche e Vettori — 3F (Fila A/B)",
+        Component: React.lazy(() => import("./demos/quiz/VerificaFisicaForze3F")),
+        tags: ["verifica", "forze", "elastica", "hooke", "vettori", "fisica", "test", "3F", "fila"],
+    },
+    {
         slug: "verifica-goniometria-1",
         title: "Verifica: Equazioni Goniometriche",
         Component: React.lazy(() => import("./demos/quiz/VerificaGoniometria1")),
