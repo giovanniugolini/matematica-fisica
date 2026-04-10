@@ -31,7 +31,7 @@ import {
 
 // ============ HELPERS LATEX ============
 
-/** Monoio a*v: gestisce 0, 1, -1 */
+/** Monomio a*v: gestisce 0, 1, -1 */
 function mono(c: number, v: string): string {
     if (c === 0) return "0";
     if (c === 1) return v;
@@ -39,7 +39,7 @@ function mono(c: number, v: string): string {
     return `${c}${v}`;
 }
 
-/** Termine con segno esplicito, da usare dopo il primo termine (es. + 3x o - 2x) */
+/** Termine con segno esplicito (dopo il primo termine) */
 function signedMono(c: number, v: string): string {
     if (c === 0) return "";
     if (c > 0) return `+ ${c === 1 ? v : `${c}${v}`}`;
@@ -51,7 +51,7 @@ function signedMono(c: number, v: string): string {
 function signedConst(n: number): string {
     if (n === 0) return "";
     if (n > 0) return `+ ${n}`;
-    return `${n}`; // già negativo
+    return `${n}`;
 }
 
 /** LHS lineare: a*x + b*y */
@@ -66,22 +66,14 @@ function linLHS(a: number, b: number): string {
     return s || "0";
 }
 
-/** Espressione lineare in x: a*x + k */
-function linX(a: number, k: number): string {
-    let s = a !== 0 ? mono(a, "x") : "";
+/** Espressione lineare a*v + k (v = variabile qualsiasi) */
+function varExpr(a: number, v: string, k: number): string {
+    let s = a !== 0 ? mono(a, v) : "";
     if (k !== 0) {
         if (s === "" || s === "0") s = `${k}`;
         else s += ` ${signedConst(k)}`;
     }
     return s || "0";
-}
-
-/** Formato compatto b*(expr) dove expr è già in LaTeX */
-function timesParen(b: number, expr: string): string {
-    if (b === 1) return `(${expr})`;
-    if (b === -1) return `-(${expr})`;
-    if (b > 0) return `${b}(${expr})`;
-    return `${b}(${expr})`; // negativo
 }
 
 // ============ TIPI ============
@@ -93,10 +85,30 @@ interface SystemDef {
     a2: number; b2: number; c2: number;
     nature: Nature;
     x0?: number; y0?: number;
-    // y isolata da eq1: y = yA*x + yC
-    yA: number; yC: number;
-    // equazione risolvente dopo sostituzione: rCoeff*x = rRHS
+    // Scelta di isolamento: V = isolateVar, W = altra variabile
+    isolateFrom: 1 | 2;
+    isolateVar: "x" | "y";
+    // V = exprA * W + exprC
+    exprA: number; exprC: number;
+    // equazione risolvente: rCoeff * W = rRHS
     rCoeff: number; rRHS: number;
+}
+
+// ============ HELPER: scelta migliore della variabile da isolare ============
+
+function chooseBestIsolation(
+    a1: number, b1: number, a2: number, b2: number
+): { from: 1 | 2; var: "x" | "y" } {
+    const candidates: { from: 1 | 2; var: "x" | "y"; coeff: number }[] = [
+        { from: 1, var: "x", coeff: a1 },
+        { from: 1, var: "y", coeff: b1 },
+        { from: 2, var: "x", coeff: a2 },
+        { from: 2, var: "y", coeff: b2 },
+    ];
+    // Preferisci |coeff| = 1 (nessuna frazione)
+    const unit = candidates.filter(c => Math.abs(c.coeff) === 1);
+    const pool = unit.length > 0 ? unit : candidates.sort((a, b) => Math.abs(a.coeff) - Math.abs(b.coeff)).slice(0, 1);
+    return pool[Math.floor(Math.random() * pool.length)];
 }
 
 // ============ GENERATORE ============
@@ -111,50 +123,80 @@ function generateSystem(): SystemDef {
     let a2: number, b2: number, c2: number;
     let x0: number | undefined, y0: number | undefined;
 
-    // b1 sempre ±1 → isolamento di y senza frazioni
-    b1 = randomChoice([1, -1]);
-    a1 = randomNonZero(-3, 3);
-
     if (nature === "unique") {
-        x0 = randomInt(-4, 4);
-        y0 = randomInt(-4, 4);
-        c1 = a1 * x0 + b1 * y0;
-
-        let attempts = 0;
+        // Genera coefficienti con almeno un ±1 (per isolamento pulito)
+        let attempt = 0;
         do {
+            a1 = randomNonZero(-3, 3);
+            b1 = randomNonZero(-3, 3);
             a2 = randomNonZero(-3, 3);
             b2 = randomNonZero(-3, 3);
-            attempts++;
-        } while (a1 * b2 - a2 * b1 === 0 && attempts < 50);
+            // Forza almeno un ±1 in posizione casuale
+            const pos = randomInt(0, 3);
+            const val = randomChoice<number>([1, -1]);
+            if (pos === 0) a1 = val; else if (pos === 1) b1 = val;
+            else if (pos === 2) a2 = val; else b2 = val;
+            attempt++;
+        } while (a1! * b2! - a2! * b1! === 0 && attempt < 100);
 
-        c2 = a2 * x0 + b2 * y0;
-    } else if (nature === "impossible") {
-        const k = randomChoice([2, -2, 3]);
-        x0 = randomInt(-3, 3); y0 = randomInt(-3, 3);
-        c1 = a1 * x0 + b1 * y0;
-        a2 = k * a1; b2 = k * b1;
-        c2 = k * c1 + randomChoice([1, -1, 2, -2]);
-        x0 = undefined; y0 = undefined;
+        x0 = randomInt(-4, 4);
+        y0 = randomInt(-4, 4);
+        c1 = a1! * x0 + b1! * y0;
+        c2 = a2! * x0 + b2! * y0;
     } else {
-        // indeterminate
-        const k = randomChoice([2, -2, 3]);
-        x0 = randomInt(-3, 3); y0 = randomInt(-3, 3);
-        c1 = a1 * x0 + b1 * y0;
-        a2 = k * a1; b2 = k * b1; c2 = k * c1;
-        x0 = undefined; y0 = undefined;
+        // impossible/indeterminate: b1=±1, eq2 proporzionale a eq1
+        b1 = randomChoice<number>([1, -1]);
+        a1 = randomNonZero(-3, 3);
+        const k = randomChoice<number>([2, -2, 3]);
+        a2 = k * a1; b2 = k * b1;
+        const tx = randomInt(-3, 3), ty = randomInt(-3, 3);
+        c1 = a1 * tx + b1 * ty;
+        c2 = nature === "impossible"
+            ? k * c1 + randomChoice<number>([1, -1, 2, -2])
+            : k * c1;
     }
 
-    // Isolamento y da eq1: b1*y = c1 - a1*x
-    // Con b1=±1: y = b1*(c1 - a1*x) = b1*c1 - b1*a1*x
-    const yA = -b1 * a1; // coeff di x nell'espressione di y
-    const yC = b1 * c1;  // termine costante
+    const _a1 = a1!, _b1 = b1!, _c1 = c1!;
+    const _a2 = a2!, _b2 = b2!, _c2 = c2!;
 
-    // Sostituzione in eq2: a2*x + b2*(yA*x + yC) = c2
-    // => (a2 + b2*yA)*x = c2 - b2*yC
-    const rCoeff = a2! + b2! * yA;
-    const rRHS = c2! - b2! * yC;
+    // Scegli la variabile e l'equazione migliore da cui isolare
+    const choice = chooseBestIsolation(_a1, _b1, _a2, _b2);
+    const isolateFrom = choice.from;
+    const isolateVar  = choice.var;
 
-    return { a1, b1, c1, a2: a2!, b2: b2!, c2: c2!, nature, x0, y0, yA, yC, rCoeff, rRHS };
+    // Coefficienti dell'equazione da cui si isola
+    // cv = coeff di V, cw = coeff di W (altra var), c = rhs
+    const cv = isolateFrom === 1
+        ? (isolateVar === "x" ? _a1 : _b1)
+        : (isolateVar === "x" ? _a2 : _b2);
+    const cw = isolateFrom === 1
+        ? (isolateVar === "x" ? _b1 : _a1)
+        : (isolateVar === "x" ? _b2 : _a2);
+    const c  = isolateFrom === 1 ? _c1 : _c2;
+
+    // Con |cv| = 1: V = cv*(c - cw*W) = cv*c - cv*cw*W
+    const exprA = -cv * cw; // coeff di W
+    const exprC =  cv * c;  // termine noto
+
+    // Coefficienti dell'equazione *altra* (quella in cui si sostituisce)
+    const cv2 = isolateFrom === 1
+        ? (isolateVar === "x" ? _a2 : _b2)
+        : (isolateVar === "x" ? _a1 : _b1);
+    const cw2 = isolateFrom === 1
+        ? (isolateVar === "x" ? _b2 : _a2)
+        : (isolateVar === "x" ? _b1 : _a1);
+    const c2_ = isolateFrom === 1 ? _c2 : _c1;
+
+    // Dopo sostituzione: (cv2*exprA + cw2)*W = c2_ - cv2*exprC
+    const rCoeff = cv2 * exprA + cw2;
+    const rRHS   = c2_ - cv2 * exprC;
+
+    return {
+        a1: _a1, b1: _b1, c1: _c1,
+        a2: _a2, b2: _b2, c2: _c2,
+        nature, x0, y0,
+        isolateFrom, isolateVar, exprA, exprC, rCoeff, rRHS,
+    };
 }
 
 // ============ COMPONENTE PRINCIPALE ============
@@ -173,100 +215,116 @@ export default function SistemiPrimoGradoSostituzioneDemo() {
 
     // ---- LaTeX computati ----
     const latex = useMemo(() => {
-        const { a1, b1, c1, a2, b2, c2, nature, yA, yC, rCoeff, rRHS } = sys;
+        const { a1, b1, c1, a2, b2, c2, nature, isolateFrom, isolateVar, exprA, exprC, rCoeff, rRHS } = sys;
+
+        const V = isolateVar;               // variabile isolata
+        const W = V === "x" ? "y" : "x";   // altra variabile
 
         const eq1orig = `${linLHS(a1, b1)} = ${c1}`;
         const eq2orig = `${linLHS(a2, b2)} = ${c2}`;
-        const yExpr  = linX(yA, yC);
 
-        // ── sistemi aggiornati ad ogni step ──────────────────────────────
+        // Espressione di V in funzione di W: V = exprA*W + exprC
+        const vExpr = varExpr(exprA, W, exprC);
+        const isolatedLine = `${V} = ${vExpr}`;
 
-        // Step 1 – sistema originale
+        // ── sistemi aggiornati ad ogni step ────────────────────────────────
+
+        // Step 1 – originale
         const sys1 = `\\begin{cases} ${eq1orig} \\\\ ${eq2orig} \\end{cases}`;
 
-        // Step 2 – isoliamo y dalla (1): eq1 → y = expr, eq2 invariata
-        const sys2 = `\\begin{cases} y = ${yExpr} \\\\ ${eq2orig} \\end{cases}`;
+        // Step 2 – V isolata dalla eq "isolateFrom"; altra eq invariata
+        const sys2 = isolateFrom === 1
+            ? `\\begin{cases} ${isolatedLine} \\\\ ${eq2orig} \\end{cases}`
+            : `\\begin{cases} ${eq1orig} \\\\ ${isolatedLine} \\end{cases}`;
 
-        // Step 3 – sostituiamo y nella (2)
-        const xPart = a2 !== 0 ? mono(a2, "x") : "";
-        const bAbs = Math.abs(b2);
-        const bSign = b2 > 0 ? "+" : "-";
-        const bCoef = bAbs === 1 ? "" : `${bAbs}`;
-        const substEq2 = xPart
-            ? `${xPart} ${bSign} ${bCoef}(${yExpr}) = ${c2}`
-            : `${bSign === "-" ? "-" : ""}${bCoef}(${yExpr}) = ${c2}`;
-        const sys3 = `\\begin{cases} y = ${yExpr} \\\\ ${substEq2} \\end{cases}`;
+        // Coefficienti dell'equazione in cui si sostituisce (quella "altra")
+        const cv2 = isolateFrom === 1 ? (V === "x" ? a2 : b2) : (V === "x" ? a1 : b1);
+        const cw2 = isolateFrom === 1 ? (V === "x" ? b2 : a2) : (V === "x" ? b1 : a1);
+        const c2_ = isolateFrom === 1 ? c2 : c1;
+        const otherOrig = isolateFrom === 1 ? eq2orig : eq1orig;
 
-        // Step 4 – risolviamo la (2) per x
-        let eq2step4: string;
-        let sys4: string;
-        if (rCoeff === 0) {
-            eq2step4 = `0 = ${rRHS}`;
-            sys4 = `\\begin{cases} y = ${yExpr} \\\\ 0 = ${rRHS} \\end{cases}`;
-        } else {
-            const xFmt = formatNumberLatex(rRHS / rCoeff);
-            eq2step4 = `x = ${xFmt}`;
-            sys4 = `\\begin{cases} y = ${yExpr} \\\\ x = ${xFmt} \\end{cases}`;
-        }
+        // Equazione con V sostituito: cv2*(vExpr) + cw2*W = c2_
+        const vParen = Math.abs(cv2) === 1
+            ? (cv2 === 1 ? `(${vExpr})` : `-(${vExpr})`)
+            : `${cv2}(${vExpr})`;
+        const substEq = cw2 !== 0
+            ? `${vParen} ${signedMono(cw2, W)} = ${c2_}`
+            : `${vParen} = ${c2_}`;
 
-        // Step 5 – sostituiamo x nella (1) per trovare y
+        // Step 3 – sostituzione fatta nell'altra eq
+        const sys3 = isolateFrom === 1
+            ? `\\begin{cases} ${isolatedLine} \\\\ ${substEq} \\end{cases}`
+            : `\\begin{cases} ${substEq} \\\\ ${isolatedLine} \\end{cases}`;
+
+        // Step 4 – W risolto
+        const wLine = rCoeff === 0 ? `0 = ${rRHS}` : `${W} = ${formatNumberLatex(rRHS / rCoeff)}`;
+        const sys4 = isolateFrom === 1
+            ? `\\begin{cases} ${isolatedLine} \\\\ ${wLine} \\end{cases}`
+            : `\\begin{cases} ${wLine} \\\\ ${isolatedLine} \\end{cases}`;
+
+        // Step 5 – entrambe le variabili note (x sempre prima)
         let sys5: string;
         let solutionLatex: string;
         if (nature === "impossible") {
             sys5 = `\\text{Sistema impossibile} \\;\\Rightarrow\\; S = \\emptyset`;
             solutionLatex = `S = \\emptyset`;
         } else if (nature === "indeterminate") {
-            sys5 = `\\text{Sistema indeterminato} \\;\\Rightarrow\\; \\infty\\text{ soluzioni}`;
-            solutionLatex = `S = \\{(x, y) : ${eq1orig}\\}`;
+            sys5 = `\\text{Sistema indeterminato (}\\infty\\text{ soluzioni)}`;
+            solutionLatex = `\\infty\\text{ soluzioni}`;
         } else {
-            const xVal = rRHS / rCoeff;
-            const yVal = yA * xVal + yC;
-            const xFmt = formatNumberLatex(xVal);
-            const yFmt = formatNumberLatex(yVal);
+            const wVal = rRHS / rCoeff;
+            const vVal = exprA * wVal + exprC;
+            const wFmt = formatNumberLatex(wVal);
+            const vFmt = formatNumberLatex(vVal);
+            const xFmt = V === "x" ? vFmt : wFmt;
+            const yFmt = V === "y" ? vFmt : wFmt;
             sys5 = `\\begin{cases} x = ${xFmt} \\\\ y = ${yFmt} \\end{cases}`;
             solutionLatex = `(x,\\, y) = (${xFmt},\\, ${yFmt})`;
         }
 
-        // ── calcoli intermedi (mostrati sotto al sistema) ─────────────────
+        // ── calcoli intermedi ──────────────────────────────────────────────
 
-        // Step 2 – lavoro su eq1
-        const b1yTerm = b1 === 1 ? "y" : "-y";
-        const work2 = `\\begin{aligned}
-            &${eq1orig} \\\\
-            &${b1yTerm} = ${c1} ${signedMono(-a1, "x")} \\\\
-            &y = ${yExpr}
-        \\end{aligned}`;
+        // Step 2: isolamento di V dall'equazione scelta
+        const cv = isolateFrom === 1 ? (V === "x" ? a1 : b1) : (V === "x" ? a2 : b2);
+        const cw = isolateFrom === 1 ? (V === "x" ? b1 : a1) : (V === "x" ? b2 : a2);
+        const c  = isolateFrom === 1 ? c1 : c2;
+        const origLine = isolateFrom === 1 ? eq1orig : eq2orig;
+        const cvVterm = mono(cv, V);
+        const moved = `${cvVterm} = ${c} ${signedMono(-cw, W)}`;
+        const work2 = `\\begin{aligned} &${origLine} \\\\ &${moved} \\\\ &${isolatedLine} \\end{aligned}`;
 
-        // Step 3 – sostituzione visiva
-        const work3 = `${eq2orig} \\xrightarrow{\\,y\\,=\\,${yExpr}\\,} ${substEq2}`;
+        // Step 3: sostituzione visiva
+        const work3 = `${otherOrig} \\;\\xrightarrow{\\;${V}\\,=\\,${vExpr}\\;}\\; ${substEq}`;
 
-        // Step 4 – espansione + risoluzione
-        let expanded = a2 !== 0 ? mono(a2, "x") : "";
-        const p2 = b2 * yA;
-        if (p2 !== 0) expanded += ` ${signedMono(p2, "x")}`;
-        const pk = b2 * yC;
-        if (pk !== 0) expanded += ` ${signedConst(pk)}`;
-        expanded = expanded.trim() || "0";
+        // Step 4: espansione e risoluzione
+        let expLine = "";
+        const t1 = cv2 * exprA;
+        const t2 = cw2;
+        const tk = cv2 * exprC;
+        if (t1 !== 0) expLine += mono(t1, W);
+        if (t2 !== 0) expLine += expLine ? ` ${signedMono(t2, W)}` : mono(t2, W);
+        if (tk !== 0) expLine += ` ${signedConst(tk)}`;
+        expLine = expLine.trim() || "0";
 
         let work4: string;
         if (rCoeff === 0) {
-            work4 = `\\begin{aligned} &${substEq2} \\\\ &${expanded} = ${c2} \\\\ &${eq2step4} \\end{aligned}`;
+            work4 = `\\begin{aligned} &${substEq} \\\\ &${expLine} = ${c2_} \\\\ &0 = ${rRHS} \\end{aligned}`;
         } else {
-            const xFmt = formatNumberLatex(rRHS / rCoeff);
-            work4 = `\\begin{aligned} &${substEq2} \\\\ &${expanded} = ${c2} \\\\ &${mono(rCoeff, "x")} = ${rRHS} \\\\ &x = ${xFmt} \\end{aligned}`;
+            const wFmt = formatNumberLatex(rRHS / rCoeff);
+            work4 = `\\begin{aligned} &${substEq} \\\\ &${expLine} = ${c2_} \\\\ &${mono(rCoeff, W)} = ${rRHS} \\\\ &${W} = ${wFmt} \\end{aligned}`;
         }
 
-        // Step 5 – calcolo y
+        // Step 5: sostituzione inversa per trovare V
         let work5: string;
         if (nature === "unique") {
-            const xVal  = rRHS / rCoeff;
-            const yVal  = yA * xVal + yC;
-            const xFmt  = formatNumberLatex(xVal);
-            const yFmt  = formatNumberLatex(yVal);
-            const calcA = yA !== 0 ? `${yA} \\cdot ${xFmt}` : "";
-            const calcC = yC !== 0 ? ` ${signedConst(yC)}` : "";
+            const wVal = rRHS / rCoeff;
+            const wFmt = formatNumberLatex(wVal);
+            const vVal = exprA * wVal + exprC;
+            const vFmt = formatNumberLatex(vVal);
+            const calcA = exprA !== 0 ? `${exprA} \\cdot ${wFmt}` : "";
+            const calcC = exprC !== 0 ? ` ${signedConst(exprC)}` : "";
             const calc  = (calcA + calcC).trim() || "0";
-            work5 = `\\begin{aligned} &y = ${yExpr} \\\\ &y = ${calc} \\\\ &y = ${yFmt} \\end{aligned}`;
+            work5 = `\\begin{aligned} &${V} = ${vExpr} \\\\ &${V} = ${calc} \\\\ &${V} = ${vFmt} \\end{aligned}`;
         } else {
             work5 = sys5;
         }
@@ -318,12 +376,16 @@ export default function SistemiPrimoGradoSostituzioneDemo() {
         </StepCard>
     );
 
+    const otherEqNum = sys.isolateFrom === 1 ? 2 : 1;
+    const otherVar   = sys.isolateVar === "x" ? "y" : "x";
+    const step2Title = `Ricava ${sys.isolateVar} dalla (${sys.isolateFrom})`;
+
     const Step2 = (
-        <StepCard stepNumber={2} title="Ricava y dalla (1)" color="blue" isActive={isActive(2)}>
+        <StepCard stepNumber={2} title={step2Title} color="blue" isActive={isActive(2)}>
             <CollapsibleExplanation title="Spiegazione">
                 <div>
-                    <p>Dalla 1ª equazione isolo <Latex>{"y"}</Latex> spostando <Latex>{"a_1 x"}</Latex> al secondo membro.</p>
-                    <p>Ottengo <Latex>{"y = \\alpha x + k"}</Latex> che userò nei passi successivi.</p>
+                    <p>Dalla ({sys.isolateFrom}) isolo <Latex>{sys.isolateVar}</Latex> perché ha coefficiente ±1: non servono frazioni.</p>
+                    <p>Ottengo <Latex>{`${sys.isolateVar} = \\alpha ${otherVar} + k`}</Latex> che userò nei passi successivi.</p>
                 </div>
             </CollapsibleExplanation>
             {sysBox(latex.sys2, "Sistema equivalente dopo il passo 2")}
@@ -332,11 +394,11 @@ export default function SistemiPrimoGradoSostituzioneDemo() {
     );
 
     const Step3 = (
-        <StepCard stepNumber={3} title="Sostituisci y nella (2)" color="amber" isActive={isActive(3)}>
+        <StepCard stepNumber={3} title={`Sostituisci ${sys.isolateVar} nella (${otherEqNum})`} color="amber" isActive={isActive(3)}>
             <CollapsibleExplanation title="Spiegazione">
                 <div>
-                    <p>Al posto di <Latex>{"y"}</Latex> nella 2ª equazione scrivo l'espressione trovata al passo 2.</p>
-                    <p>La (2) diventa un'equazione nella <strong>sola incognita</strong> <Latex>{"x"}</Latex>.</p>
+                    <p>Al posto di <Latex>{sys.isolateVar}</Latex> nella ({otherEqNum}) scrivo l'espressione trovata al passo 2.</p>
+                    <p>La ({otherEqNum}) diventa un'equazione nella <strong>sola incognita</strong> <Latex>{otherVar}</Latex>.</p>
                 </div>
             </CollapsibleExplanation>
             {sysBox(latex.sys3, "Sistema equivalente dopo il passo 3")}
@@ -345,10 +407,10 @@ export default function SistemiPrimoGradoSostituzioneDemo() {
     );
 
     const Step4 = (
-        <StepCard stepNumber={4} title="Risolvi la (2) per x" color="purple" isActive={isActive(4)}>
+        <StepCard stepNumber={4} title={`Risolvi la (${otherEqNum}) per ${otherVar}`} color="purple" isActive={isActive(4)}>
             <CollapsibleExplanation title="Spiegazione">
                 <div>
-                    <p>Espando e raccolgo i termini in <Latex>{"x"}</Latex>, poi divido.</p>
+                    <p>Espando e raccolgo i termini in <Latex>{otherVar}</Latex>, poi divido.</p>
                     <p>Se il coefficiente di <Latex>{"x"}</Latex> si annulla:</p>
                     <ul>
                         <li><strong>0 = k ≠ 0</strong>: impossibile</li>
@@ -367,14 +429,14 @@ export default function SistemiPrimoGradoSostituzioneDemo() {
     const Step5 = (
         <StepCard
             stepNumber={5}
-            title={isUnique ? "Sostituisci x nella (1) → y" : "Conclusione"}
+            title={isUnique ? `Sostituisci ${otherVar} nella (${sys.isolateFrom}) → ${sys.isolateVar}` : "Conclusione"}
             color={isUnique ? "green" : isImpossible ? "red" : "amber"}
             isActive={isActive(5)}
             fullWidth
         >
             <CollapsibleExplanation title="Spiegazione">
                 <div>
-                    {isUnique && <p>Sostituisco il valore di <Latex>{"x"}</Latex> nell'espressione di <Latex>{"y"}</Latex> ricavata al passo 2 e ottengo il valore di <Latex>{"y"}</Latex>.</p>}
+                    {isUnique && <p>Sostituisco il valore di <Latex>{otherVar}</Latex> nell'espressione di <Latex>{sys.isolateVar}</Latex> ricavata al passo 2.</p>}
                     {isImpossible && <p>L'equazione <Latex>{"0 = k \\neq 0"}</Latex> non ha soluzione: le due rette sono <strong>parallele</strong>. <Latex>{"S = \\emptyset"}</Latex>.</p>}
                     {sys.nature === "indeterminate" && <p>L'equazione <Latex>{"0 = 0"}</Latex> è sempre vera: le due rette <strong>coincidono</strong>. Infinite soluzioni.</p>}
                 </div>
