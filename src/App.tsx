@@ -55,6 +55,8 @@ const categories: Category[] = [
                     "proprieta-funzioni-continue",
                     "asintoti",
                     "derivata",
+                    "derivate-elementari",
+                    "equazioni-esponenziali-elementari",
                 ],
             },
             {
@@ -254,6 +256,8 @@ const newDemoSlugs = new Set([
     "battaglia-piano-cartesiano",
     "verifica-goniometria-1",
     "derivata",
+    "derivate-elementari",
+    "equazioni-esponenziali-elementari",
     "sistemi-primo-grado-sostituzione",
 ]);
 

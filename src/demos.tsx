@@ -125,6 +125,12 @@ export const demos: DemoInfo[] = [
         tags: ["funzioni", "esponenziale", "crescita", "decadimento", "analisi", "base"],
     },
     {
+        slug: "equazioni-esponenziali-elementari",
+        title: "Equazioni esponenziali elementari — interpretazione grafica",
+        Component: React.lazy(() => import("./demos/funzioni/EquazioniEsponenzialiDemo")),
+        tags: ["equazioni", "esponenziale", "logaritmo", "grafico", "analisi", "funzioni"],
+    },
+    {
         slug: "disequazioni-secondo-grado",
         title: "Disequazioni di secondo grado (step-by-step)",
         Component: React.lazy(() => import("./demos/disequazioni/DisequazioniSecondoGradoDemo")),
