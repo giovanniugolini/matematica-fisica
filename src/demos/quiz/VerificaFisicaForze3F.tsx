@@ -15,7 +15,7 @@ function L({ s }: { s: string }): React.ReactElement {
     return <MixedLatex>{s}</MixedLatex>;
 }
 
-type Fila = "A" | "B";
+type Fila = "A" | "B" | "C" | "D";
 
 // ─── Stili ─────────────────────────────────────────────────────────────────────
 
@@ -134,13 +134,13 @@ const S = {
         margin: "6px auto 0",
         padding: "3px 18px",
         borderRadius: 20,
-        background: fila === "A" ? "#dbeafe" : "#fce7f3",
-        color: fila === "A" ? "#1e40af" : "#9d174d",
+        background: fila === "A" ? "#dbeafe" : fila === "B" ? "#fce7f3" : fila === "C" ? "#dcfce7" : "#fef3c7",
+        color: fila === "A" ? "#1e40af" : fila === "B" ? "#9d174d" : fila === "C" ? "#15803d" : "#92400e",
         fontWeight: 700,
         fontSize: 14,
         letterSpacing: "1px",
         fontFamily: "system-ui, sans-serif",
-        border: `1.5px solid ${fila === "A" ? "#93c5fd" : "#f9a8d4"}`,
+        border: `1.5px solid ${fila === "A" ? "#93c5fd" : fila === "B" ? "#f9a8d4" : fila === "C" ? "#86efac" : "#fcd34d"}`,
     }),
 
     metaRow: {
@@ -321,6 +321,8 @@ export default function VerificaFisicaForze3F(): React.ReactElement {
                             <span style={{ fontSize: 13, color: "#475569", fontFamily: "system-ui, sans-serif" }}>Fila:</span>
                             <button style={S.btnFila(fila === "A")} onClick={() => setFila("A")}>FILA A</button>
                             <button style={S.btnFila(fila === "B")} onClick={() => setFila("B")}>FILA B</button>
+                            <button style={S.btnFila(fila === "C")} onClick={() => setFila("C")}>FILA C</button>
+                            <button style={S.btnFila(fila === "D")} onClick={() => setFila("D")}>FILA D</button>
                         </div>
 
                         <div style={{ display: "flex", gap: 10 }}>
@@ -393,7 +395,7 @@ export default function VerificaFisicaForze3F(): React.ReactElement {
                                     <div style={{ height: 80, borderBottom: "1px dashed #cbd5e1" }} />
                                 </div>
                             </>
-                        ) : (
+                        ) : fila === "B" ? (
                             <>
                                 {/* A.a — FILA B: legge di Hooke */}
                                 <div style={S.domanda}>
@@ -421,6 +423,34 @@ export default function VerificaFisicaForze3F(): React.ReactElement {
                                     <div style={{ height: 80, borderBottom: "1px dashed #cbd5e1" }} />
                                 </div>
                             </>
+                        ) : (
+                            <>
+                                {/* A.a — FILA C: forza peso */}
+                                <div style={S.domanda}>
+                                    <span style={S.domandaLabel}>a)</span>
+                                    <p style={S.domandaText}>
+                                        Definisci la <strong>forza peso</strong>: qual è il suo modulo, la sua direzione
+                                        e il suo verso? Spiega perché un corpo ha lo stesso peso sulla Luna di un altro
+                                        corpo con massa diversa che si trova sulla Terra.
+                                    </p>
+                                    <div style={{ height: 80, borderBottom: "1px dashed #cbd5e1", marginTop: 8 }} />
+                                    <div style={{ height: 80, borderBottom: "1px dashed #cbd5e1" }} />
+                                    <div style={{ height: 80, borderBottom: "1px dashed #cbd5e1" }} />
+                                </div>
+
+                                {/* A.b — FILA C: forza risultante con esempio */}
+                                <div style={S.domanda}>
+                                    <span style={S.domandaLabel}>b)</span>
+                                    <p style={S.domandaText}>
+                                        Cosa si intende per <strong>forza risultante</strong> di due vettori-forza?
+                                        Fai un esempio di due forze applicate su un corpo e di come si ottiene
+                                        la forza risultante.
+                                    </p>
+                                    <div style={{ height: 80, borderBottom: "1px dashed #cbd5e1", marginTop: 8 }} />
+                                    <div style={{ height: 80, borderBottom: "1px dashed #cbd5e1" }} />
+                                    <div style={{ height: 80, borderBottom: "1px dashed #cbd5e1" }} />
+                                </div>
+                            </>
                         )}
                     </div>
 
@@ -431,7 +461,7 @@ export default function VerificaFisicaForze3F(): React.ReactElement {
                     <div style={S.parte}>
                         <div style={S.parteTitle}>
                             Parte B – Domande a risposta multipla
-                            {fila === "A" ? " sulla forza peso" : " sulla forza elastica"}
+                            {fila === "B" ? " sulla forza elastica" : " sulla forza peso"}
                             {" "}(motivare) <span style={S.punti}>(20 punti)</span>
                         </div>
                         <p style={S.istruzione}>
@@ -441,7 +471,7 @@ export default function VerificaFisicaForze3F(): React.ReactElement {
                         {/* B.a */}
                         <div style={S.domanda}>
                             <span style={S.domandaLabel}>a)</span>
-                            {fila === "A" ? (
+                            {fila !== "B" ? (
                                 <>
                                     <p style={S.domandaText}>Quale affermazione su massa e peso è corretta?</p>
                                     <span style={S.mcOption}><strong>A.</strong> La massa dipende dal pianeta in cui ci si trova</span>
@@ -478,7 +508,7 @@ export default function VerificaFisicaForze3F(): React.ReactElement {
                                     <span style={S.mcOption}><strong>C.</strong> <L s="$4{,}6\,\text{N}$" /></span>
                                     <span style={S.mcOption}><strong>D.</strong> <L s="$459\,\text{N}$" /></span>
                                 </>
-                            ) : (
+                            ) : fila === "B" ? (
                                 <>
                                     <p style={S.domandaText}>
                                         Qual è l'unità di misura della costante elastica <L s="$k$" /> nel Sistema Internazionale?
@@ -487,6 +517,28 @@ export default function VerificaFisicaForze3F(): React.ReactElement {
                                     <span style={S.mcOption}><strong>B.</strong> <L s="$\text{N} \cdot \text{m}$" /></span>
                                     <span style={S.mcOption}><strong>C.</strong> <L s="$\text{N/m}$" /></span>
                                     <span style={S.mcOption}><strong>D.</strong> <L s="$\text{J}$" /></span>
+                                </>
+                            ) : fila === "C" ? (
+                                <>
+                                    <p style={S.domandaText}>
+                                        Un corpo ha massa <L s="$m = 70\,\text{kg}$" />.
+                                        Qual è il suo peso sulla Terra (<L s="$g = 9{,}8\,\text{N/kg}$" />)?
+                                    </p>
+                                    <span style={S.mcOption}><strong>A.</strong> <L s="$70\,\text{N}$" /></span>
+                                    <span style={S.mcOption}><strong>B.</strong> <L s="$7{,}1\,\text{N}$" /></span>
+                                    <span style={S.mcOption}><strong>C.</strong> <L s="$700\,\text{N}$" /></span>
+                                    <span style={S.mcOption}><strong>D.</strong> <L s="$686\,\text{N}$" /></span>
+                                </>
+                            ) : (
+                                <>
+                                    <p style={S.domandaText}>
+                                        Un corpo ha massa <L s="$m = 55\,\text{kg}$" />.
+                                        Qual è il suo peso sulla Terra (<L s="$g = 9{,}8\,\text{N/kg}$" />)?
+                                    </p>
+                                    <span style={S.mcOption}><strong>A.</strong> <L s="$55\,\text{N}$" /></span>
+                                    <span style={S.mcOption}><strong>B.</strong> <L s="$5{,}6\,\text{N}$" /></span>
+                                    <span style={S.mcOption}><strong>C.</strong> <L s="$539\,\text{N}$" /></span>
+                                    <span style={S.mcOption}><strong>D.</strong> <L s="$550\,\text{N}$" /></span>
                                 </>
                             )}
                             <RigaRisposta />
@@ -509,7 +561,7 @@ export default function VerificaFisicaForze3F(): React.ReactElement {
                                     <span style={S.mcOption}><strong>C.</strong> <L s="$343\,\text{N}$" /></span>
                                     <span style={S.mcOption}><strong>D.</strong> <L s="$70\,\text{N}$" /></span>
                                 </>
-                            ) : (
+                            ) : fila === "B" ? (
                                 <>
                                     <p style={S.domandaText}>
                                         Una molla con <L s="$k = 250\,\text{N/m}$" /> è soggetta a una forza di <L s="$10\,\text{N}$" />.
@@ -519,6 +571,28 @@ export default function VerificaFisicaForze3F(): React.ReactElement {
                                     <span style={S.mcOption}><strong>B.</strong> <L s="$4\,\text{cm}$" /></span>
                                     <span style={S.mcOption}><strong>C.</strong> <L s="$25\,\text{cm}$" /></span>
                                     <span style={S.mcOption}><strong>D.</strong> <L s="$40\,\text{m}$" /></span>
+                                </>
+                            ) : fila === "C" ? (
+                                <>
+                                    <p style={S.domandaText}>
+                                        Un astronauta pesa <L s="$784\,\text{N}$" /> sulla Terra.
+                                        Su un pianeta con <L s="$g = 3{,}7\,\text{N/kg}$" />, qual è il suo peso?
+                                    </p>
+                                    <span style={S.mcOption}><strong>A.</strong> <L s="$784\,\text{N}$" /></span>
+                                    <span style={S.mcOption}><strong>B.</strong> <L s="$592\,\text{N}$" /></span>
+                                    <span style={S.mcOption}><strong>C.</strong> <L s="$80\,\text{N}$" /></span>
+                                    <span style={S.mcOption}><strong>D.</strong> <L s="$296\,\text{N}$" /></span>
+                                </>
+                            ) : (
+                                <>
+                                    <p style={S.domandaText}>
+                                        Un astronauta pesa <L s="$588\,\text{N}$" /> sulla Terra.
+                                        Su un pianeta con <L s="$g = 2{,}6\,\text{N/kg}$" />, qual è il suo peso?
+                                    </p>
+                                    <span style={S.mcOption}><strong>A.</strong> <L s="$588\,\text{N}$" /></span>
+                                    <span style={S.mcOption}><strong>B.</strong> <L s="$312\,\text{N}$" /></span>
+                                    <span style={S.mcOption}><strong>C.</strong> <L s="$156\,\text{N}$" /></span>
+                                    <span style={S.mcOption}><strong>D.</strong> <L s="$60\,\text{N}$" /></span>
                                 </>
                             )}
                             <RigaRisposta />
@@ -541,7 +615,7 @@ export default function VerificaFisicaForze3F(): React.ReactElement {
                                     <span style={S.mcOption}><strong>C.</strong> <L s="$4{,}00\,\text{kg}$" /></span>
                                     <span style={S.mcOption}><strong>D.</strong> <L s="$0{,}25\,\text{kg}$" /></span>
                                 </>
-                            ) : (
+                            ) : fila === "B" ? (
                                 <>
                                     <p style={S.domandaText}>
                                         Un dinamometro con <L s="$k = 80\,\text{N/m}$" /> mostra un allungamento di{" "}
@@ -551,6 +625,28 @@ export default function VerificaFisicaForze3F(): React.ReactElement {
                                     <span style={S.mcOption}><strong>B.</strong> <L s="$0{,}32\,\text{N}$" /></span>
                                     <span style={S.mcOption}><strong>C.</strong> <L s="$32\,\text{N}$" /></span>
                                     <span style={S.mcOption}><strong>D.</strong> <L s="$2\,\text{N}$" /></span>
+                                </>
+                            ) : fila === "C" ? (
+                                <>
+                                    <p style={S.domandaText}>
+                                        Un oggetto ha peso <L s="$P = 49{,}0\,\text{N}$" /> sulla Terra
+                                        (<L s="$g = 9{,}8\,\text{N/kg}$" />). Qual è la sua massa?
+                                    </p>
+                                    <span style={S.mcOption}><strong>A.</strong> <L s="$49{,}0\,\text{kg}$" /></span>
+                                    <span style={S.mcOption}><strong>B.</strong> <L s="$480\,\text{kg}$" /></span>
+                                    <span style={S.mcOption}><strong>C.</strong> <L s="$0{,}20\,\text{kg}$" /></span>
+                                    <span style={S.mcOption}><strong>D.</strong> <L s="$5{,}00\,\text{kg}$" /></span>
+                                </>
+                            ) : (
+                                <>
+                                    <p style={S.domandaText}>
+                                        Un oggetto ha peso <L s="$P = 68{,}6\,\text{N}$" /> sulla Terra
+                                        (<L s="$g = 9{,}8\,\text{N/kg}$" />). Qual è la sua massa?
+                                    </p>
+                                    <span style={S.mcOption}><strong>A.</strong> <L s="$68{,}6\,\text{kg}$" /></span>
+                                    <span style={S.mcOption}><strong>B.</strong> <L s="$673\,\text{kg}$" /></span>
+                                    <span style={S.mcOption}><strong>C.</strong> <L s="$7{,}00\,\text{kg}$" /></span>
+                                    <span style={S.mcOption}><strong>D.</strong> <L s="$0{,}14\,\text{kg}$" /></span>
                                 </>
                             )}
                             <RigaRisposta />
@@ -568,7 +664,7 @@ export default function VerificaFisicaForze3F(): React.ReactElement {
                         <div style={S.domanda}>
                             <span style={S.domandaLabel}>
                                 1) <span style={{ fontWeight: 400, color: "#64748b", fontSize: 13 }}>(28 punti)</span>{" "}
-                                {fila === "A" ? "Molla verticale" : "Forza peso su Marte"}
+                                {fila === "A" ? "Molla verticale" : fila === "B" ? "Forza peso su Marte" : "Molla verticale"}
                             </span>
 
                             {fila === "A" ? (
@@ -578,12 +674,26 @@ export default function VerificaFisicaForze3F(): React.ReactElement {
                                     <L s="$3{,}15\,\text{cm}$" />. Determina la massa del blocco.
                                     Usa <L s="$g = 9{,}81\,\text{N/kg}$" />.
                                 </p>
-                            ) : (
+                            ) : fila === "B" ? (
                                 <p style={S.domandaText}>
                                     Una sonda spaziale porta a bordo un campione di roccia di massa{" "}
                                     <L s="$m = 2{,}50\,\text{kg}$" />. Sulla Terra il peso del campione è{" "}
                                     <L s="$24{,}5\,\text{N}$" />. L'accelerazione di gravità su Marte è{" "}
                                     <L s="$g_M = 3{,}72\,\text{N/kg}$" />.
+                                </p>
+                            ) : fila === "C" ? (
+                                <p style={S.domandaText}>
+                                    Un blocco di metallo è posto sopra una molla verticale. Il blocco comprime
+                                    la molla di <L s="$2{,}40\,\text{cm}$" /> con una forza elastica di{" "}
+                                    <L s="$48\,\text{N}$" />. Determina la massa del blocco.
+                                    Usa <L s="$g = 9{,}81\,\text{N/kg}$" />.
+                                </p>
+                            ) : (
+                                <p style={S.domandaText}>
+                                    Un blocco di legno è posto sopra una molla verticale con costante elastica{" "}
+                                    <L s="$k = 1\,500\,\text{N/m}$" />. Il blocco comprime la molla di{" "}
+                                    <L s="$3{,}80\,\text{cm}$" />. Determina la massa del blocco.
+                                    Usa <L s="$g = 9{,}81\,\text{N/kg}$" />.
                                 </p>
                             )}
 
@@ -610,7 +720,7 @@ export default function VerificaFisicaForze3F(): React.ReactElement {
                                     </p>
                                     <div style={{ height: 56, borderBottom: "1px dashed #cbd5e1" }} />
                                 </div>
-                            ) : (
+                            ) : fila === "B" ? (
                                 <div style={{ marginLeft: 16, marginTop: 10 }}>
                                     <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginBottom: 6 }}>
                                         <strong>i.)</strong> Ricava il valore dell'accelerazione di gravità sulla Terra dai dati forniti.
@@ -635,6 +745,54 @@ export default function VerificaFisicaForze3F(): React.ReactElement {
                                     </p>
                                     <div style={{ height: 56, borderBottom: "1px dashed #cbd5e1" }} />
                                 </div>
+                            ) : fila === "C" ? (
+                                <div style={{ marginLeft: 16, marginTop: 10 }}>
+                                    <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginBottom: 6 }}>
+                                        <strong>i.)</strong> Converti la compressione da centimetri a metri.
+                                    </p>
+                                    <div style={{ height: 48, borderBottom: "1px dashed #cbd5e1" }} />
+
+                                    <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginTop: 12, marginBottom: 6 }}>
+                                        <strong>ii.)</strong> Calcola la costante elastica della molla.
+                                    </p>
+                                    <div style={{ height: 64, borderBottom: "1px dashed #cbd5e1" }} />
+
+                                    <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginTop: 12, marginBottom: 6 }}>
+                                        <strong>iii.)</strong> Il blocco è in equilibrio (la forza peso e la forza elastica sono opposte). Ricava la sua massa.
+                                    </p>
+                                    <div style={{ height: 64, borderBottom: "1px dashed #cbd5e1" }} />
+                                    <div style={{ height: 64, borderBottom: "1px dashed #cbd5e1" }} />
+
+                                    <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginTop: 12, marginBottom: 6 }}>
+                                        <strong>*iv.)</strong> Se portassimo il blocco e la molla su un altro pianeta con{" "}
+                                        <L s="$g = 4{,}56\,\text{N/kg}$" />, la molla si allungherebbe o si comprimerebbe ancora? Di quanto?
+                                    </p>
+                                    <div style={{ height: 56, borderBottom: "1px dashed #cbd5e1" }} />
+                                </div>
+                            ) : (
+                                <div style={{ marginLeft: 16, marginTop: 10 }}>
+                                    <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginBottom: 6 }}>
+                                        <strong>i.)</strong> Converti la compressione da centimetri a metri.
+                                    </p>
+                                    <div style={{ height: 48, borderBottom: "1px dashed #cbd5e1" }} />
+
+                                    <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginTop: 12, marginBottom: 6 }}>
+                                        <strong>ii.)</strong> Calcola la forza elastica esercitata dalla molla.
+                                    </p>
+                                    <div style={{ height: 64, borderBottom: "1px dashed #cbd5e1" }} />
+
+                                    <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginTop: 12, marginBottom: 6 }}>
+                                        <strong>iii.)</strong> Il blocco è in equilibrio. Ricava la sua massa.
+                                    </p>
+                                    <div style={{ height: 64, borderBottom: "1px dashed #cbd5e1" }} />
+                                    <div style={{ height: 64, borderBottom: "1px dashed #cbd5e1" }} />
+
+                                    <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginTop: 12, marginBottom: 6 }}>
+                                        <strong>*iv.)</strong> Se portassimo il blocco e la molla su un altro pianeta con{" "}
+                                        <L s="$g = 11{,}2\,\text{N/kg}$" />, la molla si comprimerebbe di più o di meno? Di quanto?
+                                    </p>
+                                    <div style={{ height: 56, borderBottom: "1px dashed #cbd5e1" }} />
+                                </div>
                             )}
                         </div>
 
@@ -651,12 +809,26 @@ export default function VerificaFisicaForze3F(): React.ReactElement {
                                     Una seconda forza <L s="$\vec{F}_2$" /> ha intensità <L s="$30{,}0\,\text{N}$" /> e direzione{" "}
                                     <L s="$120°$" /> rispetto al semiasse positivo delle <L s="$x$" />.
                                 </p>
-                            ) : (
+                            ) : fila === "B" ? (
                                 <p style={S.domandaText}>
                                     Una forza <L s="$\vec{F}_1$" /> ha intensità <L s="$50{,}0\,\text{N}$" /> e direzione{" "}
                                     <L s="$25°$" /> al di sopra del semiasse positivo delle <L s="$x$" />.
                                     Una seconda forza <L s="$\vec{F}_2$" /> ha intensità <L s="$35{,}0\,\text{N}$" /> e direzione{" "}
                                     <L s="$140°$" /> rispetto al semiasse positivo delle <L s="$x$" />.
+                                </p>
+                            ) : fila === "C" ? (
+                                <p style={S.domandaText}>
+                                    Una forza <L s="$\vec{F}_1$" /> ha intensità <L s="$60{,}0\,\text{N}$" /> e direzione{" "}
+                                    <L s="$40°$" /> al di sopra del semiasse positivo delle <L s="$x$" />.
+                                    Una seconda forza <L s="$\vec{F}_2$" /> ha intensità <L s="$25{,}0\,\text{N}$" /> e direzione{" "}
+                                    <L s="$110°$" /> rispetto al semiasse positivo delle <L s="$x$" />.
+                                </p>
+                            ) : (
+                                <p style={S.domandaText}>
+                                    Una forza <L s="$\vec{F}_1$" /> ha intensità <L s="$55{,}0\,\text{N}$" /> e direzione{" "}
+                                    <L s="$45°$" /> al di sopra del semiasse positivo delle <L s="$x$" />.
+                                    Una seconda forza <L s="$\vec{F}_2$" /> ha intensità <L s="$30{,}0\,\text{N}$" /> e direzione{" "}
+                                    <L s="$125°$" /> rispetto al semiasse positivo delle <L s="$x$" />.
                                 </p>
                             )}
 
@@ -754,7 +926,7 @@ export default function VerificaFisicaForze3F(): React.ReactElement {
                                             </p>
                                         </div>
                                     </>
-                                ) : (
+                                ) : fila === "B" ? (
                                     <>
                                         <div style={S.solDomanda}>
                                             <span style={S.solLabel}>a) Legge di Hooke e costante elastica</span>
@@ -783,6 +955,35 @@ export default function VerificaFisicaForze3F(): React.ReactElement {
                                                 <strong>grandezza vettoriale</strong> richiede anche direzione e verso
                                                 (es. la forza elastica, che agisce lungo la molla verso la posizione di
                                                 equilibrio).
+                                            </p>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div style={S.solDomanda}>
+                                            <span style={S.solLabel}>a) La forza peso</span>
+                                            <p style={S.solText}>
+                                                La <strong>forza peso</strong> è la forza gravitazionale con cui la Terra
+                                                attrae un corpo. Il suo modulo è <L s="$P = mg$" />, la sua direzione è
+                                                verticale e il suo verso è verso il basso.
+                                            </p>
+                                            <p style={S.solText}>
+                                                Due corpi di masse diverse possono avere lo stesso peso su pianeti diversi
+                                                perché il peso dipende sia da <L s="$m$" /> sia da <L s="$g$" />: un corpo
+                                                meno massivo su un pianeta con <L s="$g$" /> maggiore può pesare quanto un
+                                                corpo più massivo su un pianeta con <L s="$g$" /> minore.
+                                            </p>
+                                        </div>
+                                        <div style={S.solDomanda}>
+                                            <span style={S.solLabel}>b) Forza risultante — esempio pratico</span>
+                                            <p style={S.solText}>
+                                                La <strong>forza risultante</strong> è l'unica forza che produce lo stesso
+                                                effetto dell'insieme di tutte le forze applicate a un corpo.
+                                            </p>
+                                            <p style={S.solText}>
+                                                Esempio: un corpo su cui agiscono <L s="$\vec{F}_1 = 10\,\text{N}$" /> verso
+                                                destra e <L s="$\vec{F}_2 = 6\,\text{N}$" /> verso sinistra ha risultante{" "}
+                                                <L s="$R = 4\,\text{N}$" /> verso destra, come se agisse una sola forza di 4 N.
                                             </p>
                                         </div>
                                     </>
@@ -827,7 +1028,7 @@ export default function VerificaFisicaForze3F(): React.ReactElement {
                                             </div>
                                         </div>
                                     </>
-                                ) : (
+                                ) : fila === "B" ? (
                                     <>
                                         <div style={S.solDomanda}>
                                             <span style={S.solLabel}>a) Formula della legge di Hooke</span>
@@ -860,6 +1061,74 @@ export default function VerificaFisicaForze3F(): React.ReactElement {
                                             <span style={S.solRisposta}>Risposta: D — 2 N</span>
                                             <div style={S.solStep}>
                                                 <DisplayMath>{"F = 80 \\times 0{,}025 = 2\\,\\text{N}"}</DisplayMath>
+                                            </div>
+                                        </div>
+                                    </>
+                                ) : fila === "C" ? (
+                                    <>
+                                        <div style={S.solDomanda}>
+                                            <span style={S.solLabel}>a) Massa e peso</span>
+                                            <span style={S.solRisposta}>Risposta: B</span>
+                                            <div style={S.solStep}>
+                                                <p style={{ fontSize: 13 }}>
+                                                    Il peso è una <strong>forza</strong> (<L s="$P = mg$" />, si misura in N)
+                                                    e dipende da <L s="$g$" />. La massa è invariante e si misura in kg.
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div style={S.solDomanda}>
+                                            <span style={S.solLabel}>b) Peso di m = 70 kg sulla Terra</span>
+                                            <span style={S.solRisposta}>Risposta: D — 686 N</span>
+                                            <div style={S.solStep}>
+                                                <DisplayMath>{"P = 70 \\times 9{,}8 = 686\\,\\text{N}"}</DisplayMath>
+                                            </div>
+                                        </div>
+                                        <div style={S.solDomanda}>
+                                            <span style={S.solLabel}>c) Peso con g = 3,7 N/kg, P_Terra = 784 N</span>
+                                            <span style={S.solRisposta}>Risposta: D — 296 N</span>
+                                            <div style={S.solStep}>
+                                                <DisplayMath>{"m = \\frac{784}{9{,}8} = 80\\,\\text{kg} \\qquad P = 80 \\times 3{,}7 = 296\\,\\text{N}"}</DisplayMath>
+                                            </div>
+                                        </div>
+                                        <div style={S.solDomanda}>
+                                            <span style={S.solLabel}>*d) Massa da P = 49,0 N</span>
+                                            <span style={S.solRisposta}>Risposta: D — 5,00 kg</span>
+                                            <div style={S.solStep}>
+                                                <DisplayMath>{"m = \\frac{P}{g} = \\frac{49{,}0}{9{,}8} = 5{,}00\\,\\text{kg}"}</DisplayMath>
+                                            </div>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div style={S.solDomanda}>
+                                            <span style={S.solLabel}>a) Massa e peso</span>
+                                            <span style={S.solRisposta}>Risposta: B</span>
+                                            <div style={S.solStep}>
+                                                <p style={{ fontSize: 13 }}>
+                                                    Il peso è una <strong>forza</strong> (<L s="$P = mg$" />, si misura in N)
+                                                    e dipende da <L s="$g$" />. La massa è invariante e si misura in kg.
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div style={S.solDomanda}>
+                                            <span style={S.solLabel}>b) Peso di m = 55 kg sulla Terra</span>
+                                            <span style={S.solRisposta}>Risposta: C — 539 N</span>
+                                            <div style={S.solStep}>
+                                                <DisplayMath>{"P = 55 \\times 9{,}8 = 539\\,\\text{N}"}</DisplayMath>
+                                            </div>
+                                        </div>
+                                        <div style={S.solDomanda}>
+                                            <span style={S.solLabel}>c) Peso con g = 2,6 N/kg, P_Terra = 588 N</span>
+                                            <span style={S.solRisposta}>Risposta: C — 156 N</span>
+                                            <div style={S.solStep}>
+                                                <DisplayMath>{"m = \\frac{588}{9{,}8} = 60\\,\\text{kg} \\qquad P = 60 \\times 2{,}6 = 156\\,\\text{N}"}</DisplayMath>
+                                            </div>
+                                        </div>
+                                        <div style={S.solDomanda}>
+                                            <span style={S.solLabel}>*d) Massa da P = 68,6 N</span>
+                                            <span style={S.solRisposta}>Risposta: C — 7,00 kg</span>
+                                            <div style={S.solStep}>
+                                                <DisplayMath>{"m = \\frac{P}{g} = \\frac{68{,}6}{9{,}8} = 7{,}00\\,\\text{kg}"}</DisplayMath>
                                             </div>
                                         </div>
                                     </>
@@ -900,7 +1169,7 @@ export default function VerificaFisicaForze3F(): React.ReactElement {
                                             <DisplayMath>{"x' = 2 \\times 3{,}15\\,\\text{cm} = 6{,}30\\,\\text{cm}"}</DisplayMath>
                                         </div>
                                     </div>
-                                ) : (
+                                ) : fila === "B" ? (
                                     <div style={S.solDomanda}>
                                         <span style={S.solLabel}>1) Forza peso su Marte — m = 2,50 kg, P_Terra = 24,5 N</span>
 
@@ -926,6 +1195,64 @@ export default function VerificaFisicaForze3F(): React.ReactElement {
                                             <p style={{ fontSize: 13, marginTop: 4 }}>
                                                 Su Marte l'astronauta pesa circa il <strong>62% in meno</strong> rispetto alla Terra.
                                             </p>
+                                        </div>
+                                    </div>
+                                ) : fila === "C" ? (
+                                    <div style={S.solDomanda}>
+                                        <span style={S.solLabel}>1) Molla verticale — x = 2,40 cm, F = 48 N</span>
+
+                                        <p style={{ ...S.solText, fontWeight: 600, marginBottom: 4 }}>i) Conversione</p>
+                                        <div style={S.solStep}>
+                                            <DisplayMath>{"x = 2{,}40\\,\\text{cm} = 0{,}0240\\,\\text{m}"}</DisplayMath>
+                                        </div>
+
+                                        <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>ii) Costante elastica</p>
+                                        <div style={S.solStep}>
+                                            <DisplayMath>{"k = \\frac{F}{x} = \\frac{48}{0{,}0240} = 2\\,000\\,\\text{N/m}"}</DisplayMath>
+                                        </div>
+
+                                        <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>iii) Massa del blocco</p>
+                                        <div style={S.solStep}>
+                                            <DisplayMath>{"m = \\frac{F}{g} = \\frac{48}{9{,}81} \\approx 4{,}89\\,\\text{kg}"}</DisplayMath>
+                                            <p style={{ fontSize: 13, marginTop: 4 }}>⟹ <strong>m ≈ 4,89 kg</strong></p>
+                                        </div>
+
+                                        <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>*iv) Altro pianeta con g = 4,56 N/kg</p>
+                                        <div style={S.solStep}>
+                                            <p style={{ fontSize: 13 }}>
+                                                La molla si <strong>comprimerebbe ancora</strong> (il blocco è sempre sopra la molla).
+                                                La nuova compressione è:
+                                            </p>
+                                            <DisplayMath>{"x' = \\frac{mg'}{k} = \\frac{4{,}89 \\times 4{,}56}{2\\,000} \\approx 0{,}01115\\,\\text{m} \\approx 1{,}11\\,\\text{cm}"}</DisplayMath>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div style={S.solDomanda}>
+                                        <span style={S.solLabel}>1) Molla verticale — k = 1 500 N/m, x = 3,80 cm</span>
+
+                                        <p style={{ ...S.solText, fontWeight: 600, marginBottom: 4 }}>i) Conversione</p>
+                                        <div style={S.solStep}>
+                                            <DisplayMath>{"x = 3{,}80\\,\\text{cm} = 0{,}0380\\,\\text{m}"}</DisplayMath>
+                                        </div>
+
+                                        <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>ii) Forza elastica</p>
+                                        <div style={S.solStep}>
+                                            <DisplayMath>{"F = k \\cdot x = 1\\,500 \\times 0{,}0380 = 57{,}0\\,\\text{N}"}</DisplayMath>
+                                        </div>
+
+                                        <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>iii) Massa del blocco</p>
+                                        <div style={S.solStep}>
+                                            <DisplayMath>{"m = \\frac{F}{g} = \\frac{57{,}0}{9{,}81} \\approx 5{,}81\\,\\text{kg}"}</DisplayMath>
+                                            <p style={{ fontSize: 13, marginTop: 4 }}>⟹ <strong>m ≈ 5,81 kg</strong></p>
+                                        </div>
+
+                                        <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>*iv) Altro pianeta con g = 11,2 N/kg</p>
+                                        <div style={S.solStep}>
+                                            <p style={{ fontSize: 13 }}>
+                                                La molla si <strong>comprimerebbe di più</strong> (g maggiore → peso maggiore).
+                                                La nuova compressione è:
+                                            </p>
+                                            <DisplayMath>{"x' = \\frac{mg'}{k} = \\frac{5{,}81 \\times 11{,}2}{1\\,500} \\approx 0{,}0434\\,\\text{m} \\approx 4{,}34\\,\\text{cm}"}</DisplayMath>
                                         </div>
                                     </div>
                                 )}
@@ -958,7 +1285,7 @@ export default function VerificaFisicaForze3F(): React.ReactElement {
                                             <DisplayMath>{"\\theta = \\arctan\\!\\left(\\frac{51{,}8}{21{,}9}\\right) \\approx 67{,}1°\\text{ (1° quadrante)}"}</DisplayMath>
                                         </div>
                                     </div>
-                                ) : (
+                                ) : fila === "B" ? (
                                     <div style={S.solDomanda}>
                                         <span style={S.solLabel}>2) F₁ = 50,0 N a 25° — F₂ = 35,0 N a 140°</span>
 
@@ -983,6 +1310,60 @@ export default function VerificaFisicaForze3F(): React.ReactElement {
                                         <div style={S.solStep}>
                                             <DisplayMath>{"R = \\sqrt{18{,}5^2 + 43{,}6^2} \\approx 47{,}4\\,\\text{N}"}</DisplayMath>
                                             <DisplayMath>{"\\theta = \\arctan\\!\\left(\\frac{43{,}6}{18{,}5}\\right) \\approx 67{,}0°\\text{ (1° quadrante)}"}</DisplayMath>
+                                        </div>
+                                    </div>
+                                ) : fila === "C" ? (
+                                    <div style={S.solDomanda}>
+                                        <span style={S.solLabel}>2) F₁ = 60,0 N a 40° — F₂ = 25,0 N a 110°</span>
+
+                                        <p style={{ ...S.solText, fontWeight: 600, marginBottom: 6 }}>i) Componenti cartesiane</p>
+                                        <div style={S.solStep}>
+                                            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>
+                                                <L s="$\vec{F}_1$" /> (40°):
+                                            </p>
+                                            <DisplayMath>{"F_{1x} = 60{,}0 \\cos 40° \\approx 46{,}0\\,\\text{N} \\qquad F_{1y} = 60{,}0 \\sin 40° \\approx 38{,}6\\,\\text{N}"}</DisplayMath>
+                                            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4, marginTop: 8 }}>
+                                                <L s="$\vec{F}_2$" /> (110°):
+                                            </p>
+                                            <DisplayMath>{"F_{2x} = 25{,}0 \\cos 110° \\approx -8{,}55\\,\\text{N} \\qquad F_{2y} = 25{,}0 \\sin 110° \\approx 23{,}5\\,\\text{N}"}</DisplayMath>
+                                        </div>
+
+                                        <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 6 }}>iii) Componenti risultante</p>
+                                        <div style={S.solStep}>
+                                            <DisplayMath>{"R_x = 46{,}0 - 8{,}55 = 37{,}4\\,\\text{N} \\qquad R_y = 38{,}6 + 23{,}5 = 62{,}1\\,\\text{N}"}</DisplayMath>
+                                        </div>
+
+                                        <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 6 }}>iv) Modulo e direzione</p>
+                                        <div style={S.solStep}>
+                                            <DisplayMath>{"R = \\sqrt{37{,}4^2 + 62{,}1^2} \\approx 72{,}6\\,\\text{N}"}</DisplayMath>
+                                            <DisplayMath>{"\\theta = \\arctan\\!\\left(\\frac{62{,}1}{37{,}4}\\right) \\approx 58{,}9°\\text{ (1° quadrante)}"}</DisplayMath>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div style={S.solDomanda}>
+                                        <span style={S.solLabel}>2) F₁ = 55,0 N a 45° — F₂ = 30,0 N a 125°</span>
+
+                                        <p style={{ ...S.solText, fontWeight: 600, marginBottom: 6 }}>i) Componenti cartesiane</p>
+                                        <div style={S.solStep}>
+                                            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>
+                                                <L s="$\vec{F}_1$" /> (45°):
+                                            </p>
+                                            <DisplayMath>{"F_{1x} = 55{,}0 \\cos 45° \\approx 38{,}9\\,\\text{N} \\qquad F_{1y} = 55{,}0 \\sin 45° \\approx 38{,}9\\,\\text{N}"}</DisplayMath>
+                                            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4, marginTop: 8 }}>
+                                                <L s="$\vec{F}_2$" /> (125°):
+                                            </p>
+                                            <DisplayMath>{"F_{2x} = 30{,}0 \\cos 125° \\approx -17{,}2\\,\\text{N} \\qquad F_{2y} = 30{,}0 \\sin 125° \\approx 24{,}6\\,\\text{N}"}</DisplayMath>
+                                        </div>
+
+                                        <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 6 }}>iii) Componenti risultante</p>
+                                        <div style={S.solStep}>
+                                            <DisplayMath>{"R_x = 38{,}9 - 17{,}2 = 21{,}7\\,\\text{N} \\qquad R_y = 38{,}9 + 24{,}6 = 63{,}5\\,\\text{N}"}</DisplayMath>
+                                        </div>
+
+                                        <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 6 }}>iv) Modulo e direzione</p>
+                                        <div style={S.solStep}>
+                                            <DisplayMath>{"R = \\sqrt{21{,}7^2 + 63{,}5^2} \\approx 67{,}1\\,\\text{N}"}</DisplayMath>
+                                            <DisplayMath>{"\\theta = \\arctan\\!\\left(\\frac{63{,}5}{21{,}7}\\right) \\approx 71{,}1°\\text{ (1° quadrante)}"}</DisplayMath>
                                         </div>
                                     </div>
                                 )}

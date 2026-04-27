@@ -41,6 +41,12 @@ export const demos: DemoInfo[] = [
         tags: ["derivata", "rapporto incrementale", "limite", "tangente", "secante", "velocità istantanea", "analisi", "fisica"],
     },
     {
+        slug: "derivate-elementari",
+        title: "Derivate delle funzioni elementari (dimostrazione step-by-step)",
+        Component: React.lazy(() => import("./demos/derivata/DerivateElementariDemo")),
+        tags: ["derivata", "funzioni elementari", "dimostrazione", "costante", "potenza", "esponenziale", "logaritmo", "seno", "coseno", "analisi", "step-by-step"],
+    },
+    {
         slug: "legge-di-coulomb",
         title: "Legge di Coulomb (2 cariche)",
         Component: React.lazy(() => import("./demos/legge-coulomb/LeggeCoulombDemo")),
