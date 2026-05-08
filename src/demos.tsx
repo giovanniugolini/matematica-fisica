@@ -179,6 +179,12 @@ export const demos: DemoInfo[] = [
         tags: ["polinomi", "scomposizione", "fattorizzazione", "algebra", "step-by-step"],
     },
     {
+        slug: "seconda-legge-newton",
+        title: "Seconda legge della dinamica: F = ma (laboratorio)",
+        Component: React.lazy(() => import("./demos/dinamica/SecondaLeggeNewtonDemo")),
+        tags: ["dinamica", "newton", "forza", "massa", "accelerazione", "F=ma", "proporzionalità", "laboratorio", "fisica"],
+    },
+    {
         slug: "moto-uniformemente-accelerato",
         title: "Moto Uniformemente Accelerato (MUA)",
         Component: React.lazy(() => import("./demos/cinematica/MotoUniformementeAcceleratoDemo")),

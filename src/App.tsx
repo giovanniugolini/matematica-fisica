@@ -117,6 +117,13 @@ const categories: Category[] = [
                 ]
             },
             {
+                id: "dinamica",
+                name: "Dinamica",
+                slugs: [
+                    "seconda-legge-newton",
+                ],
+            },
+            {
                 id: "cinematica",
                 name: "Cinematica",
                 slugs: [
@@ -265,6 +272,7 @@ const newDemoSlugs = new Set([
     "retta-problemi",
     "oersted",
     "funzione-logaritmo",
+    "seconda-legge-newton",
 ]);
 
 // ============ COMPONENTI ============
