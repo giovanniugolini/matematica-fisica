@@ -137,6 +137,12 @@ export const demos: DemoInfo[] = [
         tags: ["equazioni", "esponenziale", "logaritmo", "grafico", "analisi", "funzioni"],
     },
     {
+        slug: "funzione-logaritmo",
+        title: "La funzione logaritmo y = log_a(x)",
+        Component: React.lazy(() => import("./demos/funzioni/FunzioneLogaritmoDemo")),
+        tags: ["funzioni", "logaritmo", "esponenziale", "inversa", "analisi", "base", "bisettrice"],
+    },
+    {
         slug: "disequazioni-secondo-grado",
         title: "Disequazioni di secondo grado (step-by-step)",
         Component: React.lazy(() => import("./demos/disequazioni/DisequazioniSecondoGradoDemo")),

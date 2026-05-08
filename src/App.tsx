@@ -57,6 +57,7 @@ const categories: Category[] = [
                     "derivata",
                     "derivate-elementari",
                     "equazioni-esponenziali-elementari",
+                    "funzione-logaritmo",
                 ],
             },
             {
@@ -263,6 +264,7 @@ const newDemoSlugs = new Set([
     "sistemi-primo-grado-sostituzione",
     "retta-problemi",
     "oersted",
+    "funzione-logaritmo",
 ]);
 
 // ============ COMPONENTI ============
