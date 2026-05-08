@@ -90,6 +90,7 @@ const categories: Category[] = [
                 slugs: [
                     "distanza-punto-medio",
                     "equazione-retta",
+                    "retta-problemi",
                     "parabola",
                     "retta-e-parabola",
                 ],
@@ -134,7 +135,8 @@ const categories: Category[] = [
                     "condensatore",
                     "legge-hom",
                     "seconda-legge-ohm",
-                    "resistenze-serie-parallelo"
+                    "resistenze-serie-parallelo",
+                    "oersted",
                 ],
             },
             {
@@ -259,6 +261,8 @@ const newDemoSlugs = new Set([
     "derivate-elementari",
     "equazioni-esponenziali-elementari",
     "sistemi-primo-grado-sostituzione",
+    "retta-problemi",
+    "oersted",
 ]);
 
 // ============ COMPONENTI ============

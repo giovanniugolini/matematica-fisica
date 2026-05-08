@@ -281,6 +281,12 @@ export const demos: DemoInfo[] = [
         tags: ["elettromagnetismo", "resistenza", "serie", "parallelo", "circuiti", "ohm", "laboratorio", "fisica"],
     },
     {
+        slug: "oersted",
+        title: "Esperimento di Oersted: campo magnetico di un filo",
+        Component: React.lazy(() => import("./demos/elettromagnetismo/OerstedDemo")),
+        tags: ["elettromagnetismo", "campo magnetico", "oersted", "filo", "bussola", "corrente", "fisica"],
+    },
+    {
         slug: "sistemi-secondo-grado",
         title: "Sistemi di Secondo grado (step by step)",
         Component: React.lazy(() => import("./demos/equazioni/SistemiSecondoGrado.tsx")),
@@ -345,6 +351,12 @@ export const demos: DemoInfo[] = [
         title: "La Parabola: luogo geometrico ed equazioni",
         Component: React.lazy(() => import("./demos/geometria-analitica/ParabolaDemo.tsx")),
         tags: ["geometria", "parabola", "fuoco", "direttrice", "vertice", "analisi", "funzioni"],
+    },
+    {
+        slug: "retta-problemi",
+        title: "Retta: problemi con le formule (step-by-step)",
+        Component: React.lazy(() => import("./demos/geometria-analitica/RettaProblemiDemo")),
+        tags: ["geometria", "retta", "parallela", "perpendicolare", "coefficiente angolare", "step-by-step", "piano cartesiano"],
     },
     {
         slug: "retta-e-parabola",
