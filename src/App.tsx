@@ -36,8 +36,8 @@ const categories: Category[] = [
                     "sistemi-disequazioni",
                     "disequazioni-soluzioni",
                     "segno-di-un-prodotto",
-                    "sistemi-secondo-grado"
-
+                    "sistemi-primo-grado-sostituzione",
+                    "sistemi-secondo-grado",
                 ],
             },
             {
@@ -54,6 +54,10 @@ const categories: Category[] = [
                     "funzioni-continue",
                     "proprieta-funzioni-continue",
                     "asintoti",
+                    "derivata",
+                    "derivate-elementari",
+                    "equazioni-esponenziali-elementari",
+                    "funzione-logaritmo",
                 ],
             },
             {
@@ -87,6 +91,7 @@ const categories: Category[] = [
                 slugs: [
                     "distanza-punto-medio",
                     "equazione-retta",
+                    "retta-problemi",
                     "parabola",
                     "retta-e-parabola",
                 ],
@@ -112,6 +117,13 @@ const categories: Category[] = [
                 ]
             },
             {
+                id: "dinamica",
+                name: "Dinamica",
+                slugs: [
+                    "seconda-legge-newton",
+                ],
+            },
+            {
                 id: "cinematica",
                 name: "Cinematica",
                 slugs: [
@@ -132,7 +144,8 @@ const categories: Category[] = [
                     "forza-lorentz",
                     "legge-hom",
                     "seconda-legge-ohm",
-                    "resistenze-serie-parallelo"
+                    "resistenze-serie-parallelo",
+                    "oersted",
                 ],
             },
             {
@@ -172,6 +185,8 @@ const categories: Category[] = [
                     "quiz-algebra",
                     "verifica-algebra-1",
                     "verifica-parabola-1",
+                    "verifica-parabola-sistemi-3f",
+
                 ],
             },
             {
@@ -182,6 +197,8 @@ const categories: Category[] = [
                     "quiz-forza-peso",
                     "quiz-forza-elastica",
                     "verifica-fisica-vettori-1",
+                    "verifica-fisica-forze-2",
+                    "verifica-fisica-forze-3f",
                 ],
             },
             {
@@ -246,8 +263,18 @@ const newDemoSlugs = new Set([
     "quiz-forza-elastica",
     "escape-room",
     "verifica-fisica-vettori-1",
+    "verifica-fisica-forze-2",
+    "verifica-fisica-forze-3f",
     "battaglia-piano-cartesiano",
     "verifica-goniometria-1",
+    "derivata",
+    "derivate-elementari",
+    "equazioni-esponenziali-elementari",
+    "sistemi-primo-grado-sostituzione",
+    "retta-problemi",
+    "oersted",
+    "funzione-logaritmo",
+    "seconda-legge-newton",
 ]);
 
 // ============ COMPONENTI ============

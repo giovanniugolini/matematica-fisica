@@ -35,6 +35,18 @@ export const demos: DemoInfo[] = [
         tags: ["cinematica", "velocità", "secante", "derivata", "fisica"],
     },
     {
+        slug: "derivata",
+        title: "La derivata: limite del rapporto incrementale",
+        Component: React.lazy(() => import("./demos/derivata/DerivataDemo")),
+        tags: ["derivata", "rapporto incrementale", "limite", "tangente", "secante", "velocità istantanea", "analisi", "fisica"],
+    },
+    {
+        slug: "derivate-elementari",
+        title: "Derivate delle funzioni elementari (dimostrazione step-by-step)",
+        Component: React.lazy(() => import("./demos/derivata/DerivateElementariDemo")),
+        tags: ["derivata", "funzioni elementari", "dimostrazione", "costante", "potenza", "esponenziale", "logaritmo", "seno", "coseno", "analisi", "step-by-step"],
+    },
+    {
         slug: "legge-di-coulomb",
         title: "Legge di Coulomb (2 cariche)",
         Component: React.lazy(() => import("./demos/legge-coulomb/LeggeCoulombDemo")),
@@ -119,10 +131,28 @@ export const demos: DemoInfo[] = [
         tags: ["funzioni", "esponenziale", "crescita", "decadimento", "analisi", "base"],
     },
     {
+        slug: "equazioni-esponenziali-elementari",
+        title: "Equazioni esponenziali elementari — interpretazione grafica",
+        Component: React.lazy(() => import("./demos/funzioni/EquazioniEsponenzialiDemo")),
+        tags: ["equazioni", "esponenziale", "logaritmo", "grafico", "analisi", "funzioni"],
+    },
+    {
+        slug: "funzione-logaritmo",
+        title: "La funzione logaritmo y = log_a(x)",
+        Component: React.lazy(() => import("./demos/funzioni/FunzioneLogaritmoDemo")),
+        tags: ["funzioni", "logaritmo", "esponenziale", "inversa", "analisi", "base", "bisettrice"],
+    },
+    {
         slug: "disequazioni-secondo-grado",
         title: "Disequazioni di secondo grado (step-by-step)",
         Component: React.lazy(() => import("./demos/disequazioni/DisequazioniSecondoGradoDemo")),
         tags: ["disequazioni", "secondo grado", "parabola", "algebra", "step-by-step"],
+    },
+    {
+        slug: "sistemi-primo-grado-sostituzione",
+        title: "Sistemi lineari – Metodo di sostituzione (step-by-step)",
+        Component: React.lazy(() => import("./demos/equazioni/SistemiPrimoGradoSostituzione")),
+        tags: ["sistemi", "equazioni", "primo grado", "sostituzione", "algebra", "step-by-step"],
     },
     {
         slug: "equazioni-secondo-grado",
@@ -147,6 +177,12 @@ export const demos: DemoInfo[] = [
         title: "Scomposizione di Polinomi (step-by-step)",
         Component: React.lazy(() => import("./demos/algebra/ScomposizionePolinomiDemo")),
         tags: ["polinomi", "scomposizione", "fattorizzazione", "algebra", "step-by-step"],
+    },
+    {
+        slug: "seconda-legge-newton",
+        title: "Seconda legge della dinamica: F = ma (laboratorio)",
+        Component: React.lazy(() => import("./demos/dinamica/SecondaLeggeNewtonDemo")),
+        tags: ["dinamica", "newton", "forza", "massa", "accelerazione", "F=ma", "proporzionalità", "laboratorio", "fisica"],
     },
     {
         slug: "moto-uniformemente-accelerato",
@@ -263,6 +299,12 @@ export const demos: DemoInfo[] = [
         tags: ["elettromagnetismo", "resistenza", "serie", "parallelo", "circuiti", "ohm", "laboratorio", "fisica"],
     },
     {
+        slug: "oersted",
+        title: "Esperimento di Oersted: campo magnetico di un filo",
+        Component: React.lazy(() => import("./demos/elettromagnetismo/OerstedDemo")),
+        tags: ["elettromagnetismo", "campo magnetico", "oersted", "filo", "bussola", "corrente", "fisica"],
+    },
+    {
         slug: "sistemi-secondo-grado",
         title: "Sistemi di Secondo grado (step by step)",
         Component: React.lazy(() => import("./demos/equazioni/SistemiSecondoGrado.tsx")),
@@ -329,6 +371,12 @@ export const demos: DemoInfo[] = [
         tags: ["geometria", "parabola", "fuoco", "direttrice", "vertice", "analisi", "funzioni"],
     },
     {
+        slug: "retta-problemi",
+        title: "Retta: problemi con le formule (step-by-step)",
+        Component: React.lazy(() => import("./demos/geometria-analitica/RettaProblemiDemo")),
+        tags: ["geometria", "retta", "parallela", "perpendicolare", "coefficiente angolare", "step-by-step", "piano cartesiano"],
+    },
+    {
         slug: "retta-e-parabola",
         title: "La Retta e la Parabola: posizione reciproca e tangente (step by step)",
         Component: React.lazy(() => import("./demos/geometria-analitica/RettaParabolaDemo")),
@@ -353,6 +401,18 @@ export const demos: DemoInfo[] = [
         tags: ["verifica", "vettori", "forze", "fisica", "test"],
     },
     {
+        slug: "verifica-fisica-forze-2",
+        title: "Verifica: Forze e Vettori — 3E (Fila A/B)",
+        Component: React.lazy(() => import("./demos/quiz/VerificaFisicaForze2")),
+        tags: ["verifica", "forze", "vettori", "fisica", "test", "3E", "fila"],
+    },
+    {
+        slug: "verifica-fisica-forze-3f",
+        title: "Verifica: Forze elastiche e Vettori — 3F (Fila A/B)",
+        Component: React.lazy(() => import("./demos/quiz/VerificaFisicaForze3F")),
+        tags: ["verifica", "forze", "elastica", "hooke", "vettori", "fisica", "test", "3F", "fila"],
+    },
+    {
         slug: "verifica-goniometria-1",
         title: "Verifica: Equazioni Goniometriche",
         Component: React.lazy(() => import("./demos/quiz/VerificaGoniometria1")),
@@ -375,6 +435,12 @@ export const demos: DemoInfo[] = [
         title: "Verifica: Parabola e Sistemi di 2° grado",
         Component: React.lazy(() => import("./demos/quiz/VerificaParabola1")),
         tags: ["verifica", "parabola", "sistemi", "secondo grado", "matematica", "test", "3F"],
+    },
+    {
+        slug: "verifica-parabola-sistemi-3f",
+        title: "Verifica: Parabola e Sistemi — 3F (Fila A/B)",
+        Component: React.lazy(() => import("./demos/quiz/VerificaParabolaSistemi3F")),
+        tags: ["verifica", "parabola", "sistemi", "secondo grado", "matematica", "test", "3F", "31 marzo 2026"],
     },
     {
         slug: "battaglia-piano-cartesiano",
