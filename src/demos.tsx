@@ -179,6 +179,12 @@ export const demos: DemoInfo[] = [
         tags: ["elettromagnetismo", "condensatore", "capacità", "energia", "fisica"],
     },
     {
+        slug: "forza-lorentz",
+        title: "Forza di Lorentz su una carica in movimento",
+        Component: React.lazy(() => import("./demos/elettromagnetismo/ForzaLorentzDemo")),
+        tags: ["elettromagnetismo", "lorentz", "forza magnetica", "carica", "moto", "campo magnetico", "fisica"],
+    },
+    {
         slug: "componenti-cartesiane-vettore",
         title: "Componenti Cartesiane di un vettore",
         Component: React.lazy(() => import("./demos/vettori-piano/./ComponentiCartesianeVettoreDemo")),
