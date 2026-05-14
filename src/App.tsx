@@ -141,6 +141,7 @@ const categories: Category[] = [
                     "campo-elettrico",
                     "legge-di-coulomb",
                     "condensatore",
+                    "forza-lorentz",
                     "legge-hom",
                     "seconda-legge-ohm",
                     "resistenze-serie-parallelo",
@@ -240,6 +241,7 @@ const demoBySlug = new Map(demos.map((d) => [d.slug, d]));
 
 // Demo nuove (mostrano tag NEW)
 const newDemoSlugs = new Set([
+    "forza-lorentz",
     "verifica-parabola-1",
     "gioco-inversione-formule",
     "segno-di-un-prodotto",
