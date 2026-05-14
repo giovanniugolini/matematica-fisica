@@ -198,6 +198,7 @@ const categories: Category[] = [
                     "verifica-fisica-vettori-1",
                     "verifica-fisica-forze-2",
                     "verifica-fisica-forze-3f",
+                    "verifica-fisica-campo-magnetico-5i",
                 ],
             },
             {
@@ -263,6 +264,7 @@ const newDemoSlugs = new Set([
     "verifica-fisica-vettori-1",
     "verifica-fisica-forze-2",
     "verifica-fisica-forze-3f",
+    "verifica-fisica-campo-magnetico-5i",
     "battaglia-piano-cartesiano",
     "verifica-goniometria-1",
     "derivata",

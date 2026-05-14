@@ -407,6 +407,12 @@ export const demos: DemoInfo[] = [
         tags: ["verifica", "forze", "elastica", "hooke", "vettori", "fisica", "test", "3F", "fila"],
     },
     {
+        slug: "verifica-fisica-campo-magnetico-5i",
+        title: "Verifica: Il campo magnetico — 5I",
+        Component: React.lazy(() => import("./demos/quiz/VerificaFisicaCampoMagnetico5I")),
+        tags: ["verifica", "campo magnetico", "magnetismo", "lorentz", "solenoide", "fisica", "test", "5I"],
+    },
+    {
         slug: "verifica-goniometria-1",
         title: "Verifica: Equazioni Goniometriche",
         Component: React.lazy(() => import("./demos/quiz/VerificaGoniometria1")),

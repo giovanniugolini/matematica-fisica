@@ -79,6 +79,12 @@ export const tests: TestInfo[] = [
         type: "verifica",
     },
     {
+        slug: "verifica-fisica-campo-magnetico-5i",
+        title: "Verifica: Il campo magnetico — 5I",
+        Component: React.lazy(() => import("./demos/quiz/VerificaFisicaCampoMagnetico5I")),
+        type: "verifica",
+    },
+    {
         slug: "verifica-goniometria-1",
         title: "Verifica: Equazioni Goniometriche",
         Component: React.lazy(() => import("./demos/quiz/VerificaGoniometria1")),
