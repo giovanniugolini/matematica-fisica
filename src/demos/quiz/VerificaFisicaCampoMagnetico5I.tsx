@@ -562,45 +562,7 @@ export default function VerificaFisicaCampoMagnetico5I(): React.ReactElement {
                         <div style={S.soluzioniSection} className="soluzioni-section no-print">
                             <div style={S.soluzioniTitle}>✅ Soluzioni</div>
 
-                            {/* ─── Parte A ─── */}
-                            <div style={S.solParte}>
-                                <div style={S.solParteTitle}>Parte A – Risposte attese</div>
 
-                                <div style={S.solDomanda}>
-                                    <span style={S.solLabel}>a) Campo magnetico e linee di campo</span>
-                                    <p style={S.solText}>
-                                        Il <strong>campo magnetico</strong> è una grandezza vettoriale che descrive
-                                        l'effetto di magneti e correnti elettriche sullo spazio circostante.
-                                        Si misura in tesla (T) ed è rappresentato dal vettore <L s="$\vec{B}$" />.
-                                    </p>
-                                    <p style={S.solText}>
-                                        Le <strong>linee di campo magnetico</strong> sono sempre chiuse (non hanno né
-                                        inizio né fine), non si incrociano mai e sono più dense dove il campo è più
-                                        intenso. A differenza del campo elettrico, il campo magnetico non ha
-                                        sorgenti isolate (monopoli magnetici non esistono): le sorgenti sono sempre
-                                        dipoli (es. magneti con due poli, spire di corrente).
-                                    </p>
-                                </div>
-
-                                <div style={S.solDomanda}>
-                                    <span style={S.solLabel}>b) Campo del solenoide e regola della mano destra</span>
-                                    <p style={S.solText}>
-                                        All'interno di un solenoide il campo è uniforme:{" "}
-                                        <L s="$B = \mu_0 n I$" />, dove <L s="$\mu_0$" /> è la permeabilità
-                                        del vuoto, <L s="$n$" /> è il numero di spire per unità di lunghezza
-                                        (spire/m) e <L s="$I$" /> è l'intensità di corrente (A).
-                                    </p>
-                                    <p style={S.solText}>
-                                        <strong>Regola della mano destra — filo:</strong> si avvolge il pugno
-                                        attorno al filo con il pollice nel verso della corrente; le dita
-                                        indicano il verso del campo magnetico (che ruota attorno al filo).
-                                        <br />
-                                        <strong>Solenoide:</strong> si chiude la mano destra attorno al solenoide
-                                        con le dita nel verso della corrente nelle spire; il pollice indica il polo
-                                        nord (verso in cui esce il campo).
-                                    </p>
-                                </div>
-                            </div>
 
                             {/* ─── Parte B ─── */}
                             <div style={S.solParte}>
