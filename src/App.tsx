@@ -186,7 +186,7 @@ const categories: Category[] = [
                     "verifica-algebra-1",
                     "verifica-parabola-1",
                     "verifica-parabola-sistemi-3f",
-
+                    "verifica-disequazioni-3f",
                 ],
             },
             {
@@ -277,6 +277,7 @@ const newDemoSlugs = new Set([
     "oersted",
     "funzione-logaritmo",
     "seconda-legge-newton",
+    "verifica-disequazioni-3f",
 ]);
 
 // ============ COMPONENTI ============

@@ -454,4 +454,10 @@ export const demos: DemoInfo[] = [
         Component: React.lazy(() => import("./demos/quiz/BattagliaProblemiDemo")),
         tags: ["quiz", "gioco", "geometria", "piano cartesiano", "distanza", "punto medio", "retta", "2B"],
     },
+    {
+        slug: "verifica-disequazioni-3f",
+        title: "Simulazione: Disequazioni 2° grado e Circonferenza — 3F",
+        Component: React.lazy(() => import("./demos/quiz/VerificaDisequazioni3F")),
+        tags: ["verifica", "disequazioni", "secondo grado", "fratte", "circonferenza", "matematica", "test", "3F"],
+    },
 ];
