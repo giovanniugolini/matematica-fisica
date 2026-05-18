@@ -356,7 +356,7 @@ export default function VerificaDisequazioni3F(): React.ReactElement {
                                 1) <span style={{ fontWeight: 400, color: "#64748b", fontSize: 13 }}>(16 punti)</span>
                             </span>
                             <p style={S.domandaText}>
-                                Risolvi la disequazione: <L s="$\quad 2x^2 - 5x - 3 \leq 0$" />
+                                Risolvi la disequazione: <L s="$\quad {-x^2 + 4x - 3 > 0}$" />
                             </p>
                             <div style={S.linea(56)} />
                             <div style={S.linea(56)} />
@@ -373,8 +373,11 @@ export default function VerificaDisequazioni3F(): React.ReactElement {
                                 2) <span style={{ fontWeight: 400, color: "#64748b", fontSize: 13 }}>(16 punti)</span>
                             </span>
                             <p style={S.domandaText}>
-                                Risolvi la disequazione: <L s="$\quad {-x^2 + 4x - 3 > 0}$" />
+                                Risolvi la disequazione, portandola prima in forma normale:
                             </p>
+                            <div style={{ margin: "4px 0 8px", textAlign: "center" as const }}>
+                                <DisplayMath>{"\\dfrac{(x-1)^2}{2} \\leq x + 3"}</DisplayMath>
+                            </div>
                             <div style={S.linea(56)} />
                             <div style={S.linea(56)} />
                             <div style={S.linea(56)} />
@@ -505,31 +508,7 @@ export default function VerificaDisequazioni3F(): React.ReactElement {
 
                                 {/* B.1 */}
                                 <div style={S.solDomanda}>
-                                    <span style={S.solLabel}>1) 2x² − 5x − 3 ≤ 0</span>
-
-                                    <p style={{ ...S.solText, fontWeight: 600, marginTop: 8, marginBottom: 4 }}>i) Discriminante</p>
-                                    <div style={S.solStep}>
-                                        <DisplayMath>{"\\Delta = (-5)^2 - 4 \\cdot 2 \\cdot (-3) = 25 + 24 = 49"}</DisplayMath>
-                                    </div>
-
-                                    <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>ii) Radici</p>
-                                    <div style={S.solStep}>
-                                        <DisplayMath>{"x_{1,2} = \\frac{5 \\pm \\sqrt{49}}{4} = \\frac{5 \\pm 7}{4} \\quad \\Rightarrow \\quad x_1 = -\\frac{1}{2},\\quad x_2 = 3"}</DisplayMath>
-                                    </div>
-
-                                    <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>iii) Segno e soluzione</p>
-                                    <div style={S.solStep}>
-                                        <p style={{ fontSize: 13 }}>
-                                            Coefficiente <L s="$a = 2 > 0$" /> → parabola rivolta verso l'alto →
-                                            il trinomio è <L s="$\leq 0$" /> <strong>tra</strong> le radici.
-                                        </p>
-                                        <DisplayMath>{"\\boxed{-\\tfrac{1}{2} \\leq x \\leq 3}"}</DisplayMath>
-                                    </div>
-                                </div>
-
-                                {/* B.2 */}
-                                <div style={S.solDomanda}>
-                                    <span style={S.solLabel}>2) −x² + 4x − 3 &gt; 0</span>
+                                    <span style={S.solLabel}>1) −x² + 4x − 3 &gt; 0</span>
 
                                     <p style={{ ...S.solText, fontWeight: 600, marginTop: 8, marginBottom: 4 }}>i) Moltiplicazione per −1</p>
                                     <div style={S.solStep}>
@@ -548,6 +527,35 @@ export default function VerificaDisequazioni3F(): React.ReactElement {
                                             <L s="$a = 1 > 0$" /> → parabola verso l'alto → <L s="$< 0$" /> tra le radici (estremi esclusi).
                                         </p>
                                         <DisplayMath>{"\\boxed{1 < x < 3}"}</DisplayMath>
+                                    </div>
+                                </div>
+
+                                {/* B.2 */}
+                                <div style={S.solDomanda}>
+                                    <span style={S.solLabel}>2) (x−1)²/2 ≤ x + 3</span>
+
+                                    <p style={{ ...S.solText, fontWeight: 600, marginTop: 8, marginBottom: 4 }}>i) Moltiplicazione per 2</p>
+                                    <div style={S.solStep}>
+                                        <DisplayMath>{"(x-1)^2 \\leq 2x + 6"}</DisplayMath>
+                                        <p style={{ fontSize: 13, marginTop: 4 }}>Il fattore 2 è positivo: il verso non cambia.</p>
+                                    </div>
+
+                                    <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>ii) Sviluppo e forma normale</p>
+                                    <div style={S.solStep}>
+                                        <DisplayMath>{"x^2 - 2x + 1 \\leq 2x + 6 \\quad \\Rightarrow \\quad x^2 - 4x - 5 \\leq 0"}</DisplayMath>
+                                    </div>
+
+                                    <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>iii) Discriminante e radici</p>
+                                    <div style={S.solStep}>
+                                        <DisplayMath>{"\\Delta = 16 + 20 = 36 \\quad \\Rightarrow \\quad x_{1,2} = \\frac{4 \\pm 6}{2} \\quad \\Rightarrow \\quad x_1 = -1,\\quad x_2 = 5"}</DisplayMath>
+                                    </div>
+
+                                    <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>iv) Segno e soluzione</p>
+                                    <div style={S.solStep}>
+                                        <p style={{ fontSize: 13 }}>
+                                            <L s="$a = 1 > 0$" /> → parabola verso l'alto → <L s="$\leq 0$" /> tra le radici (estremi inclusi).
+                                        </p>
+                                        <DisplayMath>{"\\boxed{-1 \\leq x \\leq 5}"}</DisplayMath>
                                     </div>
                                 </div>
 
