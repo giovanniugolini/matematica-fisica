@@ -1,0 +1,1 @@
+function r(n,o){return n+Math.floor(Math.random()*(o-n+1))}function a(n,o){let t=0;for(;t===0;)t=r(n,o);return t}function u(n){return n[r(0,n.length-1)]}function s(n=.5){return Math.random()<n}function c(n){const o=[...n];for(let t=o.length-1;t>0;t--){const e=r(0,t);[o[t],o[e]]=[o[e],o[t]]}return o}export{s as a,u as b,a as c,r,c as s};

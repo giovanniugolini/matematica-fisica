@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400">
+    <rect width="600" height="400" fill="#e0f2fe" rx="8"/>
+
+    <!-- Assi cartesiani -->
+    <line x1="50" y1="200" x2="550" y2="200" stroke="#0ea5e9" stroke-width="2"/>
+    <line x1="300" y1="50" x2="300" y2="350" stroke="#0ea5e9" stroke-width="2"/>
+
+    <!-- Vettore A -->
+    <line x1="100" y1="250" x2="350" y2="150" stroke="#ef4444" stroke-width="4" marker-end="url(#arrowhead)"/>
+
+    <!-- Componenti -->
+    <line x1="100" y1="250" x2="350" y2="250" stroke="#10b981" stroke-width="3" stroke-dasharray="5,5"/>
+    <line x1="350" y1="250" x2="350" y2="150" stroke="#10b981" stroke-width="3" stroke-dasharray="5,5"/>
+
+    <!-- Etichette -->
+    <text x="225" y="270" text-anchor="middle" font-family="Arial" font-size="16" fill="#475569">Aₓ</text>
+    <text x="380" y="200" text-anchor="middle" font-family="Arial" font-size="16" fill="#475569">Aᵧ</text>
+    <text x="220" y="170" text-anchor="middle" font-family="Arial" font-size="18" fill="#ef4444" font-weight="bold">A</text>
+
+    <!-- Titolo -->
+    <text x="300" y="30" text-anchor="middle" font-family="Arial" font-size="20" fill="#0369a1" font-weight="bold">
+        Scomposizione di un vettore
+    </text>
+
+    <!-- Origine -->
+    <circle cx="100" cy="250" r="4" fill="#ef4444"/>
+    <text x="90" y="270" text-anchor="middle" font-family="Arial" font-size="14" fill="#475569">O(0,0)</text>
+
+    <!-- Freccia -->
+    <defs>
+        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#ef4444"/>
+        </marker>
+    </defs>
+</svg>
