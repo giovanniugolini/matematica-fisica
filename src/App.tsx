@@ -121,6 +121,7 @@ const categories: Category[] = [
                 name: "Dinamica",
                 slugs: [
                     "seconda-legge-newton",
+                    "momento-torcente",
                 ],
             },
             {
@@ -187,6 +188,7 @@ const categories: Category[] = [
                     "verifica-parabola-1",
                     "verifica-parabola-sistemi-3f",
                     "verifica-disequazioni-3f",
+                    "verifica-disequazioni-3f-2",
                 ],
             },
             {
@@ -277,7 +279,9 @@ const newDemoSlugs = new Set([
     "oersted",
     "funzione-logaritmo",
     "seconda-legge-newton",
+    "momento-torcente",
     "verifica-disequazioni-3f",
+    "verifica-disequazioni-3f-2",
 ]);
 
 // ============ COMPONENTI ============

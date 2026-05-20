@@ -185,6 +185,12 @@ export const demos: DemoInfo[] = [
         tags: ["dinamica", "newton", "forza", "massa", "accelerazione", "F=ma", "proporzionalità", "laboratorio", "fisica"],
     },
     {
+        slug: "momento-torcente",
+        title: "Momento torcente: τ = F × d (la chiave inglese)",
+        Component: React.lazy(() => import("./demos/dinamica/MomentoTorcenteDemo")),
+        tags: ["dinamica", "momento", "torcente", "chiave", "braccio", "rotazione", "coppia", "fisica"],
+    },
+    {
         slug: "moto-uniformemente-accelerato",
         title: "Moto Uniformemente Accelerato (MUA)",
         Component: React.lazy(() => import("./demos/cinematica/MotoUniformementeAcceleratoDemo")),
@@ -459,5 +465,11 @@ export const demos: DemoInfo[] = [
         title: "Simulazione: Disequazioni 2° grado e Circonferenza — 3F",
         Component: React.lazy(() => import("./demos/quiz/VerificaDisequazioni3F")),
         tags: ["verifica", "disequazioni", "secondo grado", "fratte", "circonferenza", "matematica", "test", "3F"],
+    },
+    {
+        slug: "verifica-disequazioni-3f-2",
+        title: "Verifica: Disequazioni 2° grado e Circonferenza — 3F (Fila A/B)",
+        Component: React.lazy(() => import("./demos/quiz/VerificaDisequazioni3F2")),
+        tags: ["verifica", "disequazioni", "secondo grado", "fratte", "circonferenza", "matematica", "test", "3F", "fila"],
     },
 ];
