@@ -45,9 +45,10 @@ export default function OerstedDemo() {
 
     // Compass needle angle: tangent to field circle at compass position
     const radialAngleDeg = Math.atan2(ddy, ddx) * (180 / Math.PI);
-    // Uscente (•): CCW field → tangent = radialAngle - 90
-    // Entrante (×): CW field → tangent = radialAngle + 90
-    const needleAngleDeg = entrante ? radialAngleDeg + 90 : radialAngleDeg - 90;
+    // N pole points in direction of B:
+    // Entrante (×): CW field → B direction = radialAngle + 90° → needleAngleDeg = radialAngle + 180
+    // Uscente (•): CCW field → B direction = radialAngle - 90° → needleAngleDeg = radialAngle
+    const needleAngleDeg = entrante ? radialAngleDeg + 180 : radialAngleDeg;
 
     // Arrows on field circles
     const fieldColor = entrante ? "#2563eb" : "#dc2626";
@@ -193,7 +194,7 @@ export default function OerstedDemo() {
                         const ax = CX + r * Math.cos(theta);
                         const ay = CY + r * Math.sin(theta);
                         const thetaDeg = theta * (180 / Math.PI);
-                        const arrowAngle = entrante ? thetaDeg + 90 : thetaDeg - 90;
+                        const arrowAngle = entrante ? thetaDeg + 180 : thetaDeg;
                         return (
                             <ArrowHead
                                 key={`${ri}-${i}`}
@@ -260,8 +261,8 @@ export default function OerstedDemo() {
                         fill="white" stroke="#94a3b8" strokeWidth={2} />
                     {/* N/S/E/O marks */}
                     {[
-                        { label: "N", angle: needleAngleDeg - 90 },
-                        { label: "S", angle: needleAngleDeg + 90 },
+                        { label: "N", angle: needleAngleDeg },
+                        { label: "S", angle: needleAngleDeg + 180 },
                     ].map(({ label, angle }) => {
                         const rad = (angle - 90) * (Math.PI / 180);
                         return (

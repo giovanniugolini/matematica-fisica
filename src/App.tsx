@@ -91,7 +91,6 @@ const categories: Category[] = [
                 slugs: [
                     "distanza-punto-medio",
                     "equazione-retta",
-                    "retta-problemi",
                     "parabola",
                     "retta-e-parabola",
                 ],
@@ -275,7 +274,6 @@ const newDemoSlugs = new Set([
     "derivate-elementari",
     "equazioni-esponenziali-elementari",
     "sistemi-primo-grado-sostituzione",
-    "retta-problemi",
     "oersted",
     "funzione-logaritmo",
     "seconda-legge-newton",

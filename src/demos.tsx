@@ -377,12 +377,6 @@ export const demos: DemoInfo[] = [
         tags: ["geometria", "parabola", "fuoco", "direttrice", "vertice", "analisi", "funzioni"],
     },
     {
-        slug: "retta-problemi",
-        title: "Retta: problemi con le formule (step-by-step)",
-        Component: React.lazy(() => import("./demos/geometria-analitica/RettaProblemiDemo")),
-        tags: ["geometria", "retta", "parallela", "perpendicolare", "coefficiente angolare", "step-by-step", "piano cartesiano"],
-    },
-    {
         slug: "retta-e-parabola",
         title: "La Retta e la Parabola: posizione reciproca e tangente (step by step)",
         Component: React.lazy(() => import("./demos/geometria-analitica/RettaParabolaDemo")),
