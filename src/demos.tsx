@@ -413,6 +413,12 @@ export const demos: DemoInfo[] = [
         tags: ["verifica", "forze", "elastica", "hooke", "vettori", "fisica", "test", "3F", "fila"],
     },
     {
+        slug: "verifica-fisica-forze-3e",
+        title: "Simulazione: Attrito, Piano Inclinato, Momento Torcente — 3E",
+        Component: React.lazy(() => import("./demos/quiz/VerificaFisicaForze3E")),
+        tags: ["verifica", "forze", "attrito", "piano inclinato", "momento torcente", "hooke", "equilibrio", "fisica", "test", "3E", "fila"],
+    },
+    {
         slug: "verifica-fisica-campo-magnetico-5i",
         title: "Verifica: Il campo magnetico — 5I",
         Component: React.lazy(() => import("./demos/quiz/VerificaFisicaCampoMagnetico5I")),
