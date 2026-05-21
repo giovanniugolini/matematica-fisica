@@ -419,6 +419,12 @@ export const demos: DemoInfo[] = [
         tags: ["verifica", "forze", "attrito", "piano inclinato", "momento torcente", "hooke", "equilibrio", "fisica", "test", "3E", "fila"],
     },
     {
+        slug: "simulazione-fisica-newton-4m",
+        title: "Simulazione: Leggi di Newton e Gravitazione — 4M",
+        Component: React.lazy(() => import("./demos/quiz/SimulazioneFisicaNewton4M")),
+        tags: ["simulazione", "newton", "gravitazione", "inerzia", "relatività galileiana", "fisica", "test", "4M"],
+    },
+    {
         slug: "verifica-fisica-campo-magnetico-5i",
         title: "Verifica: Il campo magnetico — 5I",
         Component: React.lazy(() => import("./demos/quiz/VerificaFisicaCampoMagnetico5I")),

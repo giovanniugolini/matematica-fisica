@@ -201,6 +201,7 @@ const categories: Category[] = [
                     "verifica-fisica-forze-2",
                     "verifica-fisica-forze-3f",
                     "verifica-fisica-forze-3e",
+                    "simulazione-fisica-newton-4m",
                     "verifica-fisica-campo-magnetico-5i",
                 ],
             },
@@ -282,6 +283,7 @@ const newDemoSlugs = new Set([
     "verifica-disequazioni-3f",
     "verifica-disequazioni-3f-2",
     "verifica-fisica-forze-3e",
+    "simulazione-fisica-newton-4m",
 ]);
 
 // ============ COMPONENTI ============
