@@ -467,6 +467,12 @@ export const demos: DemoInfo[] = [
         tags: ["quiz", "gioco", "geometria", "piano cartesiano", "distanza", "punto medio", "retta", "2B"],
     },
     {
+        slug: "battaglia-rette-2",
+        title: "Battaglia: Rette, Sistemi e Radicali",
+        Component: React.lazy(() => import("./demos/quiz/BattagliaRette2Demo")),
+        tags: ["quiz", "gioco", "retta", "sistema lineare", "radicali", "parallelismo", "perpendicolarità", "matematica"],
+    },
+    {
         slug: "verifica-disequazioni-3f",
         title: "Simulazione: Disequazioni 2° grado e Circonferenza — 3F",
         Component: React.lazy(() => import("./demos/quiz/VerificaDisequazioni3F")),

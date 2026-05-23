@@ -233,6 +233,7 @@ const categories: Category[] = [
                     "gioco-inversione-formule",
                     "escape-room",
                     "battaglia-piano-cartesiano",
+                    "battaglia-rette-2",
                 ],
             },
         ],
@@ -284,6 +285,7 @@ const newDemoSlugs = new Set([
     "verifica-disequazioni-3f-2",
     "verifica-fisica-forze-3e",
     "simulazione-fisica-newton-4m",
+    "battaglia-rette-2",
 ]);
 
 // ============ COMPONENTI ============
