@@ -361,7 +361,7 @@ export default function SimulazioneFisicaEquilibrio3F(): React.ReactElement {
                             <p style={S.domandaText}>
                                 Definisci la <strong>forza di attrito statico</strong>: scrivi la disuguaglianza che la
                                 esprime, specifica il significato fisico di <L s="$\mu_s$" /> e di{" "}
-                                <L s="$F_\perp$" /> (forza normale). Spiega in quali casi l'uguaglianza vale e cosa
+                                <L s="$F_v$" /> (forza vincolare). Spiega in quali casi l'uguaglianza vale e cosa
                                 succede quando la forza applicata supera il valore massimo di attrito statico.
                             </p>
                             <div style={{ height: 80, borderBottom: "1px dashed #cbd5e1", marginTop: 8 }} />
@@ -398,35 +398,38 @@ export default function SimulazioneFisicaEquilibrio3F(): React.ReactElement {
 
                         <div style={{ height: 16 }} />
 
-                        {/* B.b — Forza elastica: calcolo */}
+                        {/* B.b — Forza vincolare: piano orizzontale con forza aggiuntiva */}
                         <div style={S.domanda}>
                             <span style={S.domandaLabel}>b)</span>
                             <p style={S.domandaText}>
-                                Una molla con costante elastica <L s="$k = 200\,\text{N/m}$" /> viene allungata
-                                di <L s="$5{,}0\,\text{cm}$" />. Qual è la forza elastica esercitata dalla molla?
+                                Un blocco di massa <L s="$m = 5{,}0\,\text{kg}$" /> è appoggiato su un piano
+                                orizzontale. Oltre alla forza peso, una corda tira il blocco verticalmente verso
+                                il basso con una forza <L s="$F = 15{,}0\,\text{N}$" />. Qual è la forza vincolare
+                                esercitata dal piano sul blocco?
                             </p>
-                            <span style={S.mcOption}><strong>A.</strong> <L s="$10\,\text{N}$" /></span>
-                            <span style={S.mcOption}><strong>B.</strong> <L s="$100\,\text{N}$" /></span>
-                            <span style={S.mcOption}><strong>C.</strong> <L s="$1{,}0\,\text{N}$" /></span>
-                            <span style={S.mcOption}><strong>D.</strong> <L s="$1000\,\text{N}$" /></span>
+                            <span style={S.mcOption}><strong>A.</strong> <L s="$49{,}0\,\text{N}$" /></span>
+                            <span style={S.mcOption}><strong>B.</strong> <L s="$15{,}0\,\text{N}$" /></span>
+                            <span style={S.mcOption}><strong>C.</strong> <L s="$34{,}0\,\text{N}$" /></span>
+                            <span style={S.mcOption}><strong>D.</strong> <L s="$64{,}0\,\text{N}$" /></span>
                             <RigaRisposta />
                             <RigaMotivazione />
                         </div>
 
                         <div style={{ height: 16 }} />
 
-                        {/* B.c — Attrito statico: forza massima */}
+                        {/* B.c — Forza vincolare: piano inclinato con forza perpendicolare aggiuntiva */}
                         <div style={S.domanda}>
                             <span style={S.domandaLabel}>c)</span>
                             <p style={S.domandaText}>
-                                Un blocco di massa <L s="$m = 8{,}0\,\text{kg}$" /> è appoggiato su un piano
-                                orizzontale. Il coefficiente di attrito statico è <L s="$\mu_s = 0{,}40$" />.
-                                Qual è la forza orizzontale <em>minima</em> per far scivolare il blocco?
+                                Un blocco di massa <L s="$m = 5{,}0\,\text{kg}$" /> è su un piano inclinato
+                                con <L s="$\sin\theta = 0{,}60$" /> e <L s="$\cos\theta = 0{,}80$" />. Una forza
+                                di <L s="$20{,}0\,\text{N}$" /> preme il blocco perpendicolarmente alla
+                                superficie del piano. Qual è la forza vincolare <L s="$F_v$" />?
                             </p>
-                            <span style={S.mcOption}><strong>A.</strong> <L s="$3{,}1\,\text{N}$" /></span>
-                            <span style={S.mcOption}><strong>B.</strong> <L s="$20\,\text{N}$" /></span>
-                            <span style={S.mcOption}><strong>C.</strong> <L s="$31\,\text{N}$" /></span>
-                            <span style={S.mcOption}><strong>D.</strong> <L s="$78\,\text{N}$" /></span>
+                            <span style={S.mcOption}><strong>A.</strong> <L s="$39{,}2\,\text{N}$" /></span>
+                            <span style={S.mcOption}><strong>B.</strong> <L s="$49{,}0\,\text{N}$" /></span>
+                            <span style={S.mcOption}><strong>C.</strong> <L s="$59{,}2\,\text{N}$" /></span>
+                            <span style={S.mcOption}><strong>D.</strong> <L s="$29{,}4\,\text{N}$" /></span>
                             <RigaRisposta />
                             <RigaMotivazione />
                         </div>
@@ -456,43 +459,51 @@ export default function SimulazioneFisicaEquilibrio3F(): React.ReactElement {
                     <div style={S.parte}>
                         <div style={S.parteTitle}>Parte C – Esercizi</div>
 
-                        {/* C.1 — Molla verticale: trovare la massa */}
+                        {/* C.1 — Equilibrio su piano orizzontale poi inclinato */}
                         <div style={S.domanda}>
                             <span style={S.domandaLabel}>
                                 1) <span style={{ fontWeight: 400, color: "#64748b", fontSize: 13 }}>(28 punti)</span>{" "}
-                                Molla verticale e blocco appeso
+                                Equilibrio su piano orizzontale e piano inclinato
                             </span>
 
                             <p style={S.domandaText}>
-                                Un blocco di massa incognita è appeso a una molla verticale con costante elastica{" "}
-                                <L s="$k = 250\,\text{N/m}$" />. In condizione di equilibrio, la molla si è allungata
-                                di <L s="$8{,}0\,\text{cm}$" />.
+                                Un blocco di massa <L s="$m = 5{,}0\,\text{kg}$" /> è appoggiato su una superficie.
+                                Oltre alla forza peso, una forza verticale <L s="$F = 5{,}0\,\text{N}$" /> agisce
+                                sul blocco spingendolo verso il basso.
                             </p>
 
                             <div style={{ marginLeft: 16, marginTop: 10 }}>
                                 <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginBottom: 6 }}>
-                                    <strong>i.)</strong> Converti l'allungamento da centimetri a metri.
+                                    <strong>i.)</strong> Il piano è <strong>orizzontale</strong>. Disegna le forze
+                                    sul blocco (forza peso, forza aggiuntiva, forza vincolare). Scrivi la condizione
+                                    di equilibrio verticale e calcola la forza vincolare <L s="$F_v$" />.
                                 </p>
-                                <div style={{ height: 48, borderBottom: "1px dashed #cbd5e1" }} />
+                                <div style={{ height: 80, border: "1px dashed #cbd5e1", borderRadius: 4, marginBottom: 8 }} />
+                                <div style={{ height: 56, borderBottom: "1px dashed #cbd5e1" }} />
 
                                 <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginTop: 12, marginBottom: 6 }}>
-                                    <strong>ii.)</strong> Applica la legge di Hooke e calcola la forza elastica.
+                                    <strong>ii.)</strong> Il piano si <strong>inclina di un angolo</strong> <L s="$\theta$" />{" "}
+                                    con <L s="$\sin\theta = 0{,}60$" /> e <L s="$\cos\theta = 0{,}80$" />. Sia la forza
+                                    peso che la forza <L s="$F$" /> restano verticali. Calcola la forza risultante
+                                    verticale verso il basso <L s="$F_{\text{tot}}$" /> e le sue componenti parallela
+                                    e perpendicolare al piano.
                                 </p>
-                                <div style={{ height: 64, borderBottom: "1px dashed #cbd5e1" }} />
+                                <div style={{ height: 72, borderBottom: "1px dashed #cbd5e1" }} />
+                                <div style={{ height: 56, borderBottom: "1px dashed #cbd5e1" }} />
 
                                 <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginTop: 12, marginBottom: 6 }}>
-                                    <strong>iii.)</strong> Il blocco è in equilibrio verticale: la forza elastica bilancia
-                                    la forza peso. Usa la condizione di equilibrio per ricavare la massa del blocco.
-                                </p>
-                                <div style={{ height: 64, borderBottom: "1px dashed #cbd5e1" }} />
-                                <div style={{ height: 48, borderBottom: "1px dashed #cbd5e1" }} />
-
-                                <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginTop: 12, marginBottom: 6 }}>
-                                    <strong>*iv.)</strong> Se la massa del blocco venisse <em>raddoppiata</em>,
-                                    di quanto si allungherebbe la molla? Motiva il ragionamento senza ripetere
-                                    tutti i calcoli.
+                                    <strong>iii.)</strong> Usando la condizione di equilibrio perpendicolare al piano,
+                                    calcola la forza vincolare <L s="$F_v$" />. Confronta con il valore trovato al
+                                    punto i): come cambia passando dal piano orizzontale a quello inclinato?
                                 </p>
                                 <div style={{ height: 56, borderBottom: "1px dashed #cbd5e1" }} />
+
+                                <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginTop: 12, marginBottom: 6 }}>
+                                    <strong>*iv.)</strong> Per mantenere il blocco in equilibrio <em>lungo</em> il piano
+                                    inclinato, qual è la forza di attrito necessaria? Calcola il coefficiente di
+                                    attrito statico minimo <L s="$\mu_s$" />.
+                                </p>
+                                <div style={{ height: 64, borderBottom: "1px dashed #cbd5e1" }} />
                             </div>
                         </div>
 
@@ -514,7 +525,7 @@ export default function SimulazioneFisicaEquilibrio3F(): React.ReactElement {
                             {/* Spazio per il disegno delle forze */}
                             <div style={{ marginLeft: 16, marginTop: 8 }}>
                                 <p style={{ fontSize: 13, color: "#475569", fontFamily: "system-ui, sans-serif", marginBottom: 4 }}>
-                                    Disegna le forze sul blocco (forza peso, forza normale, forza di attrito):
+                                    Disegna le forze sul blocco (forza peso, forza vincolare, forza di attrito):
                                 </p>
                                 <div style={{ height: 100, border: "1px dashed #cbd5e1", borderRadius: 4, marginBottom: 12 }} />
                             </div>
@@ -530,7 +541,7 @@ export default function SimulazioneFisicaEquilibrio3F(): React.ReactElement {
 
                                 <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginTop: 12, marginBottom: 6 }}>
                                     <strong>ii.)</strong> Calcola la componente del peso <em>parallela</em> al piano{" "}
-                                    <L s="$F_\parallel$" /> e la forza normale <L s="$N$" />.
+                                    <L s="$F_\parallel$" /> e la forza vincolare <L s="$F_v$" />.
                                 </p>
                                 <div style={{ height: 64, borderBottom: "1px dashed #cbd5e1" }} />
 
@@ -604,15 +615,15 @@ export default function SimulazioneFisicaEquilibrio3F(): React.ReactElement {
                                     <span style={S.solLabel}>b) Forza di attrito statico</span>
                                     <p style={S.solText}>
                                         La forza di attrito statico soddisfa la disuguaglianza{" "}
-                                        <L s="$F_{\text{att}} \leq \mu_s \cdot F_\perp$" />, dove{" "}
+                                        <L s="$F_{\text{att}} \leq \mu_s \cdot F_v$" />, dove{" "}
                                         <L s="$\mu_s$" /> è il coefficiente di attrito statico (adimensionale, dipende
-                                        dai materiali a contatto) e <L s="$F_\perp$" /> è la forza normale (reazione
-                                        vincolare perpendicolare alla superficie).
+                                        dai materiali a contatto) e <L s="$F_v$" /> è la forza vincolare (reazione
+                                        perpendicolare alla superficie di appoggio).
                                     </p>
                                     <p style={S.solText}>
                                         L'uguaglianza vale solo quando l'attrito raggiunge il valore massimo, cioè
                                         quando il corpo è sul punto di scivolare. Se la forza applicata supera{" "}
-                                        <L s="$\mu_s \cdot F_\perp$" />, il corpo inizia a muoversi e subentra
+                                        <L s="$\mu_s \cdot F_v$" />, il corpo inizia a muoversi e subentra
                                         l'attrito dinamico (in genere minore dell'attrito statico massimo).
                                     </p>
                                 </div>
@@ -634,12 +645,13 @@ export default function SimulazioneFisicaEquilibrio3F(): React.ReactElement {
 
                                 <div style={S.solDomanda}>
                                     <span style={S.solLabel}>b)</span>
-                                    <span style={S.solRisposta}>A</span>
+                                    <span style={S.solRisposta}>D</span>
                                     <div style={S.solStep}>
                                         <p style={{ fontSize: 13 }}>
-                                            Convertire: <L s="$x = 5{,}0\,\text{cm} = 0{,}050\,\text{m}$" />.
+                                            Piano orizzontale: la forza vincolare equilibra il peso <em>e</em> la
+                                            forza aggiuntiva verso il basso.
                                         </p>
-                                        <DisplayMath>{"F = k \\cdot x = 200 \\times 0{,}050 = 10\\,\\text{N}"}</DisplayMath>
+                                        <DisplayMath>{"F_v = mg + F = 5{,}0 \\times 9{,}8 + 15{,}0 = 49{,}0 + 15{,}0 = 64{,}0\\,\\text{N}"}</DisplayMath>
                                     </div>
                                 </div>
 
@@ -647,7 +659,12 @@ export default function SimulazioneFisicaEquilibrio3F(): React.ReactElement {
                                     <span style={S.solLabel}>c)</span>
                                     <span style={S.solRisposta}>C</span>
                                     <div style={S.solStep}>
-                                        <DisplayMath>{"F_{\\text{max}} = \\mu_s \\cdot N = \\mu_s \\cdot mg = 0{,}40 \\times 8{,}0 \\times 9{,}8 = 31{,}4\\,\\text{N} \\approx 31\\,\\text{N}"}</DisplayMath>
+                                        <p style={{ fontSize: 13 }}>
+                                            La forza vincolare è perpendicolare al piano: bilancia la componente
+                                            perpendicolare del peso <em>più</em> la forza aggiuntiva premuta
+                                            perpendicolarmente.
+                                        </p>
+                                        <DisplayMath>{"F_v = mg\\cos\\theta + F_{\\perp} = 5{,}0 \\times 9{,}8 \\times 0{,}80 + 20{,}0 = 39{,}2 + 20{,}0 = 59{,}2\\,\\text{N}"}</DisplayMath>
                                     </div>
                                 </div>
 
@@ -666,33 +683,48 @@ export default function SimulazioneFisicaEquilibrio3F(): React.ReactElement {
 
                                 {/* C.1 */}
                                 <div style={S.solDomanda}>
-                                    <span style={S.solLabel}>1) Molla verticale — k = 250 N/m, x = 8,0 cm</span>
+                                    <span style={S.solLabel}>1) Equilibrio piano orizzontale / inclinato — m = 5,0 kg, F = 5,0 N</span>
 
-                                    <p style={{ ...S.solText, fontWeight: 600, marginBottom: 4 }}>i) Conversione</p>
-                                    <div style={S.solStep}>
-                                        <DisplayMath>{"x = 8{,}0\\,\\text{cm} = 0{,}080\\,\\text{m}"}</DisplayMath>
-                                    </div>
-
-                                    <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>ii) Forza elastica (legge di Hooke)</p>
-                                    <div style={S.solStep}>
-                                        <DisplayMath>{"F_{\\text{el}} = k \\cdot x = 250 \\times 0{,}080 = 20{,}0\\,\\text{N}"}</DisplayMath>
-                                    </div>
-
-                                    <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>iii) Massa del blocco (condizione di equilibrio)</p>
+                                    <p style={{ ...S.solText, fontWeight: 600, marginBottom: 4 }}>i) Piano orizzontale</p>
                                     <div style={S.solStep}>
                                         <p style={{ fontSize: 13 }}>
-                                            Equilibrio verticale: <L s="$F_{\text{el}} = F_{\text{peso}} = mg$" />
+                                            Condizione di equilibrio verticale:{" "}
+                                            <L s="$F_v - P - F = 0 \;\Rightarrow\; F_v = P + F$" />
                                         </p>
-                                        <DisplayMath>{"m = \\frac{F_{\\text{el}}}{g} = \\frac{20{,}0}{9{,}8} \\approx 2{,}0\\,\\text{kg}"}</DisplayMath>
+                                        <DisplayMath>{"F_v = mg + F = 5{,}0 \\times 9{,}8 + 5{,}0 = 49{,}0 + 5{,}0 = 54{,}0\\,\\text{N}"}</DisplayMath>
                                     </div>
 
-                                    <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>*iv) Massa raddoppiata</p>
+                                    <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>ii) Piano inclinato: componenti di F_tot</p>
                                     <div style={S.solStep}>
                                         <p style={{ fontSize: 13 }}>
-                                            Raddoppiando la massa, raddoppia la forza peso e quindi raddoppia
-                                            l'allungamento (la legge di Hooke è lineare):
+                                            La forza risultante verticale verso il basso è{" "}
+                                            <L s="$F_{\text{tot}} = mg + F = 54{,}0\,\text{N}$" />.
                                         </p>
-                                        <DisplayMath>{"x' = 2 \\times 0{,}080 = 0{,}16\\,\\text{m} = 16\\,\\text{cm}"}</DisplayMath>
+                                        <DisplayMath>{"F_{\\parallel} = F_{\\text{tot}}\\sin\\theta = 54{,}0 \\times 0{,}60 = 32{,}4\\,\\text{N}"}</DisplayMath>
+                                        <DisplayMath>{"F_{\\perp} = F_{\\text{tot}}\\cos\\theta = 54{,}0 \\times 0{,}80 = 43{,}2\\,\\text{N}"}</DisplayMath>
+                                    </div>
+
+                                    <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>iii) Forza vincolare sul piano inclinato</p>
+                                    <div style={S.solStep}>
+                                        <p style={{ fontSize: 13 }}>
+                                            Equilibrio perpendicolare al piano:{" "}
+                                            <L s="$F_v = F_\perp = 43{,}2\,\text{N}$" />.
+                                            La forza vincolare è minore di quella sul piano orizzontale (54,0 N)
+                                            perché il piano regge solo la componente perpendicolare del peso totale.
+                                        </p>
+                                    </div>
+
+                                    <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>*iv) Attrito necessario e μ_s minimo</p>
+                                    <div style={S.solStep}>
+                                        <p style={{ fontSize: 13 }}>
+                                            Equilibrio lungo il piano: <L s="$F_{\text{att}} = F_\parallel = 32{,}4\,\text{N}$" />
+                                        </p>
+                                        <DisplayMath>{"\\mu_s = \\frac{F_{\\text{att}}}{F_v} = \\frac{32{,}4}{43{,}2} = 0{,}75 = \\tan\\theta"}</DisplayMath>
+                                        <p style={{ fontSize: 13, marginTop: 4 }}>
+                                            Notare che <L s="$\mu_s = \tan\theta$" /> indipendentemente dalla forza
+                                            aggiuntiva <L s="$F$" />: la forza verticale extra aumenta sia l'attrito
+                                            necessario che la forza vincolare nella stessa proporzione.
+                                        </p>
                                     </div>
                                 </div>
 
@@ -708,10 +740,10 @@ export default function SimulazioneFisicaEquilibrio3F(): React.ReactElement {
                                         <DisplayMath>{"\\sin\\theta = \\frac{h}{L} = \\frac{3{,}0}{5{,}0} = 0{,}60 \\qquad \\cos\\theta = \\frac{b}{L} = \\frac{4{,}0}{5{,}0} = 0{,}80"}</DisplayMath>
                                     </div>
 
-                                    <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>ii) Componenti del peso e forza normale</p>
+                                    <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>ii) Componenti del peso e forza vincolare</p>
                                     <div style={S.solStep}>
                                         <DisplayMath>{"F_{\\parallel} = mg\\sin\\theta = 5{,}0 \\times 9{,}8 \\times 0{,}60 = 29{,}4\\,\\text{N}"}</DisplayMath>
-                                        <DisplayMath>{"N = mg\\cos\\theta = 5{,}0 \\times 9{,}8 \\times 0{,}80 = 39{,}2\\,\\text{N}"}</DisplayMath>
+                                        <DisplayMath>{"F_v = mg\\cos\\theta = 5{,}0 \\times 9{,}8 \\times 0{,}80 = 39{,}2\\,\\text{N}"}</DisplayMath>
                                     </div>
 
                                     <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>iii) Forza di attrito e coefficiente μ_s</p>
@@ -719,7 +751,7 @@ export default function SimulazioneFisicaEquilibrio3F(): React.ReactElement {
                                         <p style={{ fontSize: 13 }}>
                                             Equilibrio lungo il piano: <L s="$F_{\text{att}} = F_\parallel = 29{,}4\,\text{N}$" />
                                         </p>
-                                        <DisplayMath>{"\\mu_s = \\frac{F_{\\text{att}}}{N} = \\frac{29{,}4}{39{,}2} = 0{,}75"}</DisplayMath>
+                                        <DisplayMath>{"\\mu_s = \\frac{F_{\\text{att}}}{F_v} = \\frac{29{,}4}{39{,}2} = 0{,}75"}</DisplayMath>
                                     </div>
 
                                     <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>*iv) Nuovo piano più ripido (h' = 4,0 m)</p>
@@ -729,8 +761,8 @@ export default function SimulazioneFisicaEquilibrio3F(): React.ReactElement {
                                         </p>
                                         <DisplayMath>{"\\sin\\theta' = \\frac{4{,}0}{5{,}0} = 0{,}80 \\qquad \\cos\\theta' = \\frac{3{,}0}{5{,}0} = 0{,}60"}</DisplayMath>
                                         <DisplayMath>{"F'_{\\parallel} = 5{,}0 \\times 9{,}8 \\times 0{,}80 = 39{,}2\\,\\text{N}"}</DisplayMath>
-                                        <DisplayMath>{"N' = 5{,}0 \\times 9{,}8 \\times 0{,}60 = 29{,}4\\,\\text{N}"}</DisplayMath>
-                                        <DisplayMath>{"F_{\\text{att,max}} = \\mu_s \\cdot N' = 0{,}75 \\times 29{,}4 = 22{,}1\\,\\text{N}"}</DisplayMath>
+                                        <DisplayMath>{"F'_v = 5{,}0 \\times 9{,}8 \\times 0{,}60 = 29{,}4\\,\\text{N}"}</DisplayMath>
+                                        <DisplayMath>{"F_{\\text{att,max}} = \\mu_s \\cdot F'_v = 0{,}75 \\times 29{,}4 = 22{,}1\\,\\text{N}"}</DisplayMath>
                                         <p style={{ fontSize: 13, marginTop: 6 }}>
                                             Poiché <L s="$F'_\parallel = 39{,}2\,\text{N} > F_{\text{att,max}} = 22{,}1\,\text{N}$" />,
                                             l'attrito non è sufficiente a mantenere l'equilibrio: <strong>il blocco scivola</strong>.
