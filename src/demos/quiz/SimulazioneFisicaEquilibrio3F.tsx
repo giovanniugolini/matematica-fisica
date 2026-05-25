@@ -417,19 +417,16 @@ export default function SimulazioneFisicaEquilibrio3F(): React.ReactElement {
 
                         <div style={{ height: 16 }} />
 
-                        {/* B.c — Forza vincolare: piano inclinato con forza perpendicolare aggiuntiva */}
+                        {/* B.c — Equilibrio del corpo rigido: condizioni */}
                         <div style={S.domanda}>
                             <span style={S.domandaLabel}>c)</span>
                             <p style={S.domandaText}>
-                                Un blocco di massa <L s="$m = 5{,}0\,\text{kg}$" /> è su un piano inclinato
-                                con <L s="$\sin\theta = 0{,}60$" /> e <L s="$\cos\theta = 0{,}80$" />. Una forza
-                                di <L s="$20{,}0\,\text{N}$" /> preme il blocco perpendicolarmente alla
-                                superficie del piano. Qual è la forza vincolare <L s="$F_v$" />?
+                                Un <strong>corpo rigido</strong> (corpo esteso) è in equilibrio quando:
                             </p>
-                            <span style={S.mcOption}><strong>A.</strong> <L s="$39{,}2\,\text{N}$" /></span>
-                            <span style={S.mcOption}><strong>B.</strong> <L s="$49{,}0\,\text{N}$" /></span>
-                            <span style={S.mcOption}><strong>C.</strong> <L s="$59{,}2\,\text{N}$" /></span>
-                            <span style={S.mcOption}><strong>D.</strong> <L s="$29{,}4\,\text{N}$" /></span>
+                            <span style={S.mcOption}><strong>A.</strong> La risultante delle forze è zero</span>
+                            <span style={S.mcOption}><strong>B.</strong> La somma dei momenti delle forze rispetto a un punto è zero</span>
+                            <span style={S.mcOption}><strong>C.</strong> La risultante delle forze è zero <em>e</em> la somma dei momenti rispetto a qualsiasi punto è zero</span>
+                            <span style={S.mcOption}><strong>D.</strong> Tutte le forze applicate hanno lo stesso punto di applicazione</span>
                             <RigaRisposta />
                             <RigaMotivazione />
                         </div>
@@ -658,14 +655,15 @@ export default function SimulazioneFisicaEquilibrio3F(): React.ReactElement {
                                 <div style={S.solDomanda}>
                                     <span style={S.solLabel}>c)</span>
                                     <span style={S.solRisposta}>C</span>
-                                    <div style={S.solStep}>
-                                        <p style={{ fontSize: 13 }}>
-                                            La forza vincolare è perpendicolare al piano: bilancia la componente
-                                            perpendicolare del peso <em>più</em> la forza aggiuntiva premuta
-                                            perpendicolarmente.
-                                        </p>
-                                        <DisplayMath>{"F_v = mg\\cos\\theta + F_{\\perp} = 5{,}0 \\times 9{,}8 \\times 0{,}80 + 20{,}0 = 39{,}2 + 20{,}0 = 59{,}2\\,\\text{N}"}</DisplayMath>
-                                    </div>
+                                    <p style={S.solText}>
+                                        Per un <strong>corpo rigido</strong> servono <em>due</em> condizioni
+                                        di equilibrio simultanee: equilibrio traslazionale (
+                                        <L s="$\vec{F}_{\text{ris}} = \vec{0}$" />) e equilibrio rotazionale (
+                                        <L s="$\sum M = 0$" /> rispetto a qualsiasi punto). A sola è
+                                        insufficiente (il corpo potrebbe ruotare), B sola è insufficiente
+                                        (il centro di massa potrebbe accelerare). Per un punto materiale basta
+                                        la condizione A, perché non ha estensione e non può ruotare.
+                                    </p>
                                 </div>
 
                                 <div style={S.solDomanda}>
