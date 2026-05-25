@@ -484,4 +484,10 @@ export const demos: DemoInfo[] = [
         Component: React.lazy(() => import("./demos/quiz/VerificaDisequazioni3F2")),
         tags: ["verifica", "disequazioni", "secondo grado", "fratte", "circonferenza", "matematica", "test", "3F", "fila"],
     },
+    {
+        slug: "simulazione-fisica-equilibrio-3f",
+        title: "Simulazione: Equilibrio del punto materiale — 3F",
+        Component: React.lazy(() => import("./demos/quiz/SimulazioneFisicaEquilibrio3F")),
+        tags: ["simulazione", "equilibrio", "forze", "attrito", "piano inclinato", "hooke", "forza elastica", "punto materiale", "fisica", "test", "3F"],
+    },
 ];
