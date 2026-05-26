@@ -491,15 +491,9 @@ export const demos: DemoInfo[] = [
         tags: ["simulazione", "equilibrio", "forze", "attrito", "piano inclinato", "hooke", "forza elastica", "punto materiale", "fisica", "test", "3F"],
     },
     {
-        slug: "verifica-fisica-equilibrio-3f-fila-b",
-        title: "Verifica: Equilibrio del punto materiale — 3F Fila B",
-        Component: React.lazy(() => import("./demos/quiz/VerificaFisicaEquilibrio3F_FilaB")),
-        tags: ["verifica", "equilibrio", "forze", "attrito", "piano inclinato", "punto materiale", "fisica", "test", "3F", "fila"],
-    },
-    {
-        slug: "verifica-fisica-equilibrio-3f-fila-c",
-        title: "Verifica: Equilibrio del punto materiale — 3F Fila C",
-        Component: React.lazy(() => import("./demos/quiz/VerificaFisicaEquilibrio3F_FilaC")),
+        slug: "verifica-fisica-equilibrio-3f-fila-bc",
+        title: "Verifica: Equilibrio del punto materiale — 3F (Fila B / C)",
+        Component: React.lazy(() => import("./demos/quiz/VerificaFisicaEquilibrio3F_FilaBC")),
         tags: ["verifica", "equilibrio", "forze", "attrito", "piano inclinato", "punto materiale", "fisica", "test", "3F", "fila"],
     },
 ];
