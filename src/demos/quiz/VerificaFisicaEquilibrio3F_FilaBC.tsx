@@ -362,52 +362,34 @@ export default function VerificaFisicaEquilibrio3F_FilaBC(): React.ReactElement 
                     </div>
 
                     {/* ════════════════════════════════════
-                        PARTE A – Domande a risposta aperta
+                        PARTE A – Domande a risposta aperta (identiche per B e C)
                     ════════════════════════════════════ */}
                     <div style={S.parte}>
                         <div style={S.parteTitle}>Parte A – Domande a risposta aperta <span style={S.punti}>(24 punti)</span></div>
 
-                        {/* A.a */}
+                        {/* A.a — Equilibrio del punto materiale */}
                         <div style={S.domanda}>
                             <span style={S.domandaLabel}>a) <span style={{ fontWeight: 400, color: "#64748b", fontSize: 13 }}>(12 punti)</span></span>
-                            {fila === "B" ? (
-                                <p style={S.domandaText}>
-                                    Definisci il concetto di <strong>corpo rigido</strong> e spiega quali sono le{" "}
-                                    <strong>due condizioni di equilibrio</strong> che deve soddisfare. Per quale motivo
-                                    per il <strong>punto materiale</strong> è sufficiente una sola condizione?
-                                    Scrivi le relazioni matematiche corrispondenti.
-                                </p>
-                            ) : (
-                                <p style={S.domandaText}>
-                                    Definisci i concetti di <strong>corpo esteso</strong> e di{" "}
-                                    <strong>corpo rigido</strong>. Spiega le differenze tra i due modelli e porta
-                                    un esempio di oggetto fisico che può essere considerato rigido e uno che{" "}
-                                    <em>non</em> può esserlo, motivando la scelta.
-                                </p>
-                            )}
+                            <p style={S.domandaText}>
+                                Enuncia la <strong>condizione di equilibrio di un punto materiale</strong>: scrivi la
+                                relazione vettoriale che deve essere soddisfatta e spiegane il significato fisico.
+                                Spiega inoltre la differenza tra <strong>equilibrio statico</strong> ed{" "}
+                                <strong>equilibrio dinamico</strong>, portando un esempio concreto per ciascuno.
+                            </p>
                             <div style={{ height: 80, borderBottom: "1px dashed #cbd5e1", marginTop: 8 }} />
                             <div style={{ height: 80, borderBottom: "1px dashed #cbd5e1" }} />
                             <div style={{ height: 80, borderBottom: "1px dashed #cbd5e1" }} />
                         </div>
 
-                        {/* A.b */}
+                        {/* A.b — Corpo esteso, rigido e punto materiale */}
                         <div style={S.domanda}>
                             <span style={S.domandaLabel}>b) <span style={{ fontWeight: 400, color: "#64748b", fontSize: 13 }}>(12 punti)</span></span>
-                            {fila === "B" ? (
-                                <p style={S.domandaText}>
-                                    Definisci il concetto di <strong>punto materiale</strong> e di{" "}
-                                    <strong>corpo esteso</strong>. Fai un esempio concreto di situazione fisica in
-                                    cui è opportuno usare il modello di punto materiale e uno in cui è invece
-                                    necessario trattare il corpo come esteso, motivando la scelta in entrambi i casi.
-                                </p>
-                            ) : (
-                                <p style={S.domandaText}>
-                                    Enuncia le condizioni di equilibrio per un <strong>punto materiale</strong> e
-                                    per un <strong>corpo rigido</strong>. Spiega, usando il concetto di{" "}
-                                    <strong>momento di una forza</strong>, perché per un corpo rigido è necessario
-                                    imporre anche l'equilibrio rotazionale oltre a quello traslazionale.
-                                </p>
-                            )}
+                            <p style={S.domandaText}>
+                                Definisci i concetti di <strong>punto materiale</strong>, <strong>corpo esteso</strong>{" "}
+                                e <strong>corpo rigido</strong>. Spiega le principali differenze tra questi modelli
+                                fisici e indica in quale caso è necessario imporre <em>due</em> condizioni di
+                                equilibrio invece di una sola, motivando la risposta.
+                            </p>
                             <div style={{ height: 80, borderBottom: "1px dashed #cbd5e1", marginTop: 8 }} />
                             <div style={{ height: 80, borderBottom: "1px dashed #cbd5e1" }} />
                             <div style={{ height: 80, borderBottom: "1px dashed #cbd5e1" }} />
@@ -431,24 +413,24 @@ export default function VerificaFisicaEquilibrio3F_FilaBC(): React.ReactElement 
                             {fila === "B" ? (
                                 <>
                                     <p style={S.domandaText}>
-                                        Quale delle seguenti situazioni descrive correttamente un corpo in{" "}
-                                        <strong>equilibrio dinamico</strong>?
+                                        Quale delle seguenti affermazioni definisce correttamente il{" "}
+                                        <strong>corpo rigido</strong>?
                                     </p>
-                                    <span style={S.mcOption}><strong>A.</strong> Un libro immobile su un tavolo</span>
-                                    <span style={S.mcOption}><strong>B.</strong> Un'auto che frena fino a fermarsi</span>
-                                    <span style={S.mcOption}><strong>C.</strong> Un pattinatore che scivola su ghiaccio a velocità costante in linea retta</span>
-                                    <span style={S.mcOption}><strong>D.</strong> Una palla che viene lanciata verso l'alto</span>
+                                    <span style={S.mcOption}><strong>A.</strong> Un corpo le cui dimensioni sono trascurabili rispetto alle distanze in gioco</span>
+                                    <span style={S.mcOption}><strong>B.</strong> Un corpo esteso in cui le distanze tra tutti i suoi punti rimangono invariate, indipendentemente dalle forze applicate</span>
+                                    <span style={S.mcOption}><strong>C.</strong> Un corpo che si trova in equilibrio sia traslazionale che rotazionale</span>
+                                    <span style={S.mcOption}><strong>D.</strong> Un corpo privo di massa e di dimensioni</span>
                                 </>
                             ) : (
                                 <>
                                     <p style={S.domandaText}>
-                                        Un punto materiale si muove di <strong>moto rettilineo uniforme</strong>. Quale delle
-                                        seguenti affermazioni è corretta?
+                                        Quale delle seguenti affermazioni definisce correttamente il{" "}
+                                        <strong>punto materiale</strong>?
                                     </p>
-                                    <span style={S.mcOption}><strong>A.</strong> Sta accelerando perché è in moto</span>
-                                    <span style={S.mcOption}><strong>B.</strong> La risultante delle forze che agiscono su di esso è zero</span>
-                                    <span style={S.mcOption}><strong>C.</strong> Non può agire alcuna forza su di esso</span>
-                                    <span style={S.mcOption}><strong>D.</strong> La forza che lo muove è maggiore dell'attrito</span>
+                                    <span style={S.mcOption}><strong>A.</strong> Un oggetto di massa molto piccola, inferiore a 1 kg</span>
+                                    <span style={S.mcOption}><strong>B.</strong> Un corpo rigido di dimensioni ridotte</span>
+                                    <span style={S.mcOption}><strong>C.</strong> Un modello ideale in cui tutta la massa è concentrata in un punto geometrico privo di estensione spaziale</span>
+                                    <span style={S.mcOption}><strong>D.</strong> Un corpo che si muove di moto rettilineo uniforme</span>
                                 </>
                             )}
                             <RigaRisposta />
@@ -499,25 +481,24 @@ export default function VerificaFisicaEquilibrio3F_FilaBC(): React.ReactElement 
                             {fila === "B" ? (
                                 <>
                                     <p style={S.domandaText}>
-                                        Per un <strong>punto materiale</strong> (non per un corpo rigido), la condizione{" "}
-                                        <em>necessaria e sufficiente</em> per l'equilibrio è:
+                                        Quale delle seguenti affermazioni descrive correttamente il{" "}
+                                        <strong>corpo esteso</strong>?
                                     </p>
-                                    <span style={S.mcOption}><strong>A.</strong> La risultante delle forze è zero <em>e</em> la somma dei momenti è zero</span>
-                                    <span style={S.mcOption}><strong>B.</strong> Solo che la somma dei momenti delle forze sia zero</span>
-                                    <span style={S.mcOption}><strong>C.</strong> Solo che la risultante di tutte le forze sia zero</span>
-                                    <span style={S.mcOption}><strong>D.</strong> Il corpo deve essere necessariamente in quiete assoluta</span>
+                                    <span style={S.mcOption}><strong>A.</strong> Un corpo con dimensioni trascurabili rispetto al sistema studiato</span>
+                                    <span style={S.mcOption}><strong>B.</strong> Un oggetto fisico reale con dimensioni finite, la cui forma e distribuzione della massa sono rilevanti per il problema</span>
+                                    <span style={S.mcOption}><strong>C.</strong> Un corpo che non può essere in equilibrio rotazionale</span>
+                                    <span style={S.mcOption}><strong>D.</strong> Un corpo che ruota sempre attorno a un asse fisso</span>
                                 </>
                             ) : (
                                 <>
                                     <p style={S.domandaText}>
-                                        Quali sono le due condizioni che devono essere soddisfatte{" "}
-                                        <em>simultaneamente</em> affinché un <strong>corpo rigido</strong> sia in
-                                        equilibrio?
+                                        Qual è la principale differenza tra un <strong>corpo esteso</strong> e un{" "}
+                                        <strong>corpo rigido</strong>?
                                     </p>
-                                    <span style={S.mcOption}><strong>A.</strong> La velocità è costante e la forza applicata è zero</span>
-                                    <span style={S.mcOption}><strong>B.</strong> La risultante delle forze è zero e la somma dei momenti è zero rispetto a qualsiasi punto</span>
-                                    <span style={S.mcOption}><strong>C.</strong> La somma dei momenti è zero e il corpo è necessariamente in quiete</span>
-                                    <span style={S.mcOption}><strong>D.</strong> Tutte le forze applicate sono perpendicolari alla superficie di appoggio</span>
+                                    <span style={S.mcOption}><strong>A.</strong> Il corpo esteso ha sempre massa maggiore del corpo rigido</span>
+                                    <span style={S.mcOption}><strong>B.</strong> Il corpo rigido non può avere forze applicate, il corpo esteso sì</span>
+                                    <span style={S.mcOption}><strong>C.</strong> Il corpo rigido è un caso particolare di corpo esteso in cui le distanze tra i punti rimangono costanti (non si deforma); il corpo esteso in generale può deformarsi</span>
+                                    <span style={S.mcOption}><strong>D.</strong> Il corpo esteso è sempre in equilibrio, il corpo rigido no</span>
                                 </>
                             )}
                             <RigaRisposta />
@@ -767,101 +748,39 @@ export default function VerificaFisicaEquilibrio3F_FilaBC(): React.ReactElement 
                             <div style={S.solParte}>
                                 <div style={S.solParteTitle}>Parte A – Risposte attese</div>
 
-                                {fila === "B" ? (
-                                    <>
-                                        <div style={S.solDomanda}>
-                                            <span style={S.solLabel}>a) Corpo rigido e condizioni di equilibrio</span>
-                                            <p style={S.solText}>
-                                                Il <strong>corpo rigido</strong> è un corpo esteso in cui le distanze
-                                                tra tutti i punti rimangono costanti: non si deforma sotto l'azione
-                                                delle forze.
-                                            </p>
-                                            <p style={S.solText}>
-                                                Per il corpo rigido occorrono <em>due</em> condizioni simultane:
-                                            </p>
-                                            <p style={S.solText}>
-                                                1. <strong>Equilibrio traslazionale</strong>:{" "}
-                                                <L s="$\vec{F}_{\text{ris}} = \vec{0}$" /> — la risultante di tutte
-                                                le forze è nulla (il centro di massa non accelera).
-                                            </p>
-                                            <p style={S.solText}>
-                                                2. <strong>Equilibrio rotazionale</strong>:{" "}
-                                                <L s="$\sum M = 0$" /> — la somma dei momenti di tutte le forze
-                                                rispetto a qualsiasi punto è nulla (il corpo non ruota).
-                                            </p>
-                                            <p style={S.solText}>
-                                                Per il <strong>punto materiale</strong> è sufficiente la sola
-                                                condizione <L s="$\vec{F}_{\text{ris}} = \vec{0}$" />, perché non
-                                                ha estensione e non può ruotare: non ha senso parlare di momento
-                                                di una forza applicata a un punto.
-                                            </p>
-                                        </div>
+                                <div style={S.solDomanda}>
+                                    <span style={S.solLabel}>a) Condizione di equilibrio del punto materiale</span>
+                                    <p style={S.solText}>
+                                        Un punto materiale è in <strong>equilibrio</strong> quando la risultante
+                                        vettoriale di tutte le forze applicate è uguale a zero:{" "}
+                                        <L s="$\vec{F}_{\text{ris}} = \vec{0}$" />. Questo equivale a dire che
+                                        le componenti della risultante lungo ogni asse sono nulle.
+                                    </p>
+                                    <p style={S.solText}>
+                                        L'<strong>equilibrio statico</strong> si ha quando il corpo è fermo
+                                        (<em>es.</em> un libro sul tavolo). L'<strong>equilibrio dinamico</strong>{" "}
+                                        si ha quando il corpo si muove di moto rettilineo uniforme (<em>es.</em>{" "}
+                                        un pattinatore su ghiaccio a velocità costante).
+                                    </p>
+                                </div>
 
-                                        <div style={S.solDomanda}>
-                                            <span style={S.solLabel}>b) Punto materiale vs corpo esteso</span>
-                                            <p style={S.solText}>
-                                                Il <strong>punto materiale</strong> è un modello ideale in cui tutta
-                                                la massa è concentrata in un punto geometrico privo di dimensioni.
-                                                Il <strong>corpo esteso</strong> è un oggetto con dimensioni finite,
-                                                la cui forma e distribuzione della massa sono rilevanti.
-                                            </p>
-                                            <p style={S.solText}>
-                                                <em>Punto materiale</em>: un pianeta che orbita attorno al Sole —
-                                                la distanza è talmente grande rispetto alle sue dimensioni che
-                                                la forma del pianeta è irrilevante.
-                                            </p>
-                                            <p style={S.solText}>
-                                                <em>Corpo esteso</em>: una trave orizzontale sostenuta a un'estremità
-                                                — il punto in cui si applica la forza cambia il momento, quindi
-                                                non si può ignorare l'estensione del corpo.
-                                            </p>
-                                        </div>
-                                    </>
-                                ) : (
-                                    <>
-                                        <div style={S.solDomanda}>
-                                            <span style={S.solLabel}>a) Corpo esteso vs corpo rigido</span>
-                                            <p style={S.solText}>
-                                                Il <strong>corpo esteso</strong> è qualsiasi oggetto fisico con
-                                                dimensioni finite: ha forma, volume e la sua massa è distribuita
-                                                nello spazio. Il <strong>corpo rigido</strong> è un caso particolare
-                                                di corpo esteso in cui le distanze tra tutti i punti rimangono
-                                                costanti: il corpo non si deforma per effetto delle forze applicate.
-                                            </p>
-                                            <p style={S.solText}>
-                                                <em>Esempio di corpo rigido</em>: un'asta metallica o un bilanciere —
-                                                le deformazioni sono trascurabili rispetto alle dimensioni.
-                                            </p>
-                                            <p style={S.solText}>
-                                                <em>Esempio non rigido</em>: una molla, un pallone di gomma, un
-                                                elastico — si deformano apprezzabilmente sotto l'azione delle forze
-                                                e non possono essere trattati come rigidi.
-                                            </p>
-                                        </div>
-
-                                        <div style={S.solDomanda}>
-                                            <span style={S.solLabel}>b) Condizioni di equilibrio e momento della forza</span>
-                                            <p style={S.solText}>
-                                                <strong>Punto materiale</strong>: una sola condizione —{" "}
-                                                <L s="$\vec{F}_{\text{ris}} = \vec{0}$" /> (risultante nulla).
-                                            </p>
-                                            <p style={S.solText}>
-                                                <strong>Corpo rigido</strong>: due condizioni —{" "}
-                                                <L s="$\vec{F}_{\text{ris}} = \vec{0}$" /> e{" "}
-                                                <L s="$\sum M = 0$" />.
-                                            </p>
-                                            <p style={S.solText}>
-                                                Il <strong>momento di una forza</strong> rispetto a un punto O è
-                                                definito come il prodotto della forza per il suo braccio{" "}
-                                                (<L s="$M = F \cdot d$" />). Anche se la risultante è nulla, possono
-                                                esistere coppie di forze uguali e opposte ma non collineari che
-                                                generano una rotazione netta. Per evitare la rotazione occorre
-                                                imporre <L s="$\sum M = 0$" />. Questa condizione non ha senso per
-                                                il punto materiale, che non ha estensione e non può ruotare.
-                                            </p>
-                                        </div>
-                                    </>
-                                )}
+                                <div style={S.solDomanda}>
+                                    <span style={S.solLabel}>b) Punto materiale, corpo esteso e corpo rigido</span>
+                                    <p style={S.solText}>
+                                        Il <strong>punto materiale</strong> è un modello ideale in cui tutta la massa
+                                        è concentrata in un punto privo di dimensioni: non ha estensione e non può
+                                        ruotare. Il <strong>corpo esteso</strong> è un oggetto reale con dimensioni
+                                        finite. Il <strong>corpo rigido</strong> è un corpo esteso in cui le distanze
+                                        tra i punti restano invariate (non si deforma).
+                                    </p>
+                                    <p style={S.solText}>
+                                        Per il punto materiale basta una sola condizione: <L s="$\vec{F}_{\text{ris}} = \vec{0}$" />.
+                                        Per il corpo rigido occorrono <em>due</em> condizioni: equilibrio
+                                        traslazionale (<L s="$\vec{F}_{\text{ris}} = \vec{0}$" />) ed equilibrio
+                                        rotazionale (<L s="$\sum M = 0$" />), perché il corpo, avendo estensione,
+                                        può ruotare anche se la risultante è zero.
+                                    </p>
+                                </div>
                             </div>
 
                             {/* ─── Parte B ─── */}
@@ -872,20 +791,22 @@ export default function VerificaFisicaEquilibrio3F_FilaBC(): React.ReactElement 
                                     <span style={S.solLabel}>a)</span>
                                     {fila === "B" ? (
                                         <>
-                                            <span style={S.solRisposta}>C</span>
+                                            <span style={S.solRisposta}>B</span>
                                             <p style={S.solText}>
-                                                L'equilibrio dinamico si ha con moto rettilineo uniforme (risultante = 0,
-                                                velocità ≠ 0). Il pattinatore a velocità costante soddisfa questa
-                                                condizione. A è equilibrio statico; B e D implicano accelerazione.
+                                                Il corpo rigido è un corpo <em>esteso</em> (ha dimensioni) in cui le
+                                                distanze tra i punti restano costanti. A descrive il punto materiale;
+                                                C descrive una condizione di equilibrio, non una definizione; D è
+                                                sbagliato perché il corpo rigido ha massa e dimensioni.
                                             </p>
                                         </>
                                     ) : (
                                         <>
-                                            <span style={S.solRisposta}>B</span>
+                                            <span style={S.solRisposta}>C</span>
                                             <p style={S.solText}>
-                                                Il moto rettilineo uniforme implica accelerazione zero, quindi risultante
-                                                zero (1ª legge di Newton). Non è necessario che non agiscano forze,
-                                                ma che si bilancino. Il corpo è in equilibrio dinamico.
+                                                Il punto materiale è un modello ideale: tutta la massa concentrata in
+                                                un punto geometrico senza estensione. Non dipende dalla massa (A è
+                                                sbagliato); non è un corpo rigido piccolo (B); non ha relazione con
+                                                il tipo di moto (D).
                                             </p>
                                         </>
                                     )}
@@ -920,22 +841,22 @@ export default function VerificaFisicaEquilibrio3F_FilaBC(): React.ReactElement 
                                     <span style={S.solLabel}>c)</span>
                                     {fila === "B" ? (
                                         <>
-                                            <span style={S.solRisposta}>C</span>
+                                            <span style={S.solRisposta}>B</span>
                                             <p style={S.solText}>
-                                                Il punto materiale non ha estensione e non può ruotare, quindi basta
-                                                imporre <L s="$\vec{F}_{\text{ris}} = \vec{0}$" />. La condizione sui
-                                                momenti è necessaria solo per il corpo rigido. L'equilibrio non richiede
-                                                quiete assoluta (equilibrio dinamico).
+                                                Il corpo esteso è qualsiasi oggetto fisico reale con dimensioni finite:
+                                                forma, volume e distribuzione della massa sono rilevanti. A descrive il
+                                                punto materiale; C e D sono affermazioni false sul corpo esteso.
                                             </p>
                                         </>
                                     ) : (
                                         <>
-                                            <span style={S.solRisposta}>B</span>
+                                            <span style={S.solRisposta}>C</span>
                                             <p style={S.solText}>
-                                                Per il corpo rigido servono due condizioni simultanee: equilibrio
-                                                traslazionale (<L s="$\vec{F}_{\text{ris}} = \vec{0}$" />) ed equilibrio
-                                                rotazionale (<L s="$\sum M = 0$" /> rispetto a qualsiasi punto). Senza
-                                                entrambe, il corpo può ancora traslare o ruotare.
+                                                Il corpo rigido è un <em>caso particolare</em> di corpo esteso: è
+                                                anch'esso un corpo con dimensioni finite, ma con la proprietà aggiuntiva
+                                                che le distanze tra i punti non cambiano (non si deforma). Un corpo
+                                                esteso generico può invece deformarsi (es. molla, gomma). A, B, D sono
+                                                affermazioni false.
                                             </p>
                                         </>
                                     )}
