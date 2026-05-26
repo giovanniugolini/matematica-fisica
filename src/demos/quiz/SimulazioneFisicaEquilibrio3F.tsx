@@ -479,11 +479,10 @@ export default function SimulazioneFisicaEquilibrio3F(): React.ReactElement {
                                 <div style={{ height: 56, borderBottom: "1px dashed #cbd5e1" }} />
 
                                 <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginTop: 12, marginBottom: 6 }}>
-                                    <strong>ii.)</strong> Il piano si <strong>inclina di un angolo</strong> <L s="$\theta$" />{" "}
-                                    con <L s="$\sin\theta = 0{,}60$" /> e <L s="$\cos\theta = 0{,}80$" />. Sia la forza
-                                    peso che la forza <L s="$F$" /> restano verticali. Calcola la forza risultante
-                                    verticale verso il basso <L s="$F_{\text{tot}}$" /> e le sue componenti parallela
-                                    e perpendicolare al piano.
+                                    <strong>ii.)</strong> Il piano si <strong>inclina di</strong>{" "}
+                                    <L s="$\theta = 12°$" />. Sia la forza peso che la forza <L s="$F$" /> restano
+                                    verticali. Calcola la forza risultante verticale verso il basso{" "}
+                                    <L s="$F_{\text{tot}}$" /> e le sue componenti parallela e perpendicolare al piano.
                                 </p>
                                 <div style={{ height: 72, borderBottom: "1px dashed #cbd5e1" }} />
                                 <div style={{ height: 56, borderBottom: "1px dashed #cbd5e1" }} />
@@ -692,32 +691,35 @@ export default function SimulazioneFisicaEquilibrio3F(): React.ReactElement {
                                         <DisplayMath>{"F_v = mg + F = 5{,}0 \\times 9{,}8 + 5{,}0 = 49{,}0 + 5{,}0 = 54{,}0\\,\\text{N}"}</DisplayMath>
                                     </div>
 
-                                    <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>ii) Piano inclinato: componenti di F_tot</p>
+                                    <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>ii) Piano inclinato (θ = 12°): componenti di F_tot</p>
                                     <div style={S.solStep}>
                                         <p style={{ fontSize: 13 }}>
                                             La forza risultante verticale verso il basso è{" "}
                                             <L s="$F_{\text{tot}} = mg + F = 54{,}0\,\text{N}$" />.
+                                            Con <L s="$\sin 12° \approx 0{,}208$" /> e{" "}
+                                            <L s="$\cos 12° \approx 0{,}978$" />:
                                         </p>
-                                        <DisplayMath>{"F_{\\parallel} = F_{\\text{tot}}\\sin\\theta = 54{,}0 \\times 0{,}60 = 32{,}4\\,\\text{N}"}</DisplayMath>
-                                        <DisplayMath>{"F_{\\perp} = F_{\\text{tot}}\\cos\\theta = 54{,}0 \\times 0{,}80 = 43{,}2\\,\\text{N}"}</DisplayMath>
+                                        <DisplayMath>{"F_{\\parallel} = F_{\\text{tot}}\\sin 12° = 54{,}0 \\times 0{,}208 \\approx 11{,}2\\,\\text{N}"}</DisplayMath>
+                                        <DisplayMath>{"F_{\\perp} = F_{\\text{tot}}\\cos 12° = 54{,}0 \\times 0{,}978 \\approx 52{,}8\\,\\text{N}"}</DisplayMath>
                                     </div>
 
                                     <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>iii) Forza vincolare sul piano inclinato</p>
                                     <div style={S.solStep}>
                                         <p style={{ fontSize: 13 }}>
                                             Equilibrio perpendicolare al piano:{" "}
-                                            <L s="$F_v = F_\perp = 43{,}2\,\text{N}$" />.
-                                            La forza vincolare è minore di quella sul piano orizzontale (54,0 N)
-                                            perché il piano regge solo la componente perpendicolare del peso totale.
+                                            <L s="$F_v = F_\perp \approx 52{,}8\,\text{N}$" />.
+                                            La forza vincolare è quasi uguale a quella sul piano orizzontale (54,0 N)
+                                            perché l'angolo è piccolo e il piano regge quasi tutta la componente
+                                            perpendicolare del peso totale.
                                         </p>
                                     </div>
 
                                     <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>*iv) Attrito necessario e μ_s minimo</p>
                                     <div style={S.solStep}>
                                         <p style={{ fontSize: 13 }}>
-                                            Equilibrio lungo il piano: <L s="$F_{\text{att}} = F_\parallel = 32{,}4\,\text{N}$" />
+                                            Equilibrio lungo il piano: <L s="$F_{\text{att}} = F_\parallel \approx 11{,}2\,\text{N}$" />
                                         </p>
-                                        <DisplayMath>{"\\mu_s = \\frac{F_{\\text{att}}}{F_v} = \\frac{32{,}4}{43{,}2} = 0{,}75 = \\tan\\theta"}</DisplayMath>
+                                        <DisplayMath>{"\\mu_s = \\frac{F_{\\text{att}}}{F_v} = \\frac{11{,}2}{52{,}8} \\approx 0{,}21 = \\tan 12°"}</DisplayMath>
                                         <p style={{ fontSize: 13, marginTop: 4 }}>
                                             Notare che <L s="$\mu_s = \tan\theta$" /> indipendentemente dalla forza
                                             aggiuntiva <L s="$F$" />: la forza verticale extra aumenta sia l'attrito
