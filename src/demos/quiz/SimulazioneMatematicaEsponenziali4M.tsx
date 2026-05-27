@@ -309,6 +309,9 @@ export default function SimulazioneMatematicaEsponenziali4M(): React.ReactElemen
                             <span>Totale: 100 punti</span>
                         </div>
                     </div>
+                    <p style={{ fontSize: 12, color: "#78350f", background: "#fef3c7", border: "1px solid #fcd34d", borderRadius: 6, padding: "6px 12px", marginBottom: 20, fontFamily: "system-ui, sans-serif" }}>
+                        Gli esercizi contrassegnati con <strong>*</strong> sono facoltativi per BES e DSA.
+                    </p>
 
                     {/* ════════════════════════════════════
                         PARTE A – Risposta multipla
@@ -372,9 +375,9 @@ export default function SimulazioneMatematicaEsponenziali4M(): React.ReactElemen
                             <span style={S.mcOption}><strong>D.</strong> <L s="$a < 0$" /></span>
                         </div>
 
-                        {/* A.5 — proprietà della potenza */}
+                        {/* A.5 — proprietà della potenza (facoltativa) */}
                         <div style={S.domanda}>
-                            <span style={S.domandaLabel}>5.</span>
+                            <span style={S.domandaLabel}>*5.</span>
                             <p style={S.domandaText}>
                                 Applicando le proprietà dei logaritmi, <L s="$\log_a(m^n)$" /> è uguale a:
                             </p>
@@ -391,7 +394,7 @@ export default function SimulazioneMatematicaEsponenziali4M(): React.ReactElemen
                     ════════════════════════════════════ */}
                     <div style={S.parte}>
                         <div style={S.parteTitle}>
-                            Parte B – Equazioni esponenziali <span style={S.punti}>(30 punti · 15 pt ciascuna)</span>
+                            Parte B – Equazioni esponenziali <span style={S.punti}>(30 punti · 15 pt cad. · B.3 facoltativa)</span>
                         </div>
 
                         {/* B.1 — stessa base */}
@@ -413,6 +416,21 @@ export default function SimulazioneMatematicaEsponenziali4M(): React.ReactElemen
                             </p>
                             <DisplayMath>{"4^{x-1} = 2^{x+3}"}</DisplayMath>
                             <div style={{ height: 64, borderBottom: "1px dashed #cbd5e1", marginTop: 8 }} />
+                            <div style={{ height: 48, borderBottom: "1px dashed #cbd5e1" }} />
+                        </div>
+
+                        <div style={{ height: 8 }} />
+
+                        {/* B.3 — equazione esponenziale di secondo grado (facoltativa) */}
+                        <div style={S.domanda}>
+                            <span style={S.domandaLabel}>*3.</span>
+                            <p style={S.domandaText}>
+                                Risolvi l'equazione esponenziale mediante il cambio di variabile{" "}
+                                <L s="$t = 3^x$" /> (osserva che <L s="$9^x = (3^x)^2$" />):
+                            </p>
+                            <DisplayMath>{"9^x - 4 \\cdot 3^x + 3 = 0"}</DisplayMath>
+                            <div style={{ height: 64, borderBottom: "1px dashed #cbd5e1", marginTop: 8 }} />
+                            <div style={{ height: 64, borderBottom: "1px dashed #cbd5e1" }} />
                             <div style={{ height: 48, borderBottom: "1px dashed #cbd5e1" }} />
                         </div>
                     </div>
@@ -467,7 +485,7 @@ export default function SimulazioneMatematicaEsponenziali4M(): React.ReactElemen
                             { label: "1.", expr: "\\log_2 4 + \\log_2 8 - \\log_2 2" },
                             { label: "2.", expr: "2\\log_3 6 - \\log_3 4" },
                             { label: "3.", expr: "\\log_5 \\sqrt{125}" },
-                            { label: "4.", expr: "\\log 200 + \\log 5 - \\log 100" },
+                            { label: "*4.", expr: "\\log 200 + \\log 5 - \\log 100" },
                         ].map(({ label, expr }) => (
                             <div key={label} style={{ marginBottom: 18 }}>
                                 <span style={S.domandaLabel}>{label}</span>
@@ -566,6 +584,22 @@ export default function SimulazioneMatematicaEsponenziali4M(): React.ReactElemen
                                         <DisplayMath>{"2x - 1 = x + 2 \\implies x = 3"}</DisplayMath>
                                         <p style={{ fontSize: 13, marginTop: 4 }}>
                                             Verifica: <L s="$3^{2(3)-1} = 3^5$" /> e <L s="$3^{3+2} = 3^5$" /> ✓
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div style={S.solDomanda}>
+                                    <span style={S.solLabel}>*3. <L s="$9^x - 4 \cdot 3^x + 3 = 0$" /></span>
+                                    <div style={S.solStep}>
+                                        <p style={{ fontSize: 13, marginBottom: 4 }}>
+                                            Poiché <L s="$9^x = (3^2)^x = (3^x)^2$" />, si pone <L s="$t = 3^x$" /> con <L s="$t > 0$" />:
+                                        </p>
+                                        <DisplayMath>{"t^2 - 4t + 3 = 0 \\implies (t-1)(t-3) = 0"}</DisplayMath>
+                                        <p style={{ fontSize: 13, margin: "6px 0 4px" }}>
+                                            <strong>Caso <L s="$t = 1$" />:</strong> <L s="$3^x = 3^0 \Rightarrow x = 0$" />
+                                        </p>
+                                        <p style={{ fontSize: 13 }}>
+                                            <strong>Caso <L s="$t = 3$" />:</strong> <L s="$3^x = 3^1 \Rightarrow x = 1$" />
                                         </p>
                                     </div>
                                 </div>
