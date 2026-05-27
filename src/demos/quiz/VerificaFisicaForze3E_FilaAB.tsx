@@ -367,12 +367,20 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
 
                         <div style={S.domanda}>
                             <span style={S.domandaLabel}>a) <span style={{ fontWeight: 400, color: "#64748b", fontSize: 13 }}>(12 punti)</span></span>
-                            <p style={S.domandaText}>
-                                Enuncia la <strong>legge di Hooke</strong> e scrivi la relativa formula, specificando
-                                le grandezze coinvolte e la loro unità di misura nel SI. Spiega cosa si intende per{" "}
-                                <strong>limite elastico</strong> di una molla e cosa accade se la forza applicata
-                                lo supera.
-                            </p>
+                            {fila === "A" ? (
+                                <p style={S.domandaText}>
+                                    Enuncia la <strong>legge di Hooke</strong> e scrivi la relativa formula, specificando
+                                    le grandezze coinvolte, il loro simbolo e la loro unità di misura nel SI di ciascuna.
+                                    Spiega cosa si intende per <strong>limite elastico</strong> di una molla e cosa accade
+                                    se la forza applicata lo supera.
+                                </p>
+                            ) : (
+                                <p style={S.domandaText}>
+                                    Definisci il concetto di <strong>punto materiale</strong>. Enuncia la{" "}
+                                    <strong>condizione di equilibrio</strong> di un punto materiale, scrivendo la
+                                    relazione vettoriale che deve essere soddisfatta e spiegandone il significato fisico.
+                                </p>
+                            )}
                             <div style={{ height: 80, borderBottom: "1px dashed #cbd5e1", marginTop: 8 }} />
                             <div style={{ height: 80, borderBottom: "1px dashed #cbd5e1" }} />
                             <div style={{ height: 80, borderBottom: "1px dashed #cbd5e1" }} />
@@ -382,8 +390,9 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                             <span style={S.domandaLabel}>b) <span style={{ fontWeight: 400, color: "#64748b", fontSize: 13 }}>(12 punti)</span></span>
                             <p style={S.domandaText}>
                                 Definisci il <strong>momento torcente</strong> (o momento di una forza) rispetto a un
-                                punto, specificando come si calcola nel caso in cui la forza sia perpendicolare al
-                                braccio. Enuncia poi le <strong>due condizioni di equilibrio</strong> di un corpo rigido.
+                                punto, specificando come si calcola nel caso in cui la forza sia perpendicolare al{" "}
+                                {fila === "A" ? "raggio" : "braccio"}. Enuncia poi le{" "}
+                                <strong>due condizioni di equilibrio</strong> di un corpo rigido.
                             </p>
                             <div style={{ height: 80, borderBottom: "1px dashed #cbd5e1", marginTop: 8 }} />
                             <div style={{ height: 80, borderBottom: "1px dashed #cbd5e1" }} />
@@ -500,24 +509,28 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                             {fila === "A" ? (
                                 <>
                                     <p style={S.domandaText}>
-                                        A una leva è applicata una forza di <L s="$60\,\text{N}$" />, perpendicolare al
-                                        braccio di <L s="$0{,}40\,\text{m}$" />. Qual è il momento torcente?
+                                        Un blocco di massa <L s="$m = 3{,}0\,\text{kg}$" /> è appoggiato su un piano
+                                        orizzontale. Dall'alto viene esercitata una <strong>forza premente</strong>{" "}
+                                        <L s="$F_p = 10{,}0\,\text{N}$" />. Qual è la forza vincolare <L s="$F_v$" />{" "}
+                                        esercitata dal piano sul blocco?
                                     </p>
-                                    <span style={S.mcOption}><strong>A.</strong> <L s="$24\,\text{N}{\cdot}\text{m}$" /></span>
-                                    <span style={S.mcOption}><strong>B.</strong> <L s="$150\,\text{N}{\cdot}\text{m}$" /></span>
-                                    <span style={S.mcOption}><strong>C.</strong> <L s="$2{,}4\,\text{N}{\cdot}\text{m}$" /></span>
-                                    <span style={S.mcOption}><strong>D.</strong> <L s="$0{,}007\,\text{N}{\cdot}\text{m}$" /></span>
+                                    <span style={S.mcOption}><strong>A.</strong> <L s="$10{,}0\,\text{N}$" /></span>
+                                    <span style={S.mcOption}><strong>B.</strong> <L s="$29{,}4\,\text{N}$" /></span>
+                                    <span style={S.mcOption}><strong>C.</strong> <L s="$39{,}4\,\text{N}$" /></span>
+                                    <span style={S.mcOption}><strong>D.</strong> <L s="$19{,}4\,\text{N}$" /></span>
                                 </>
                             ) : (
                                 <>
                                     <p style={S.domandaText}>
-                                        A una leva è applicata una forza di <L s="$40\,\text{N}$" />, perpendicolare al
-                                        braccio di <L s="$0{,}50\,\text{m}$" />. Qual è il momento torcente?
+                                        Un blocco di massa <L s="$m = 4{,}0\,\text{kg}$" /> è appoggiato su un piano
+                                        orizzontale. Dall'alto viene esercitata una <strong>forza premente</strong>{" "}
+                                        <L s="$F_p = 12{,}0\,\text{N}$" />. Qual è la forza vincolare <L s="$F_v$" />{" "}
+                                        esercitata dal piano sul blocco?
                                     </p>
-                                    <span style={S.mcOption}><strong>A.</strong> <L s="$80\,\text{N}{\cdot}\text{m}$" /></span>
-                                    <span style={S.mcOption}><strong>B.</strong> <L s="$20\,\text{N}{\cdot}\text{m}$" /></span>
-                                    <span style={S.mcOption}><strong>C.</strong> <L s="$2{,}0\,\text{N}{\cdot}\text{m}$" /></span>
-                                    <span style={S.mcOption}><strong>D.</strong> <L s="$8{,}0\,\text{N}{\cdot}\text{m}$" /></span>
+                                    <span style={S.mcOption}><strong>A.</strong> <L s="$12{,}0\,\text{N}$" /></span>
+                                    <span style={S.mcOption}><strong>B.</strong> <L s="$39{,}2\,\text{N}$" /></span>
+                                    <span style={S.mcOption}><strong>C.</strong> <L s="$27{,}2\,\text{N}$" /></span>
+                                    <span style={S.mcOption}><strong>D.</strong> <L s="$51{,}2\,\text{N}$" /></span>
                                 </>
                             )}
                             <RigaRisposta />
@@ -685,16 +698,36 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                             <div style={S.solParte}>
                                 <div style={S.solParteTitle}>Parte A – Risposte attese</div>
                                 <div style={S.solDomanda}>
-                                    <span style={S.solLabel}>a) Legge di Hooke e limite elastico</span>
-                                    <p style={S.solText}>
-                                        La <strong>legge di Hooke</strong>: <L s="$F = k \cdot x$" />, dove <L s="$k$" /> è
-                                        la costante elastica (N/m) e <L s="$x$" /> l'allungamento (m).
-                                    </p>
-                                    <p style={S.solText}>
-                                        Il <strong>limite elastico</strong> è la massima deformazione oltre la quale la
-                                        molla non torna alla lunghezza naturale: la deformazione diventa permanente e la
-                                        legge di Hooke cessa di valere.
-                                    </p>
+                                    {fila === "A" ? (
+                                        <>
+                                            <span style={S.solLabel}>a) Legge di Hooke e limite elastico</span>
+                                            <p style={S.solText}>
+                                                La <strong>legge di Hooke</strong>: <L s="$F = k \cdot x$" />, dove <L s="$k$" /> è
+                                                la costante elastica (N/m) e <L s="$x$" /> l'allungamento (m).
+                                            </p>
+                                            <p style={S.solText}>
+                                                Il <strong>limite elastico</strong> è la massima deformazione oltre la quale la
+                                                molla non torna alla lunghezza naturale: la deformazione diventa permanente e la
+                                                legge di Hooke cessa di valere.
+                                            </p>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span style={S.solLabel}>a) Punto materiale e condizione di equilibrio</span>
+                                            <p style={S.solText}>
+                                                Un <strong>punto materiale</strong> è un corpo le cui dimensioni sono
+                                                trascurabili rispetto alle distanze in gioco, così che può essere
+                                                rappresentato da un singolo punto con tutta la sua massa concentrata.
+                                            </p>
+                                            <p style={S.solText}>
+                                                <strong>Condizione di equilibrio</strong>: la risultante di tutte le forze
+                                                applicate è nulla:{" "}
+                                                <L s="$\sum \vec{F} = \vec{0}$" />. Ciò significa che le forze si
+                                                bilanciano e il punto materiale resta in quiete (o in moto rettilineo
+                                                uniforme).
+                                            </p>
+                                        </>
+                                    )}
                                 </div>
                                 <div style={S.solDomanda}>
                                     <span style={S.solLabel}>b) Momento torcente e condizioni di equilibrio</span>
@@ -779,16 +812,18 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                     <span style={S.solLabel}>*d)</span>
                                     {fila === "A" ? (
                                         <>
-                                            <span style={S.solRisposta}>A</span>
+                                            <span style={S.solRisposta}>C</span>
                                             <div style={S.solStep}>
-                                                <DisplayMath>{"M = F \\cdot d = 60 \\times 0{,}40 = 24\\,\\text{N}{\\cdot}\\text{m}"}</DisplayMath>
+                                                <DisplayMath>{"P = mg = 3{,}0 \\times 9{,}8 = 29{,}4\\,\\text{N}"}</DisplayMath>
+                                                <DisplayMath>{"F_v = P + F_p = 29{,}4 + 10{,}0 = 39{,}4\\,\\text{N}"}</DisplayMath>
                                             </div>
                                         </>
                                     ) : (
                                         <>
-                                            <span style={S.solRisposta}>B</span>
+                                            <span style={S.solRisposta}>D</span>
                                             <div style={S.solStep}>
-                                                <DisplayMath>{"M = F \\cdot d = 40 \\times 0{,}50 = 20\\,\\text{N}{\\cdot}\\text{m}"}</DisplayMath>
+                                                <DisplayMath>{"P = mg = 4{,}0 \\times 9{,}8 = 39{,}2\\,\\text{N}"}</DisplayMath>
+                                                <DisplayMath>{"F_v = P + F_p = 39{,}2 + 12{,}0 = 51{,}2\\,\\text{N}"}</DisplayMath>
                                             </div>
                                         </>
                                     )}
@@ -806,7 +841,7 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                             <span style={S.solLabel}>1) Piano orizzontale con attrito — m = 6,0 kg, μs = 0,40, F = 20,0 N</span>
                                             <p style={{ ...S.solText, fontWeight: 600, marginBottom: 4 }}>i) Forza peso e forza vincolare</p>
                                             <div style={S.solStep}>
-                                                <DisplayMath>{"P = mg = 6{,}0 \\times 9{,}8 = 58{,}8\\,\\text{N} \\qquad N = P = 58{,}8\\,\\text{N}"}</DisplayMath>
+                                                <DisplayMath>{"P = mg = 6{,}0 \\times 9{,}8 = 58{,}8\\,\\text{N} \\qquad F_v = P = 58{,}8\\,\\text{N}"}</DisplayMath>
                                             </div>
                                             <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>ii) Attrito statico massimo</p>
                                             <div style={S.solStep}>
