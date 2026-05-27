@@ -395,7 +395,7 @@ export default function SimulazioneMatematicaEsponenziali4M(): React.ReactElemen
                     ════════════════════════════════════ */}
                     <div style={S.parte}>
                         <div style={S.parteTitle}>
-                            Parte B – Equazioni esponenziali <span style={S.punti}>(30 punti · 15 pt cad. · B.3 facoltativa)</span>
+                            Parte B – Equazioni esponenziali <span style={S.punti}>(30 punti)</span>
                         </div>
 
                         {/* B.1 — stessa base */}
