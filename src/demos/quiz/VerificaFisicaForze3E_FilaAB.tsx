@@ -606,14 +606,7 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                 </p>
                             )}
 
-                            <div style={{ marginLeft: 16, marginTop: 8 }}>
-                                <p style={{ fontSize: 13, color: "#475569", fontFamily: "system-ui, sans-serif", marginBottom: 4 }}>
-                                    Disegna le forze sul blocco (forza peso, forza vincolare, forza di attrito):
-                                </p>
-                                <div style={{ height: 100, border: "1px dashed #cbd5e1", borderRadius: 4, marginBottom: 12 }} />
-                            </div>
-
-                            <div style={{ marginLeft: 16, marginTop: 6 }}>
+                            <div style={{ marginLeft: 16, marginTop: 10 }}>
                                 <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginBottom: 6 }}>
                                     <strong>i.)</strong> Calcola la componente del peso <em>parallela</em> al piano <L s="$F_\parallel$" />.
                                 </p>
