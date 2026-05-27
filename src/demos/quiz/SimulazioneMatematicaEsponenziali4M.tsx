@@ -332,7 +332,6 @@ export default function SimulazioneMatematicaEsponenziali4M(): React.ReactElemen
                             <span style={S.mcOption}><strong>B.</strong> <L s="$\log_a b = c \;\Leftrightarrow\; a^c = b$" /></span>
                             <span style={S.mcOption}><strong>C.</strong> <L s="$\log_a b = c \;\Leftrightarrow\; c^a = b$" /></span>
                             <span style={S.mcOption}><strong>D.</strong> <L s="$\log_a b = c \;\Leftrightarrow\; b^a = c$" /></span>
-                            <RigaMotivazione />
                         </div>
 
                         {/* A.2 — dominio / condizione sulla base */}
@@ -347,7 +346,6 @@ export default function SimulazioneMatematicaEsponenziali4M(): React.ReactElemen
                             <span style={S.mcOption}><strong>B.</strong> <L s="$a \neq 0$" /></span>
                             <span style={S.mcOption}><strong>C.</strong> <L s="$a > 0 \text{ e } a \neq 1$" /></span>
                             <span style={S.mcOption}><strong>D.</strong> <L s="$a \geq 1$" /></span>
-                            <RigaMotivazione />
                         </div>
 
                         {/* A.3 — proprietà logaritmo del prodotto */}
@@ -360,7 +358,6 @@ export default function SimulazioneMatematicaEsponenziali4M(): React.ReactElemen
                             <span style={S.mcOption}><strong>B.</strong> <L s="$\log_a(m \cdot n) = \log_a m + \log_a n$" /></span>
                             <span style={S.mcOption}><strong>C.</strong> <L s="$\log_a(m \cdot n) = \log_a m - \log_a n$" /></span>
                             <span style={S.mcOption}><strong>D.</strong> <L s="$\log_a(m + n) = \log_a m \cdot \log_a n$" /></span>
-                            <RigaMotivazione />
                         </div>
 
                         {/* A.4 — monotonia */}
@@ -373,7 +370,6 @@ export default function SimulazioneMatematicaEsponenziali4M(): React.ReactElemen
                             <span style={S.mcOption}><strong>B.</strong> <L s="$a = 1$" /></span>
                             <span style={S.mcOption}><strong>C.</strong> <L s="$0 < a < 1$" /></span>
                             <span style={S.mcOption}><strong>D.</strong> <L s="$a < 0$" /></span>
-                            <RigaMotivazione />
                         </div>
 
                         {/* A.5 — proprietà della potenza */}
