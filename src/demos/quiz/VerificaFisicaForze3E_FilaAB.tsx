@@ -599,15 +599,16 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                             {fila === "A" ? (
                                 <p style={S.domandaText}>
                                     Un blocco di massa <L s="$m = 5{,}0\,\text{kg}$" /> è in equilibrio su un piano
-                                    inclinato liscio. La base del piano è <L s="$b = 4{,}0\,\text{m}$" />,
-                                    l'altezza è <L s="$h = 3{,}0\,\text{m}$" />. Il blocco è trattenuto da una
-                                    molla parallela al piano, allungata di <L s="$x = 0{,}30\,\text{m}$" />.
+                                    inclinato liscio di angolo <L s="$\theta = 37°$" />{" "}
+                                    (<L s="$\sin 37° = 0{,}60$" />, <L s="$\cos 37° = 0{,}80$" />).
+                                    Il blocco è trattenuto da una molla parallela al piano,
+                                    allungata di <L s="$x = 0{,}30\,\text{m}$" />.
                                 </p>
                             ) : (
                                 <p style={S.domandaText}>
                                     Un blocco di massa <L s="$m = 5{,}0\,\text{kg}$" /> è su un piano inclinato
-                                    scabro. La base del piano è <L s="$b = 4{,}0\,\text{m}$" />,
-                                    l'altezza è <L s="$h = 3{,}0\,\text{m}$" />.
+                                    scabro di angolo <L s="$\theta = 37°$" />{" "}
+                                    (<L s="$\sin 37° = 0{,}60$" />, <L s="$\cos 37° = 0{,}80$" />).
                                     Il coefficiente di attrito statico è <L s="$\mu_s = 0{,}80$" />.
                                     Verifica se il blocco è in equilibrio.
                                 </p>
@@ -624,36 +625,29 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
 
                             <div style={{ marginLeft: 16, marginTop: 6 }}>
                                 <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginBottom: 6 }}>
-                                    <strong>i.)</strong> Usa il teorema di Pitagora per trovare la lunghezza <L s="$L$" /> del
-                                    piano. Ricava poi <L s="$\sin\theta$" /> e <L s="$\cos\theta$" /> come rapporti tra i lati del triangolo.
+                                    <strong>i.)</strong> Calcola la componente del peso <em>parallela</em> al piano:{" "}
+                                    <L s="$F_\parallel = mg\sin\theta$" />.
                                 </p>
                                 <div style={{ height: 64, borderBottom: "1px dashed #cbd5e1" }} />
-                                <div style={{ height: 48, borderBottom: "1px dashed #cbd5e1" }} />
+
+                                <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginTop: 12, marginBottom: 6 }}>
+                                    <strong>ii.)</strong> Calcola la forza vincolare:{" "}
+                                    <L s="$N = mg\cos\theta$" />.
+                                </p>
+                                <div style={{ height: 64, borderBottom: "1px dashed #cbd5e1" }} />
 
                                 {fila === "A" ? (
                                     <>
                                         <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginTop: 12, marginBottom: 6 }}>
-                                            <strong>ii.)</strong> Calcola la componente del peso <em>parallela</em> al piano{" "}
-                                            <L s="$F_\parallel = mg\sin\theta$" />.
-                                        </p>
-                                        <div style={{ height: 64, borderBottom: "1px dashed #cbd5e1" }} />
-                                        <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginTop: 12, marginBottom: 6 }}>
-                                            <strong>iii.)</strong> Il blocco è in equilibrio lungo il piano: la forza elastica
-                                            bilancia <L s="$F_\parallel$" />. Applica la{" "}
-                                            <strong>legge di Hooke</strong> (<L s="$F_{el} = k \cdot x$" />) e calcola la
-                                            costante elastica <L s="$k$" /> della molla.
+                                            <strong>iii.)</strong> Equilibrio lungo il piano: la forza elastica bilancia{" "}
+                                            <L s="$F_\parallel$" />. Applica la <strong>legge di Hooke</strong>{" "}
+                                            (<L s="$F_{el} = k \cdot x$" />) e calcola la costante elastica <L s="$k$" />.
                                         </p>
                                         <div style={{ height: 64, borderBottom: "1px dashed #cbd5e1" }} />
                                         <div style={{ height: 48, borderBottom: "1px dashed #cbd5e1" }} />
                                     </>
                                 ) : (
                                     <>
-                                        <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginTop: 12, marginBottom: 6 }}>
-                                            <strong>ii.)</strong> Calcola la componente del peso <em>parallela</em> al piano
-                                            (<L s="$F_\parallel = mg\sin\theta$" />) e la forza vincolare
-                                            (<L s="$N = mg\cos\theta$" />).
-                                        </p>
-                                        <div style={{ height: 64, borderBottom: "1px dashed #cbd5e1" }} />
                                         <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginTop: 12, marginBottom: 6 }}>
                                             <strong>iii.)</strong> Calcola la forza di attrito statico massima{" "}
                                             <L s="$f_{s,\max} = \mu_s \cdot N$" />. Il blocco è in equilibrio?
@@ -857,39 +851,33 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                 <div style={S.solDomanda}>
                                     {fila === "A" ? (
                                         <>
-                                            <span style={S.solLabel}>2) Piano inclinato + molla — m = 5,0 kg, b = 4,0 m, h = 3,0 m, x = 0,30 m</span>
-                                            <p style={{ ...S.solText, fontWeight: 600, marginBottom: 4 }}>i) Pitagora e angoli</p>
+                                            <span style={S.solLabel}>2) Piano inclinato + molla — m = 5,0 kg, θ = 37°, x = 0,30 m</span>
+                                            <p style={{ ...S.solText, fontWeight: 600, marginBottom: 4 }}>i) Componente parallela</p>
                                             <div style={S.solStep}>
-                                                <DisplayMath>{"L = \\sqrt{4{,}0^2 + 3{,}0^2} = \\sqrt{25} = 5{,}0\\,\\text{m}"}</DisplayMath>
-                                                <DisplayMath>{"\\sin\\theta = \\frac{3{,}0}{5{,}0} = 0{,}60 \\qquad \\cos\\theta = \\frac{4{,}0}{5{,}0} = 0{,}80"}</DisplayMath>
+                                                <DisplayMath>{"F_{\\parallel} = mg\\sin 37° = 5{,}0 \\times 9{,}8 \\times 0{,}60 = 29{,}4\\,\\text{N}"}</DisplayMath>
                                             </div>
-                                            <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>ii) Componente parallela</p>
+                                            <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>ii) Forza vincolare</p>
                                             <div style={S.solStep}>
-                                                <DisplayMath>{"F_{\\parallel} = mg\\sin\\theta = 5{,}0 \\times 9{,}8 \\times 0{,}60 = 29{,}4\\,\\text{N}"}</DisplayMath>
+                                                <DisplayMath>{"N = mg\\cos 37° = 5{,}0 \\times 9{,}8 \\times 0{,}80 = 39{,}2\\,\\text{N}"}</DisplayMath>
                                             </div>
-                                            <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>iii) Costante elastica (legge di Hooke)</p>
+                                            <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>iii) Costante elastica</p>
                                             <div style={S.solStep}>
-                                                <p style={{ fontSize: 13 }}>
-                                                    Equilibrio lungo il piano: <L s="$F_{el} = F_\parallel$" />.
-                                                    Dalla legge di Hooke <L s="$F_{el} = k \cdot x$" />:
-                                                </p>
+                                                <p style={{ fontSize: 13 }}>Equilibrio lungo il piano: <L s="$F_{el} = F_\parallel$" />. Legge di Hooke:</p>
                                                 <DisplayMath>{"k = \\frac{F_{\\parallel}}{x} = \\frac{29{,}4}{0{,}30} = 98\\,\\text{N/m}"}</DisplayMath>
                                             </div>
                                         </>
                                     ) : (
                                         <>
-                                            <span style={S.solLabel}>2) Piano inclinato + attrito — m = 5,0 kg, b = 4,0 m, h = 3,0 m, μs = 0,80</span>
-                                            <p style={{ ...S.solText, fontWeight: 600, marginBottom: 4 }}>i) Pitagora e angoli</p>
+                                            <span style={S.solLabel}>2) Piano inclinato + attrito — m = 5,0 kg, θ = 37°, μs = 0,80</span>
+                                            <p style={{ ...S.solText, fontWeight: 600, marginBottom: 4 }}>i) Componente parallela</p>
                                             <div style={S.solStep}>
-                                                <DisplayMath>{"L = \\sqrt{4{,}0^2 + 3{,}0^2} = \\sqrt{25} = 5{,}0\\,\\text{m}"}</DisplayMath>
-                                                <DisplayMath>{"\\sin\\theta = \\frac{3{,}0}{5{,}0} = 0{,}60 \\qquad \\cos\\theta = \\frac{4{,}0}{5{,}0} = 0{,}80"}</DisplayMath>
+                                                <DisplayMath>{"F_{\\parallel} = mg\\sin 37° = 5{,}0 \\times 9{,}8 \\times 0{,}60 = 29{,}4\\,\\text{N}"}</DisplayMath>
                                             </div>
-                                            <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>ii) Componente parallela e forza vincolare</p>
+                                            <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>ii) Forza vincolare</p>
                                             <div style={S.solStep}>
-                                                <DisplayMath>{"F_{\\parallel} = mg\\sin\\theta = 5{,}0 \\times 9{,}8 \\times 0{,}60 = 29{,}4\\,\\text{N}"}</DisplayMath>
-                                                <DisplayMath>{"N = mg\\cos\\theta = 5{,}0 \\times 9{,}8 \\times 0{,}80 = 39{,}2\\,\\text{N}"}</DisplayMath>
+                                                <DisplayMath>{"N = mg\\cos 37° = 5{,}0 \\times 9{,}8 \\times 0{,}80 = 39{,}2\\,\\text{N}"}</DisplayMath>
                                             </div>
-                                            <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>iii) Attrito massimo e verifica equilibrio</p>
+                                            <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>iii) Attrito massimo e verifica</p>
                                             <div style={S.solStep}>
                                                 <DisplayMath>{"f_{s,\\max} = \\mu_s \\cdot N = 0{,}80 \\times 39{,}2 = 31{,}4\\,\\text{N}"}</DisplayMath>
                                                 <p style={{ fontSize: 13 }}>
