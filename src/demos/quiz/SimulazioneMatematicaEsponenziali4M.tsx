@@ -298,7 +298,7 @@ export default function SimulazioneMatematicaEsponenziali4M(): React.ReactElemen
 
                     {/* ── Intestazione ── */}
                     <div style={S.headerDoc}>
-                        <div style={S.istituto}>Liceo Linguistico — San Giovanni Valdarno — Classe 4ª M</div>
+                        <div style={S.istituto}>Liceo delle Scienze Umane — San Giovanni Valdarno — Classe 4ª M</div>
                         <div style={S.title}>Simulazione di Matematica</div>
                         <div style={S.disciplina}>
                             Funzioni esponenziali e logaritmiche · Equazioni · Proprietà dei logaritmi
