@@ -188,6 +188,7 @@ const categories: Category[] = [
                     "verifica-parabola-sistemi-3f",
                     "verifica-disequazioni-3f",
                     "verifica-disequazioni-3f-2",
+                    "simulazione-matematica-esponenziali-4m",
                 ],
             },
             {
@@ -288,6 +289,7 @@ const newDemoSlugs = new Set([
     "simulazione-fisica-newton-4m",
     "battaglia-rette-2",
     "simulazione-fisica-equilibrio-3f",
+    "simulazione-matematica-esponenziali-4m",
 ]);
 
 // ============ COMPONENTI ============

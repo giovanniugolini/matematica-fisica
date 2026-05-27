@@ -490,4 +490,10 @@ export const demos: DemoInfo[] = [
         Component: React.lazy(() => import("./demos/quiz/SimulazioneFisicaEquilibrio3F")),
         tags: ["simulazione", "equilibrio", "forze", "attrito", "piano inclinato", "hooke", "forza elastica", "punto materiale", "fisica", "test", "3F"],
     },
+    {
+        slug: "simulazione-matematica-esponenziali-4m",
+        title: "Simulazione: Esponenziali e Logaritmi — 4M",
+        Component: React.lazy(() => import("./demos/quiz/SimulazioneMatematicaEsponenziali4M")),
+        tags: ["simulazione", "esponenziali", "logaritmi", "equazioni", "proprietà logaritmi", "matematica", "test", "4M"],
+    },
 ];
