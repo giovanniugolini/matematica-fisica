@@ -599,16 +599,14 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                             {fila === "A" ? (
                                 <p style={S.domandaText}>
                                     Un blocco di massa <L s="$m = 5{,}0\,\text{kg}$" /> è in equilibrio su un piano
-                                    inclinato liscio di angolo <L s="$\theta = 37°$" />{" "}
-                                    (<L s="$\sin 37° = 0{,}60$" />, <L s="$\cos 37° = 0{,}80$" />).
+                                    inclinato liscio di angolo <L s="$\theta = 37°$" />.
                                     Il blocco è trattenuto da una molla parallela al piano,
                                     allungata di <L s="$x = 0{,}30\,\text{m}$" />.
                                 </p>
                             ) : (
                                 <p style={S.domandaText}>
                                     Un blocco di massa <L s="$m = 5{,}0\,\text{kg}$" /> è su un piano inclinato
-                                    scabro di angolo <L s="$\theta = 37°$" />{" "}
-                                    (<L s="$\sin 37° = 0{,}60$" />, <L s="$\cos 37° = 0{,}80$" />).
+                                    scabro di angolo <L s="$\theta = 37°$" />.
                                     Il coefficiente di attrito statico è <L s="$\mu_s = 0{,}80$" />.
                                     Verifica se il blocco è in equilibrio.
                                 </p>
@@ -632,7 +630,7 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
 
                                 <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginTop: 12, marginBottom: 6 }}>
                                     <strong>ii.)</strong> Calcola la forza vincolare:{" "}
-                                    <L s="$N = mg\cos\theta$" />.
+                                    <L s="$F_v = mg\cos\theta$" />.
                                 </p>
                                 <div style={{ height: 64, borderBottom: "1px dashed #cbd5e1" }} />
 
@@ -650,7 +648,7 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                     <>
                                         <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginTop: 12, marginBottom: 6 }}>
                                             <strong>iii.)</strong> Calcola la forza di attrito statico massima{" "}
-                                            <L s="$f_{s,\max} = \mu_s \cdot N$" />. Il blocco è in equilibrio?
+                                            <L s="$f_{s,\max} = \mu_s \cdot F_v$" />. Il blocco è in equilibrio?
                                             Motiva confrontando <L s="$f_{s,\max}$" /> con <L s="$F_\parallel$" />.
                                         </p>
                                         <div style={{ height: 64, borderBottom: "1px dashed #cbd5e1" }} />
@@ -858,7 +856,7 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                             </div>
                                             <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>ii) Forza vincolare</p>
                                             <div style={S.solStep}>
-                                                <DisplayMath>{"N = mg\\cos 37° = 5{,}0 \\times 9{,}8 \\times 0{,}80 = 39{,}2\\,\\text{N}"}</DisplayMath>
+                                                <DisplayMath>{"F_v = mg\\cos 37° = 5{,}0 \\times 9{,}8 \\times 0{,}80 = 39{,}2\\,\\text{N}"}</DisplayMath>
                                             </div>
                                             <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>iii) Costante elastica</p>
                                             <div style={S.solStep}>
@@ -875,11 +873,11 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                             </div>
                                             <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>ii) Forza vincolare</p>
                                             <div style={S.solStep}>
-                                                <DisplayMath>{"N = mg\\cos 37° = 5{,}0 \\times 9{,}8 \\times 0{,}80 = 39{,}2\\,\\text{N}"}</DisplayMath>
+                                                <DisplayMath>{"F_v = mg\\cos 37° = 5{,}0 \\times 9{,}8 \\times 0{,}80 = 39{,}2\\,\\text{N}"}</DisplayMath>
                                             </div>
                                             <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>iii) Attrito massimo e verifica</p>
                                             <div style={S.solStep}>
-                                                <DisplayMath>{"f_{s,\\max} = \\mu_s \\cdot N = 0{,}80 \\times 39{,}2 = 31{,}4\\,\\text{N}"}</DisplayMath>
+                                                <DisplayMath>{"f_{s,\\max} = \\mu_s \\cdot F_v = 0{,}80 \\times 39{,}2 = 31{,}4\\,\\text{N}"}</DisplayMath>
                                                 <p style={{ fontSize: 13 }}>
                                                     <L s="$F_\parallel = 29{,}4\,\text{N} < f_{s,\max} = 31{,}4\,\text{N}$" /> → il blocco è in <strong>equilibrio</strong>.
                                                 </p>
