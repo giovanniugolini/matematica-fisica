@@ -421,14 +421,14 @@ export default function SimulazioneMatematicaEsponenziali4M(): React.ReactElemen
 
                         <div style={{ height: 8 }} />
 
-                        {/* B.3 — equazione esponenziale di secondo grado (facoltativa) */}
+                        {/* B.3 — equazione esponenziale con esponenti di secondo grado (facoltativa) */}
                         <div style={S.domanda}>
                             <span style={S.domandaLabel}>*3.</span>
                             <p style={S.domandaText}>
-                                Risolvi l'equazione esponenziale mediante il cambio di variabile{" "}
-                                <L s="$t = 3^x$" /> (osserva che <L s="$9^x = (3^x)^2$" />):
+                                Risolvi l'equazione: le basi sono uguali, ma quando uguagli gli esponenti
+                                ottieni un'equazione di secondo grado.
                             </p>
-                            <DisplayMath>{"9^x - 4 \\cdot 3^x + 3 = 0"}</DisplayMath>
+                            <DisplayMath>{"2^{x^2} = 2^{3x}"}</DisplayMath>
                             <div style={{ height: 64, borderBottom: "1px dashed #cbd5e1", marginTop: 8 }} />
                             <div style={{ height: 64, borderBottom: "1px dashed #cbd5e1" }} />
                             <div style={{ height: 48, borderBottom: "1px dashed #cbd5e1" }} />
@@ -589,17 +589,15 @@ export default function SimulazioneMatematicaEsponenziali4M(): React.ReactElemen
                                 </div>
 
                                 <div style={S.solDomanda}>
-                                    <span style={S.solLabel}>*3. <L s="$9^x - 4 \cdot 3^x + 3 = 0$" /></span>
+                                    <span style={S.solLabel}>*3. <L s="$2^{x^2} = 2^{3x}$" /></span>
                                     <div style={S.solStep}>
                                         <p style={{ fontSize: 13, marginBottom: 4 }}>
-                                            Poiché <L s="$9^x = (3^2)^x = (3^x)^2$" />, si pone <L s="$t = 3^x$" /> con <L s="$t > 0$" />:
+                                            Stessa base → si uguagliano gli esponenti:
                                         </p>
-                                        <DisplayMath>{"t^2 - 4t + 3 = 0 \\implies (t-1)(t-3) = 0"}</DisplayMath>
-                                        <p style={{ fontSize: 13, margin: "6px 0 4px" }}>
-                                            <strong>Caso <L s="$t = 1$" />:</strong> <L s="$3^x = 3^0 \Rightarrow x = 0$" />
-                                        </p>
-                                        <p style={{ fontSize: 13 }}>
-                                            <strong>Caso <L s="$t = 3$" />:</strong> <L s="$3^x = 3^1 \Rightarrow x = 1$" />
+                                        <DisplayMath>{"x^2 = 3x \\implies x^2 - 3x = 0 \\implies x(x-3) = 0"}</DisplayMath>
+                                        <p style={{ fontSize: 13, marginTop: 6 }}>
+                                            Equazione spuria: <L s="$x_1 = 0$" />, <L s="$x_2 = 3$" />.{" "}
+                                            Attenzione a non dividere entrambi i membri per <L s="$x$" /> (si perderebbe la soluzione <L s="$x=0$" />).
                                         </p>
                                     </div>
                                 </div>
