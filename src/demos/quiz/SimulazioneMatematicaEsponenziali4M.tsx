@@ -11,6 +11,30 @@ function L({ s }: { s: string }): React.ReactElement {
     return <MixedLatex>{s}</MixedLatex>;
 }
 
+function RigaMotivazione(): React.ReactElement {
+    const row: React.CSSProperties = {
+        display: "flex", alignItems: "center", gap: 12,
+        marginTop: 8, fontSize: 13, color: "#475569", fontFamily: "system-ui, sans-serif",
+    };
+    const linea: React.CSSProperties = {
+        flex: 1, borderBottom: "1px solid #94a3b8", minWidth: 80,
+    };
+    return (
+        <>
+            <div style={row}>
+                <span>Risposta:</span>
+                <span style={{ width: 40, borderBottom: "1px solid #94a3b8", display: "inline-block" }} />
+                <span style={{ marginLeft: 8 }}>Motivazione:</span>
+                <span style={linea} />
+            </div>
+            <div style={{ ...row, marginTop: 4 }}>
+                <span style={{ opacity: 0 }}>Motivazione:</span>
+                <span style={linea} />
+            </div>
+        </>
+    );
+}
+
 // ─── Stili ──────────────────────────────────────────────────────────────────
 
 const S = {
@@ -293,6 +317,9 @@ export default function SimulazioneMatematicaEsponenziali4M(): React.ReactElemen
                         <div style={S.parteTitle}>
                             Parte A – Domande a risposta multipla <span style={S.punti}>(20 punti · 4 pt ciascuna)</span>
                         </div>
+                        <p style={{ fontSize: 13, color: "#475569", fontFamily: "system-ui, sans-serif", marginBottom: 14 }}>
+                            Per ogni domanda indica la risposta corretta e motiva brevemente la scelta.
+                        </p>
 
                         {/* A.1 — definizione di logaritmo */}
                         <div style={S.domanda}>
@@ -305,9 +332,8 @@ export default function SimulazioneMatematicaEsponenziali4M(): React.ReactElemen
                             <span style={S.mcOption}><strong>B.</strong> <L s="$\log_a b = c \;\Leftrightarrow\; a^c = b$" /></span>
                             <span style={S.mcOption}><strong>C.</strong> <L s="$\log_a b = c \;\Leftrightarrow\; c^a = b$" /></span>
                             <span style={S.mcOption}><strong>D.</strong> <L s="$\log_a b = c \;\Leftrightarrow\; b^a = c$" /></span>
+                            <RigaMotivazione />
                         </div>
-
-                        <div style={{ height: 12 }} />
 
                         {/* A.2 — dominio / condizione sulla base */}
                         <div style={S.domanda}>
@@ -321,9 +347,8 @@ export default function SimulazioneMatematicaEsponenziali4M(): React.ReactElemen
                             <span style={S.mcOption}><strong>B.</strong> <L s="$a \neq 0$" /></span>
                             <span style={S.mcOption}><strong>C.</strong> <L s="$a > 0 \text{ e } a \neq 1$" /></span>
                             <span style={S.mcOption}><strong>D.</strong> <L s="$a \geq 1$" /></span>
+                            <RigaMotivazione />
                         </div>
-
-                        <div style={{ height: 12 }} />
 
                         {/* A.3 — proprietà logaritmo del prodotto */}
                         <div style={S.domanda}>
@@ -335,9 +360,8 @@ export default function SimulazioneMatematicaEsponenziali4M(): React.ReactElemen
                             <span style={S.mcOption}><strong>B.</strong> <L s="$\log_a(m \cdot n) = \log_a m + \log_a n$" /></span>
                             <span style={S.mcOption}><strong>C.</strong> <L s="$\log_a(m \cdot n) = \log_a m - \log_a n$" /></span>
                             <span style={S.mcOption}><strong>D.</strong> <L s="$\log_a(m + n) = \log_a m \cdot \log_a n$" /></span>
+                            <RigaMotivazione />
                         </div>
-
-                        <div style={{ height: 12 }} />
 
                         {/* A.4 — monotonia */}
                         <div style={S.domanda}>
@@ -349,9 +373,8 @@ export default function SimulazioneMatematicaEsponenziali4M(): React.ReactElemen
                             <span style={S.mcOption}><strong>B.</strong> <L s="$a = 1$" /></span>
                             <span style={S.mcOption}><strong>C.</strong> <L s="$0 < a < 1$" /></span>
                             <span style={S.mcOption}><strong>D.</strong> <L s="$a < 0$" /></span>
+                            <RigaMotivazione />
                         </div>
-
-                        <div style={{ height: 12 }} />
 
                         {/* A.5 — proprietà della potenza */}
                         <div style={S.domanda}>
@@ -363,6 +386,7 @@ export default function SimulazioneMatematicaEsponenziali4M(): React.ReactElemen
                             <span style={S.mcOption}><strong>B.</strong> <L s="$\log_a m + n$" /></span>
                             <span style={S.mcOption}><strong>C.</strong> <L s="$n \cdot \log_a m$" /></span>
                             <span style={S.mcOption}><strong>D.</strong> <L s="$\log_a n \cdot \log_a m$" /></span>
+                            <RigaMotivazione />
                         </div>
                     </div>
 
