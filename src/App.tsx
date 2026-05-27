@@ -205,6 +205,7 @@ const categories: Category[] = [
                     "simulazione-fisica-newton-4m",
                     "verifica-fisica-campo-magnetico-5i",
                     "simulazione-fisica-equilibrio-3f",
+                    "verifica-fisica-forze-3e-fila-ab",
                 ],
             },
             {
@@ -290,6 +291,7 @@ const newDemoSlugs = new Set([
     "battaglia-rette-2",
     "simulazione-fisica-equilibrio-3f",
     "simulazione-matematica-esponenziali-4m",
+    "verifica-fisica-forze-3e-fila-ab",
 ]);
 
 // ============ COMPONENTI ============

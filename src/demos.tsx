@@ -496,4 +496,10 @@ export const demos: DemoInfo[] = [
         Component: React.lazy(() => import("./demos/quiz/SimulazioneMatematicaEsponenziali4M")),
         tags: ["simulazione", "esponenziali", "logaritmi", "equazioni", "proprietà logaritmi", "matematica", "test", "4M"],
     },
+    {
+        slug: "verifica-fisica-forze-3e-fila-ab",
+        title: "Verifica: Forze, Molla e Piano Inclinato — 3E (Fila A/B)",
+        Component: React.lazy(() => import("./demos/quiz/VerificaFisicaForze3E_FilaAB")),
+        tags: ["verifica", "forze", "hooke", "molla", "piano inclinato", "momento torcente", "equilibrio", "fisica", "test", "3E", "fila"],
+    },
 ];
