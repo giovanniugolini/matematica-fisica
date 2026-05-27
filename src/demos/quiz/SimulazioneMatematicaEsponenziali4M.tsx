@@ -351,16 +351,17 @@ export default function SimulazioneMatematicaEsponenziali4M(): React.ReactElemen
                             <span style={S.mcOption}><strong>D.</strong> <L s="$a \geq 1$" /></span>
                         </div>
 
-                        {/* A.3 — proprietà logaritmo del prodotto */}
+                        {/* A.3 — applicazione proprietà del prodotto */}
                         <div style={S.domanda}>
                             <span style={S.domandaLabel}>3.</span>
                             <p style={S.domandaText}>
-                                Quale delle seguenti è la corretta <strong>proprietà del logaritmo di un prodotto</strong>?
+                                Quanto vale <L s="$\log_2 6 + \log_2 \dfrac{8}{3}$" />?
                             </p>
-                            <span style={S.mcOption}><strong>A.</strong> <L s="$\log_a(m \cdot n) = \log_a m \cdot \log_a n$" /></span>
-                            <span style={S.mcOption}><strong>B.</strong> <L s="$\log_a(m \cdot n) = \log_a m + \log_a n$" /></span>
-                            <span style={S.mcOption}><strong>C.</strong> <L s="$\log_a(m \cdot n) = \log_a m - \log_a n$" /></span>
-                            <span style={S.mcOption}><strong>D.</strong> <L s="$\log_a(m + n) = \log_a m \cdot \log_a n$" /></span>
+                            <span style={S.mcOption}><strong>A.</strong> <L s="$2$" /></span>
+                            <span style={S.mcOption}><strong>B.</strong> <L s="$3$" /></span>
+                            <span style={S.mcOption}><strong>C.</strong> <L s="$4$" /></span>
+                            <span style={S.mcOption}><strong>D.</strong> <L s="$\log_2 \dfrac{48}{3}$" /></span>
+                            <RigaMotivazione />
                         </div>
 
                         {/* A.4 — monotonia */}
@@ -544,12 +545,11 @@ export default function SimulazioneMatematicaEsponenziali4M(): React.ReactElemen
                                 </div>
 
                                 <div style={S.solDomanda}>
-                                    <span style={S.solLabel}>3. Logaritmo del prodotto</span>
-                                    <span style={S.solRisposta}>B</span>
-                                    <p style={S.solText}>
-                                        <L s="$\log_a(m \cdot n) = \log_a m + \log_a n$" />.
-                                        Il logaritmo di un prodotto è la <em>somma</em> dei logaritmi. Deriva dalla proprietà delle potenze: <L s="$a^p \cdot a^q = a^{p+q}$" />.
-                                    </p>
+                                    <span style={S.solLabel}>3. Applicazione proprietà del prodotto</span>
+                                    <span style={S.solRisposta}>C</span>
+                                    <div style={S.solStep}>
+                                        <DisplayMath>{"\\log_2 6 + \\log_2 \\frac{8}{3} = \\log_2\\!\\left(6 \\cdot \\frac{8}{3}\\right) = \\log_2 16 = \\log_2 2^4 = 4"}</DisplayMath>
+                                    </div>
                                 </div>
 
                                 <div style={S.solDomanda}>
