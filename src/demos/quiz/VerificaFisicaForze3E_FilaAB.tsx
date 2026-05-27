@@ -554,11 +554,11 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                 {fila === "A" ? (
                                     <>
                                         <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginBottom: 6 }}>
-                                            <strong>i.)</strong> Calcola la forza peso <L s="$P$" /> del blocco e la forza vincolare <L s="$N$" /> esercitata dal piano.
+                                            <strong>i.)</strong> Calcola la forza peso <L s="$P$" /> del blocco e la forza vincolare <L s="$F_v$" /> esercitata dal piano.
                                         </p>
                                         <div style={{ height: 56, borderBottom: "1px dashed #cbd5e1" }} />
                                         <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginTop: 12, marginBottom: 6 }}>
-                                            <strong>ii.)</strong> Calcola la forza di attrito statico massima <L s="$f_{s,\max} = \mu_s \cdot N$" />.
+                                            <strong>ii.)</strong> Calcola la forza di attrito statico massima <L s="$f_{s,\max}$" />.
                                         </p>
                                         <div style={{ height: 56, borderBottom: "1px dashed #cbd5e1" }} />
                                         <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginTop: 12, marginBottom: 6 }}>
@@ -623,23 +623,20 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
 
                             <div style={{ marginLeft: 16, marginTop: 6 }}>
                                 <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginBottom: 6 }}>
-                                    <strong>i.)</strong> Calcola la componente del peso <em>parallela</em> al piano:{" "}
-                                    <L s="$F_\parallel = mg\sin\theta$" />.
+                                    <strong>i.)</strong> Calcola la componente del peso <em>parallela</em> al piano <L s="$F_\parallel$" />.
                                 </p>
                                 <div style={{ height: 64, borderBottom: "1px dashed #cbd5e1" }} />
 
                                 <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginTop: 12, marginBottom: 6 }}>
-                                    <strong>ii.)</strong> Calcola la forza vincolare:{" "}
-                                    <L s="$F_v = mg\cos\theta$" />.
+                                    <strong>ii.)</strong> Calcola la forza vincolare <L s="$F_v$" />.
                                 </p>
                                 <div style={{ height: 64, borderBottom: "1px dashed #cbd5e1" }} />
 
                                 {fila === "A" ? (
                                     <>
                                         <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginTop: 12, marginBottom: 6 }}>
-                                            <strong>iii.)</strong> Equilibrio lungo il piano: la forza elastica bilancia{" "}
-                                            <L s="$F_\parallel$" />. Applica la <strong>legge di Hooke</strong>{" "}
-                                            (<L s="$F_{el} = k \cdot x$" />) e calcola la costante elastica <L s="$k$" />.
+                                            <strong>iii.)</strong> La forza elastica bilancia <L s="$F_\parallel$" />.
+                                            Applica la <strong>legge di Hooke</strong> e calcola la costante elastica <L s="$k$" />.
                                         </p>
                                         <div style={{ height: 64, borderBottom: "1px dashed #cbd5e1" }} />
                                         <div style={{ height: 48, borderBottom: "1px dashed #cbd5e1" }} />
@@ -647,9 +644,8 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                 ) : (
                                     <>
                                         <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginTop: 12, marginBottom: 6 }}>
-                                            <strong>iii.)</strong> Calcola la forza di attrito statico massima{" "}
-                                            <L s="$f_{s,\max} = \mu_s \cdot F_v$" />. Il blocco è in equilibrio?
-                                            Motiva confrontando <L s="$f_{s,\max}$" /> con <L s="$F_\parallel$" />.
+                                            <strong>iii.)</strong> Calcola la forza di attrito statico massima <L s="$f_{s,\max}$" />.
+                                            Il blocco è in equilibrio? Motiva confrontando <L s="$f_{s,\max}$" /> con <L s="$F_\parallel$" />.
                                         </p>
                                         <div style={{ height: 64, borderBottom: "1px dashed #cbd5e1" }} />
                                         <div style={{ height: 48, borderBottom: "1px dashed #cbd5e1" }} />
