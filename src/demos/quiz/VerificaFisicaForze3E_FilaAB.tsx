@@ -7,7 +7,7 @@ import React, { useState } from "react";
 import { MixedLatex, DisplayMath } from "../../components/ui/Latex";
 import { Link } from "react-router-dom";
 
-type Fila = "A" | "B";
+type Fila = "A" | "B" | "C";
 
 function L({ s }: { s: string }): React.ReactElement {
     return <MixedLatex>{s}</MixedLatex>;
@@ -83,14 +83,14 @@ const S = {
     btnFila: (active: boolean, fila: Fila): React.CSSProperties => ({
         padding: "6px 20px",
         border: active
-            ? `2px solid ${fila === "A" ? "#1e40af" : "#d97706"}`
+            ? `2px solid ${fila === "A" ? "#1e40af" : fila === "B" ? "#d97706" : "#16a34a"}`
             : "2px solid #e2e8f0",
         borderRadius: 6,
         background: active
-            ? fila === "A" ? "#dbeafe" : "#fef3c7"
+            ? fila === "A" ? "#dbeafe" : fila === "B" ? "#fef3c7" : "#dcfce7"
             : "#f8fafc",
         color: active
-            ? fila === "A" ? "#1e40af" : "#92400e"
+            ? fila === "A" ? "#1e40af" : fila === "B" ? "#92400e" : "#15803d"
             : "#94a3b8",
         fontWeight: 700,
         fontSize: 14,
@@ -278,7 +278,9 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
 
     const filaBadge = fila === "A"
         ? { bg: "#dbeafe", color: "#1e40af", border: "#93c5fd" }
-        : { bg: "#fef3c7", color: "#92400e", border: "#fcd34d" };
+        : fila === "B"
+        ? { bg: "#fef3c7", color: "#92400e", border: "#fcd34d" }
+        : { bg: "#dcfce7", color: "#15803d", border: "#86efac" };
 
     return (
         <>
@@ -309,6 +311,10 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                 style={S.btnFila(fila === "B", "B")}
                                 onClick={() => { setFila("B"); setShowSoluzioni(false); }}
                             >FILA B</button>
+                            <button
+                                style={S.btnFila(fila === "C", "C")}
+                                onClick={() => { setFila("C"); setShowSoluzioni(false); }}
+                            >FILA C</button>
                         </div>
                         <div style={{ display: "flex", gap: 10 }}>
                             <button
@@ -376,11 +382,19 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                     misura nel SI. Spiega cosa accade quando la forza applicata supera{" "}
                                     <L s="$f_{s,\max}$" />.
                                 </p>
-                            ) : (
+                            ) : fila === "B" ? (
                                 <p style={S.domandaText}>
                                     Definisci il concetto di <strong>punto materiale</strong>. Enuncia la{" "}
                                     <strong>condizione di equilibrio</strong> di un punto materiale, scrivendo la
                                     relazione vettoriale che deve essere soddisfatta e spiegandone il significato fisico.
+                                </p>
+                            ) : (
+                                <p style={S.domandaText}>
+                                    Enuncia la <strong>legge di Hooke</strong>. Scrivi la relazione tra forza
+                                    elastica <L s="$F_{el}$" />, costante elastica <L s="$k$" /> e allungamento{" "}
+                                    <L s="$x$" />, specificando il significato fisico di ciascuna grandezza e la
+                                    loro unità di misura nel SI. Spiega cosa si intende per{" "}
+                                    <strong>limite elastico</strong>.
                                 </p>
                             )}
                             <div style={{ height: 80, borderBottom: "1px dashed #cbd5e1", marginTop: 8 }} />
@@ -423,13 +437,21 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                     <span style={S.mcOption}><strong>C.</strong> La forza di attrito statico non può mai superare il valore <L s="$\mu_s \cdot F_{\perp}$" /></span>
                                     <span style={S.mcOption}><strong>D.</strong> La forza di attrito statico dipende dalla velocità del corpo</span>
                                 </>
-                            ) : (
+                            ) : fila === "B" ? (
                                 <>
                                     <p style={S.domandaText}>Quale affermazione sulla <strong>legge di Hooke</strong> è corretta?</p>
                                     <span style={S.mcOption}><strong>A.</strong> La forza elastica è proporzionale alla velocità di deformazione</span>
                                     <span style={S.mcOption}><strong>B.</strong> La costante elastica <L s="$k$" /> si misura in <L s="$\text{N}{\cdot}\text{m}$" /></span>
                                     <span style={S.mcOption}><strong>C.</strong> La forza elastica è proporzionale all'allungamento: <L s="$F = k \cdot x$" /></span>
                                     <span style={S.mcOption}><strong>D.</strong> La legge di Hooke vale per qualsiasi deformazione, anche oltre il limite elastico</span>
+                                </>
+                            ) : (
+                                <>
+                                    <p style={S.domandaText}>Quale condizione deve essere soddisfatta affinché un <strong>corpo rigido</strong> sia in <strong>equilibrio rotazionale</strong>?</p>
+                                    <span style={S.mcOption}><strong>A.</strong> La velocità di rotazione del corpo è nulla</span>
+                                    <span style={S.mcOption}><strong>B.</strong> La risultante di tutte le forze applicate è nulla</span>
+                                    <span style={S.mcOption}><strong>C.</strong> La somma algebrica dei momenti delle forze rispetto all'asse è nulla</span>
+                                    <span style={S.mcOption}><strong>D.</strong> Il corpo è geometricamente simmetrico rispetto all'asse di rotazione</span>
                                 </>
                             )}
                             <RigaRisposta />
@@ -452,7 +474,7 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                     <span style={S.mcOption}><strong>C.</strong> <L s="$1{,}96\,\text{N}$" /></span>
                                     <span style={S.mcOption}><strong>D.</strong> <L s="$196\,\text{N}$" /></span>
                                 </>
-                            ) : (
+                            ) : fila === "B" ? (
                                 <>
                                     <p style={S.domandaText}>
                                         Un dinamometro con costante elastica <L s="$k = 500\,\text{N/m}$" /> si allunga
@@ -462,6 +484,17 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                     <span style={S.mcOption}><strong>B.</strong> <L s="$30{,}0\,\text{N}$" /></span>
                                     <span style={S.mcOption}><strong>C.</strong> <L s="$3{,}00\,\text{N}$" /></span>
                                     <span style={S.mcOption}><strong>D.</strong> <L s="$300\,\text{N}$" /></span>
+                                </>
+                            ) : (
+                                <>
+                                    <p style={S.domandaText}>
+                                        Un dinamometro con costante elastica <L s="$k = 245\,\text{N/m}$" /> si allunga
+                                        di <L s="$4{,}00\,\text{cm}$" />. Quale forza lo sta allungando?
+                                    </p>
+                                    <span style={S.mcOption}><strong>A.</strong> <L s="$9{,}80\,\text{N}$" /></span>
+                                    <span style={S.mcOption}><strong>B.</strong> <L s="$61{,}3\,\text{N}$" /></span>
+                                    <span style={S.mcOption}><strong>C.</strong> <L s="$245\,\text{N}$" /></span>
+                                    <span style={S.mcOption}><strong>D.</strong> <L s="$0{,}98\,\text{N}$" /></span>
                                 </>
                             )}
                             <RigaRisposta />
@@ -485,7 +518,7 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                     <span style={S.mcOption}><strong>C.</strong> <L s="$29{,}4\,\text{N}$" /></span>
                                     <span style={S.mcOption}><strong>D.</strong> <L s="$98\,\text{N}$" /></span>
                                 </>
-                            ) : (
+                            ) : fila === "B" ? (
                                 <>
                                     <p style={S.domandaText}>
                                         Un blocco di <L s="$m = 5{,}0\,\text{kg}$" /> è appoggiato su un piano orizzontale.
@@ -496,6 +529,18 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                     <span style={S.mcOption}><strong>B.</strong> <L s="$19{,}6\,\text{N}$" /></span>
                                     <span style={S.mcOption}><strong>C.</strong> <L s="$49{,}0\,\text{N}$" /></span>
                                     <span style={S.mcOption}><strong>D.</strong> <L s="$12{,}3\,\text{N}$" /></span>
+                                </>
+                            ) : (
+                                <>
+                                    <p style={S.domandaText}>
+                                        Un blocco di <L s="$m = 6{,}0\,\text{kg}$" /> è appoggiato su un piano orizzontale.
+                                        Il coefficiente di attrito statico è <L s="$\mu_s = 0{,}30$" />.
+                                        Qual è la forza orizzontale minima per mettere in moto il blocco?
+                                    </p>
+                                    <span style={S.mcOption}><strong>A.</strong> <L s="$58{,}8\,\text{N}$" /></span>
+                                    <span style={S.mcOption}><strong>B.</strong> <L s="$17{,}6\,\text{N}$" /></span>
+                                    <span style={S.mcOption}><strong>C.</strong> <L s="$0{,}30\,\text{N}$" /></span>
+                                    <span style={S.mcOption}><strong>D.</strong> <L s="$196\,\text{N}$" /></span>
                                 </>
                             )}
                             <RigaRisposta />
@@ -520,7 +565,7 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                     <span style={S.mcOption}><strong>C.</strong> <L s="$39{,}4\,\text{N}$" /></span>
                                     <span style={S.mcOption}><strong>D.</strong> <L s="$19{,}4\,\text{N}$" /></span>
                                 </>
-                            ) : (
+                            ) : fila === "B" ? (
                                 <>
                                     <p style={S.domandaText}>
                                         Un blocco di massa <L s="$m = 4{,}0\,\text{kg}$" /> è appoggiato su un piano
@@ -532,6 +577,19 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                     <span style={S.mcOption}><strong>B.</strong> <L s="$39{,}2\,\text{N}$" /></span>
                                     <span style={S.mcOption}><strong>C.</strong> <L s="$27{,}2\,\text{N}$" /></span>
                                     <span style={S.mcOption}><strong>D.</strong> <L s="$51{,}2\,\text{N}$" /></span>
+                                </>
+                            ) : (
+                                <>
+                                    <p style={S.domandaText}>
+                                        Un blocco di massa <L s="$m = 5{,}0\,\text{kg}$" /> è appoggiato su un piano
+                                        orizzontale. Dall'alto viene esercitata una <strong>forza della mano</strong>{" "}
+                                        <L s="$F = 15{,}0\,\text{N}$" />. Qual è la forza vincolare <L s="$F_v$" />{" "}
+                                        esercitata dal piano sul blocco?
+                                    </p>
+                                    <span style={S.mcOption}><strong>A.</strong> <L s="$15{,}0\,\text{N}$" /></span>
+                                    <span style={S.mcOption}><strong>B.</strong> <L s="$49{,}0\,\text{N}$" /></span>
+                                    <span style={S.mcOption}><strong>C.</strong> <L s="$64{,}0\,\text{N}$" /></span>
+                                    <span style={S.mcOption}><strong>D.</strong> <L s="$34{,}0\,\text{N}$" /></span>
                                 </>
                             )}
                             <RigaRisposta />
@@ -557,11 +615,17 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                     costante elastica <L s="$k = 245\,\text{N/m}$" />. Il dinamometro si allunga
                                     di <L s="$8{,}00\,\text{cm}$" />. Determina la massa del blocco.
                                 </p>
-                            ) : (
+                            ) : fila === "B" ? (
                                 <p style={S.domandaText}>
                                     Un blocco di massa incognita viene agganciato a un dinamometro verticale con
                                     costante elastica <L s="$k = 490\,\text{N/m}$" />. Il dinamometro si allunga
                                     di <L s="$6{,}00\,\text{cm}$" />. Determina la massa del blocco.
+                                </p>
+                            ) : (
+                                <p style={S.domandaText}>
+                                    Un blocco di massa incognita viene agganciato a un dinamometro verticale con
+                                    costante elastica <L s="$k = 196\,\text{N/m}$" />. Il dinamometro si allunga
+                                    di <L s="$5{,}00\,\text{cm}$" />. Determina la massa del blocco.
                                 </p>
                             )}
                             <div style={{ marginLeft: 16, marginTop: 10 }}>
@@ -597,11 +661,18 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                     Il coefficiente di attrito statico è <L s="$\mu_s = 0{,}50$" />.
                                     Verifica se il blocco è in equilibrio.
                                 </p>
-                            ) : (
+                            ) : fila === "B" ? (
                                 <p style={S.domandaText}>
                                     Un blocco di massa <L s="$m = 5{,}0\,\text{kg}$" /> è su un piano inclinato
                                     scabro di angolo <L s="$\theta = 37°$" />.
                                     Il coefficiente di attrito statico è <L s="$\mu_s = 0{,}80$" />.
+                                    Verifica se il blocco è in equilibrio.
+                                </p>
+                            ) : (
+                                <p style={S.domandaText}>
+                                    Un blocco di massa <L s="$m = 5{,}0\,\text{kg}$" /> è su un piano inclinato
+                                    scabro di angolo <L s="$\theta = 37°$" />.
+                                    Il coefficiente di attrito statico è <L s="$\mu_s = 0{,}60$" />.
                                     Verifica se il blocco è in equilibrio.
                                 </p>
                             )}
@@ -673,7 +744,7 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                                 mette in moto e subentra l'attrito dinamico.
                                             </p>
                                         </>
-                                    ) : (
+                                    ) : fila === "B" ? (
                                         <>
                                             <span style={S.solLabel}>a) Punto materiale e condizione di equilibrio</span>
                                             <p style={S.solText}>
@@ -687,6 +758,21 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                                 <L s="$\sum \vec{F} = \vec{0}$" />. Ciò significa che le forze si
                                                 bilanciano e il punto materiale resta in quiete (o in moto rettilineo
                                                 uniforme).
+                                            </p>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span style={S.solLabel}>a) Legge di Hooke e limite elastico</span>
+                                            <p style={S.solText}>
+                                                La <strong>legge di Hooke</strong>:{" "}
+                                                <L s="$F_{el} = k \cdot x$" />, dove <L s="$F_{el}$" /> (N) è la forza
+                                                elastica, <L s="$k$" /> (N/m) è la costante elastica della molla e{" "}
+                                                <L s="$x$" /> (m) è l'allungamento rispetto alla posizione di riposo.
+                                            </p>
+                                            <p style={S.solText}>
+                                                Il <strong>limite elastico</strong> è il valore massimo di deformazione
+                                                entro cui la legge di Hooke è valida: oltre tale limite la molla non
+                                                torna alla forma originale.
                                             </p>
                                         </>
                                     )}
@@ -720,13 +806,24 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                                 del moto (B falsa). Non dipende dalla velocità (D falsa).
                                             </p>
                                         </>
-                                    ) : (
+                                    ) : fila === "B" ? (
                                         <>
                                             <span style={S.solRisposta}>C</span>
                                             <p style={S.solText}>
                                                 La legge di Hooke è <L s="$F = k \cdot x$" />: la forza è proporzionale
                                                 all'allungamento. <L s="$k$" /> si misura in N/m (non N·m, B falsa).
                                                 Vale solo entro il limite elastico (D falsa).
+                                            </p>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span style={S.solRisposta}>C</span>
+                                            <p style={S.solText}>
+                                                L'equilibrio rotazionale richiede che la somma algebrica dei momenti
+                                                sia nulla: <L s="$\sum M = 0$" />. La quiete (A) non implica
+                                                necessariamente equilibrio rotazionale. La forza risultante nulla (B) è
+                                                la condizione traslazionale, non rotazionale. La simmetria (D) non è
+                                                una condizione fisica necessaria.
                                             </p>
                                         </>
                                     )}
@@ -741,11 +838,18 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                                 <DisplayMath>{"F = k \\cdot x = 490 \\times 0{,}0400 = 19{,}6\\,\\text{N}"}</DisplayMath>
                                             </div>
                                         </>
-                                    ) : (
+                                    ) : fila === "B" ? (
                                         <>
                                             <span style={S.solRisposta}>B</span>
                                             <div style={S.solStep}>
                                                 <DisplayMath>{"F = k \\cdot x = 500 \\times 0{,}0600 = 30{,}0\\,\\text{N}"}</DisplayMath>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span style={S.solRisposta}>A</span>
+                                            <div style={S.solStep}>
+                                                <DisplayMath>{"F = k \\cdot x = 245 \\times 0{,}0400 = 9{,}80\\,\\text{N}"}</DisplayMath>
                                             </div>
                                         </>
                                     )}
@@ -760,11 +864,18 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                                 <DisplayMath>{"F_{\\perp} = mg = 10 \\times 9{,}8 = 98\\,\\text{N} \\qquad f_{s,\\max} = 0{,}30 \\times 98 = 29{,}4\\,\\text{N}"}</DisplayMath>
                                             </div>
                                         </>
-                                    ) : (
+                                    ) : fila === "B" ? (
                                         <>
                                             <span style={S.solRisposta}>B</span>
                                             <div style={S.solStep}>
                                                 <DisplayMath>{"F_{\\perp} = mg = 5{,}0 \\times 9{,}8 = 49{,}0\\,\\text{N} \\qquad f_{s,\\max} = 0{,}40 \\times 49{,}0 = 19{,}6\\,\\text{N}"}</DisplayMath>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span style={S.solRisposta}>B</span>
+                                            <div style={S.solStep}>
+                                                <DisplayMath>{"F_{\\perp} = mg = 6{,}0 \\times 9{,}8 = 58{,}8\\,\\text{N} \\qquad f_{s,\\max} = 0{,}30 \\times 58{,}8 = 17{,}6\\,\\text{N}"}</DisplayMath>
                                             </div>
                                         </>
                                     )}
@@ -780,12 +891,20 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                                 <DisplayMath>{"F_v = P + F_p = 29{,}4 + 10{,}0 = 39{,}4\\,\\text{N}"}</DisplayMath>
                                             </div>
                                         </>
-                                    ) : (
+                                    ) : fila === "B" ? (
                                         <>
                                             <span style={S.solRisposta}>D</span>
                                             <div style={S.solStep}>
                                                 <DisplayMath>{"P = mg = 4{,}0 \\times 9{,}8 = 39{,}2\\,\\text{N}"}</DisplayMath>
                                                 <DisplayMath>{"F_v = P + F_p = 39{,}2 + 12{,}0 = 51{,}2\\,\\text{N}"}</DisplayMath>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span style={S.solRisposta}>C</span>
+                                            <div style={S.solStep}>
+                                                <DisplayMath>{"P = mg = 5{,}0 \\times 9{,}8 = 49{,}0\\,\\text{N}"}</DisplayMath>
+                                                <DisplayMath>{"F_v = P + F = 49{,}0 + 15{,}0 = 64{,}0\\,\\text{N}"}</DisplayMath>
                                             </div>
                                         </>
                                     )}
@@ -814,7 +933,7 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                                 <DisplayMath>{"m = \\frac{F_{el}}{g} = \\frac{19{,}6}{9{,}8} = 2{,}00\\,\\text{kg}"}</DisplayMath>
                                             </div>
                                         </>
-                                    ) : (
+                                    ) : fila === "B" ? (
                                         <>
                                             <span style={S.solLabel}>1) k = 490 N/m, x = 6,00 cm</span>
                                             <p style={{ ...S.solText, fontWeight: 600, marginBottom: 4 }}>i) Conversione</p>
@@ -828,6 +947,22 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                             <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>iii) Massa</p>
                                             <div style={S.solStep}>
                                                 <DisplayMath>{"m = \\frac{F_{el}}{g} = \\frac{29{,}4}{9{,}8} = 3{,}00\\,\\text{kg}"}</DisplayMath>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span style={S.solLabel}>1) k = 196 N/m, x = 5,00 cm</span>
+                                            <p style={{ ...S.solText, fontWeight: 600, marginBottom: 4 }}>i) Conversione</p>
+                                            <div style={S.solStep}>
+                                                <DisplayMath>{"x = 5{,}00\\,\\text{cm} = 0{,}0500\\,\\text{m}"}</DisplayMath>
+                                            </div>
+                                            <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>ii) Forza elastica</p>
+                                            <div style={S.solStep}>
+                                                <DisplayMath>{"F_{el} = 196 \\times 0{,}0500 = 9{,}80\\,\\text{N}"}</DisplayMath>
+                                            </div>
+                                            <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>iii) Massa</p>
+                                            <div style={S.solStep}>
+                                                <DisplayMath>{"m = \\frac{F_{el}}{g} = \\frac{9{,}80}{9{,}8} = 1{,}00\\,\\text{kg}"}</DisplayMath>
                                             </div>
                                         </>
                                     )}
@@ -856,7 +991,7 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                                 </p>
                                             </div>
                                         </>
-                                    ) : (
+                                    ) : fila === "B" ? (
                                         <>
                                             <span style={S.solLabel}>2) Piano inclinato + attrito — m = 5,0 kg, θ = 37°, μs = 0,80</span>
                                             <p style={{ ...S.solText, fontWeight: 600, marginBottom: 4 }}>i) Componente parallela</p>
@@ -872,6 +1007,25 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                                 <DisplayMath>{"f_{s,\\max} = \\mu_s \\cdot F_v = 0{,}80 \\times 39{,}2 = 31{,}4\\,\\text{N}"}</DisplayMath>
                                                 <p style={{ fontSize: 13 }}>
                                                     <L s="$F_\parallel = 29{,}4\,\text{N} < f_{s,\max} = 31{,}4\,\text{N}$" /> → il blocco è in <strong>equilibrio</strong>.
+                                                </p>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span style={S.solLabel}>2) Piano inclinato + attrito — m = 5,0 kg, θ = 37°, μs = 0,60</span>
+                                            <p style={{ ...S.solText, fontWeight: 600, marginBottom: 4 }}>i) Componente parallela</p>
+                                            <div style={S.solStep}>
+                                                <DisplayMath>{"F_{\\parallel} = mg\\sin 37° = 5{,}0 \\times 9{,}8 \\times 0{,}60 = 29{,}4\\,\\text{N}"}</DisplayMath>
+                                            </div>
+                                            <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>ii) Forza vincolare</p>
+                                            <div style={S.solStep}>
+                                                <DisplayMath>{"F_v = mg\\cos 37° = 5{,}0 \\times 9{,}8 \\times 0{,}80 = 39{,}2\\,\\text{N}"}</DisplayMath>
+                                            </div>
+                                            <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>iii) Attrito massimo e verifica</p>
+                                            <div style={S.solStep}>
+                                                <DisplayMath>{"f_{s,\\max} = \\mu_s \\cdot F_v = 0{,}60 \\times 39{,}2 = 23{,}5\\,\\text{N}"}</DisplayMath>
+                                                <p style={{ fontSize: 13 }}>
+                                                    <L s="$F_\parallel = 29{,}4\,\text{N} > f_{s,\max} = 23{,}5\,\text{N}$" /> → il blocco <strong>non è in equilibrio</strong>: scivola lungo il piano.
                                                 </p>
                                             </div>
                                         </>
