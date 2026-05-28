@@ -445,11 +445,11 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                 </>
                             ) : (
                                 <>
-                                    <p style={S.domandaText}>Quale affermazione sul <strong>momento torcente</strong> <L s="$M = F \cdot d$" /> è corretta?</p>
-                                    <span style={S.mcOption}><strong>A.</strong> Raddoppiando la forza <L s="$F$" /> a braccio fisso, <L s="$M$" /> rimane invariato</span>
-                                    <span style={S.mcOption}><strong>B.</strong> <L s="$M$" /> è inversamente proporzionale al braccio <L s="$d$" />: se <L s="$d$" /> raddoppia, <L s="$M$" /> si dimezza</span>
-                                    <span style={S.mcOption}><strong>C.</strong> <L s="$M$" /> è direttamente proporzionale al braccio <L s="$d$" />: se <L s="$d$" /> raddoppia, <L s="$M$" /> raddoppia</span>
-                                    <span style={S.mcOption}><strong>D.</strong> <L s="$M$" /> dipende solo dalla forza applicata, non dalla distanza</span>
+                                    <p style={S.domandaText}>Un <strong>punto materiale è in equilibrio</strong>. Quale affermazione è corretta?</p>
+                                    <span style={S.mcOption}><strong>A.</strong> La risultante delle forze applicate è diversa da zero</span>
+                                    <span style={S.mcOption}><strong>B.</strong> Il punto materiale è necessariamente fermo</span>
+                                    <span style={S.mcOption}><strong>C.</strong> La risultante di tutte le forze applicate è nulla: <L s="$\sum \vec{F} = \vec{0}$" /></span>
+                                    <span style={S.mcOption}><strong>D.</strong> Su di esso agisce una sola forza</span>
                                 </>
                             )}
                             <RigaRisposta />
@@ -864,10 +864,10 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                         <>
                                             <span style={S.solRisposta}>C</span>
                                             <p style={S.solText}>
-                                                Dalla definizione <L s="$M = F \cdot d$" />: a forza fissa, <L s="$M$" /> è
-                                                direttamente proporzionale a <L s="$d$" />. Raddoppiando <L s="$F$" /> a braccio
-                                                fisso, <L s="$M$" /> raddoppia (A falsa). La proporzionalità è diretta,
-                                                non inversa (B falsa). <L s="$M$" /> dipende da entrambi <L s="$F$" /> e <L s="$d$" /> (D falsa).
+                                                La condizione di equilibrio è <L s="$\sum \vec{F} = \vec{0}$" />.
+                                                A è falsa: la risultante è nulla. B è falsa: un corpo in moto
+                                                rettilineo uniforme è anch'esso in equilibrio (prima legge di Newton).
+                                                D è falsa: possono agire più forze che si bilanciano.
                                             </p>
                                         </>
                                     )}
