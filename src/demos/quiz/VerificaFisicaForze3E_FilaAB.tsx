@@ -701,12 +701,12 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                 {fila === "C" ? (
                                     <>
                                         <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginBottom: 6 }}>
-                                            <strong>i.)</strong> Calcola la componente del peso <em>parallela</em> al piano <L s="$P_\parallel = mg\sin\theta$" /> e quella <em>perpendicolare</em> <L s="$P_\perp = mg\cos\theta$" />.
+                                            <strong>i.)</strong> Calcola la componente del peso <em>parallela</em> al piano <L s="$P_\parallel$" /> e quella <em>perpendicolare</em> <L s="$P_\perp$" />.
                                         </p>
                                         <div style={{ height: 80, borderBottom: "1px dashed #cbd5e1" }} />
                                         <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginTop: 12, marginBottom: 6 }}>
                                             <strong>ii.)</strong> Il blocco è in equilibrio: la molla bilancia <L s="$P_\parallel$" />.
-                                            Applica <L s="$k \cdot x = P_\parallel$" />, ricava <L s="$x$" /> in metri e convertilo in centimetri.
+                                            Ricava l'allungamento <L s="$x$" /> in metri e convertilo in centimetri.
                                         </p>
                                         <div style={{ height: 80, borderBottom: "1px dashed #cbd5e1" }} />
                                         <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginTop: 12, marginBottom: 6 }}>
