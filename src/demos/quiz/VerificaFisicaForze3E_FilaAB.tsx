@@ -390,11 +390,9 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                 </p>
                             ) : (
                                 <p style={S.domandaText}>
-                                    Enuncia la <strong>legge di Hooke</strong>. Scrivi la relazione tra forza
-                                    elastica <L s="$F_{el}$" />, costante elastica <L s="$k$" /> e allungamento{" "}
-                                    <L s="$x$" />, specificando il significato fisico di ciascuna grandezza e la
-                                    loro unità di misura nel SI. Spiega cosa si intende per{" "}
-                                    <strong>limite elastico</strong>.
+                                    Definisci i concetti di <strong>corpo esteso</strong>, <strong>punto materiale</strong>{" "}
+                                    e <strong>corpo rigido</strong>. Spiega le differenze tra questi tre modelli,
+                                    indicando in quali situazioni fisiche è opportuno usare ciascuno di essi.
                                 </p>
                             )}
                             <div style={{ height: 80, borderBottom: "1px dashed #cbd5e1", marginTop: 8 }} />
@@ -803,17 +801,23 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                         </>
                                     ) : (
                                         <>
-                                            <span style={S.solLabel}>a) Legge di Hooke e limite elastico</span>
+                                            <span style={S.solLabel}>a) Corpo esteso, punto materiale, corpo rigido</span>
                                             <p style={S.solText}>
-                                                La <strong>legge di Hooke</strong>:{" "}
-                                                <L s="$F_{el} = k \cdot x$" />, dove <L s="$F_{el}$" /> (N) è la forza
-                                                elastica, <L s="$k$" /> (N/m) è la costante elastica della molla e{" "}
-                                                <L s="$x$" /> (m) è l'allungamento rispetto alla posizione di riposo.
+                                                Un <strong>corpo esteso</strong> è un oggetto reale con dimensioni finite
+                                                che possono deformarsi; è il modello più generale e completo.
                                             </p>
                                             <p style={S.solText}>
-                                                Il <strong>limite elastico</strong> è il valore massimo di deformazione
-                                                entro cui la legge di Hooke è valida: oltre tale limite la molla non
-                                                torna alla forma originale.
+                                                Un <strong>punto materiale</strong> è un'idealizzazione in cui tutta la
+                                                massa è concentrata in un punto privo di dimensioni. Si usa quando le
+                                                dimensioni del corpo sono trascurabili rispetto alle distanze in gioco
+                                                (es. pianeta in orbita, proiettile in volo).
+                                            </p>
+                                            <p style={S.solText}>
+                                                Un <strong>corpo rigido</strong> è un corpo esteso che non si deforma:
+                                                le distanze tra i suoi punti restano invariate. Si usa quando la forma
+                                                conta (es. leva, ruota) ma le deformazioni sono trascurabili. A
+                                                differenza del punto materiale, il corpo rigido può ruotare e occorre
+                                                considerare anche l'equilibrio rotazionale.
                                             </p>
                                         </>
                                     )}
