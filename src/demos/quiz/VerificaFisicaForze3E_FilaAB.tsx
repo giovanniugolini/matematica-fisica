@@ -445,11 +445,11 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                 </>
                             ) : (
                                 <>
-                                    <p style={S.domandaText}>Quale condizione deve essere soddisfatta affinché un <strong>corpo rigido</strong> sia in <strong>equilibrio rotazionale</strong>?</p>
-                                    <span style={S.mcOption}><strong>A.</strong> La velocità di rotazione del corpo è nulla</span>
-                                    <span style={S.mcOption}><strong>B.</strong> La risultante di tutte le forze applicate è nulla</span>
-                                    <span style={S.mcOption}><strong>C.</strong> La somma algebrica dei momenti delle forze rispetto all'asse è nulla</span>
-                                    <span style={S.mcOption}><strong>D.</strong> Il corpo è geometricamente simmetrico rispetto all'asse di rotazione</span>
+                                    <p style={S.domandaText}>Quale affermazione sul <strong>momento torcente</strong> <L s="$M = F \cdot d$" /> è corretta?</p>
+                                    <span style={S.mcOption}><strong>A.</strong> Raddoppiando la forza <L s="$F$" /> a braccio fisso, <L s="$M$" /> rimane invariato</span>
+                                    <span style={S.mcOption}><strong>B.</strong> <L s="$M$" /> è inversamente proporzionale al braccio <L s="$d$" />: se <L s="$d$" /> raddoppia, <L s="$M$" /> si dimezza</span>
+                                    <span style={S.mcOption}><strong>C.</strong> <L s="$M$" /> è direttamente proporzionale al braccio <L s="$d$" />: se <L s="$d$" /> raddoppia, <L s="$M$" /> raddoppia</span>
+                                    <span style={S.mcOption}><strong>D.</strong> <L s="$M$" /> dipende solo dalla forza applicata, non dalla distanza</span>
                                 </>
                             )}
                             <RigaRisposta />
@@ -864,11 +864,10 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                         <>
                                             <span style={S.solRisposta}>C</span>
                                             <p style={S.solText}>
-                                                L'equilibrio rotazionale richiede che la somma algebrica dei momenti
-                                                sia nulla: <L s="$\sum M = 0$" />. La quiete (A) non implica
-                                                necessariamente equilibrio rotazionale. La forza risultante nulla (B) è
-                                                la condizione traslazionale, non rotazionale. La simmetria (D) non è
-                                                una condizione fisica necessaria.
+                                                Dalla definizione <L s="$M = F \cdot d$" />: a forza fissa, <L s="$M$" /> è
+                                                direttamente proporzionale a <L s="$d$" />. Raddoppiando <L s="$F$" /> a braccio
+                                                fisso, <L s="$M$" /> raddoppia (A falsa). La proporzionalità è diretta,
+                                                non inversa (B falsa). <L s="$M$" /> dipende da entrambi <L s="$F$" /> e <L s="$d$" /> (D falsa).
                                             </p>
                                         </>
                                     )}
