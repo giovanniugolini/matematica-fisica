@@ -633,7 +633,7 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                         </p>
                                         <div style={{ height: 64, borderBottom: "1px dashed #cbd5e1" }} />
                                         <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginTop: 12, marginBottom: 6 }}>
-                                            <strong>ii.)</strong> Calcola la forza di attrito statico massima <L s="$f_{s,\max} = \mu_s \cdot F_v$" />.
+                                            <strong>ii.)</strong> Calcola la forza di attrito statico massima <L s="$f_{s,\max}$" />.
                                         </p>
                                         <div style={{ height: 64, borderBottom: "1px dashed #cbd5e1" }} />
                                         <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginTop: 12, marginBottom: 6 }}>
