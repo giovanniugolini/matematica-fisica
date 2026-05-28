@@ -448,7 +448,7 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                     <p style={S.domandaText}>Un <strong>punto materiale è in equilibrio</strong>. Quale affermazione è corretta?</p>
                                     <span style={S.mcOption}><strong>A.</strong> La risultante delle forze applicate è diversa da zero</span>
                                     <span style={S.mcOption}><strong>B.</strong> Il punto materiale è necessariamente fermo</span>
-                                    <span style={S.mcOption}><strong>C.</strong> La risultante di tutte le forze applicate è nulla: <L s="$\sum \vec{F} = \vec{0}$" /></span>
+                                    <span style={S.mcOption}><strong>C.</strong> La risultante di tutte le forze applicate è nulla</span>
                                     <span style={S.mcOption}><strong>D.</strong> Su di esso agisce una sola forza</span>
                                 </>
                             )}
