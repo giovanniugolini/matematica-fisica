@@ -701,18 +701,18 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                 {fila === "C" ? (
                                     <>
                                         <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginBottom: 6 }}>
-                                            <strong>i.)</strong> Calcola la componente del peso <em>parallela</em> al piano <L s="$F_\parallel = mg\sin\theta$" />.
+                                            <strong>i.)</strong> Calcola la componente del peso <em>parallela</em> al piano <L s="$P_\parallel = mg\sin\theta$" /> e quella <em>perpendicolare</em> <L s="$P_\perp = mg\cos\theta$" />.
                                         </p>
-                                        <div style={{ height: 64, borderBottom: "1px dashed #cbd5e1" }} />
+                                        <div style={{ height: 80, borderBottom: "1px dashed #cbd5e1" }} />
                                         <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginTop: 12, marginBottom: 6 }}>
-                                            <strong>ii.)</strong> Il blocco è in equilibrio: la molla bilancia <L s="$F_\parallel$" />.
-                                            Applica <L s="$k \cdot x = F_\parallel$" /> e ricava <L s="$x$" /> in metri.
+                                            <strong>ii.)</strong> Il blocco è in equilibrio: la molla bilancia <L s="$P_\parallel$" />.
+                                            Applica <L s="$k \cdot x = P_\parallel$" />, ricava <L s="$x$" /> in metri e convertilo in centimetri.
                                         </p>
-                                        <div style={{ height: 64, borderBottom: "1px dashed #cbd5e1" }} />
+                                        <div style={{ height: 80, borderBottom: "1px dashed #cbd5e1" }} />
                                         <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginTop: 12, marginBottom: 6 }}>
-                                            <strong>iii.)</strong> Converti <L s="$x$" /> da metri a centimetri.
+                                            <strong>iii.)</strong> Senza la molla, quale coefficiente di attrito statico minimo <L s="$\mu_{s,\min}$" /> sarebbe necessario perché il blocco resti in equilibrio? (<em>Suggerimento: usa <L s="$P_\parallel$" /> e <L s="$P_\perp$" />.</em>)
                                         </p>
-                                        <div style={{ height: 48, borderBottom: "1px dashed #cbd5e1" }} />
+                                        <div style={{ height: 80, borderBottom: "1px dashed #cbd5e1" }} />
                                         <div style={{ height: 48, borderBottom: "1px dashed #cbd5e1" }} />
                                     </>
                                 ) : (
@@ -1056,17 +1056,21 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                     ) : (
                                         <>
                                             <span style={S.solLabel}>2) Piano inclinato + molla — m = 5,0 kg, θ = 37°, k = 245 N/m</span>
-                                            <p style={{ ...S.solText, fontWeight: 600, marginBottom: 4 }}>i) Componente parallela</p>
+                                            <p style={{ ...S.solText, fontWeight: 600, marginBottom: 4 }}>i) Componenti del peso</p>
                                             <div style={S.solStep}>
-                                                <DisplayMath>{"F_{\\parallel} = mg\\sin 37° = 5{,}0 \\times 9{,}8 \\times 0{,}60 = 29{,}4\\,\\text{N}"}</DisplayMath>
+                                                <DisplayMath>{"P_{\\parallel} = mg\\sin 37° = 5{,}0 \\times 9{,}8 \\times 0{,}60 = 29{,}4\\,\\text{N}"}</DisplayMath>
+                                                <DisplayMath>{"P_{\\perp} = mg\\cos 37° = 5{,}0 \\times 9{,}8 \\times 0{,}80 = 39{,}2\\,\\text{N}"}</DisplayMath>
                                             </div>
                                             <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>ii) Allungamento molla</p>
                                             <div style={S.solStep}>
-                                                <DisplayMath>{"k \\cdot x = F_{\\parallel} \\Rightarrow x = \\frac{F_{\\parallel}}{k} = \\frac{29{,}4}{245} = 0{,}120\\,\\text{m}"}</DisplayMath>
+                                                <DisplayMath>{"k \\cdot x = P_{\\parallel} \\Rightarrow x = \\frac{29{,}4}{245} = 0{,}120\\,\\text{m} = 12{,}0\\,\\text{cm}"}</DisplayMath>
                                             </div>
-                                            <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>iii) Conversione</p>
+                                            <p style={{ ...S.solText, fontWeight: 600, marginTop: 12, marginBottom: 4 }}>iii) Coefficiente di attrito minimo</p>
                                             <div style={S.solStep}>
-                                                <DisplayMath>{"x = 0{,}120\\,\\text{m} = 12{,}0\\,\\text{cm}"}</DisplayMath>
+                                                <p style={{ fontSize: 13, marginBottom: 4 }}>
+                                                    All'equilibrio senza molla: <L s="$f_{s,\max} \geq P_\parallel$" />, cioè <L s="$\mu_{s,\min} \cdot P_\perp = P_\parallel$" />.
+                                                </p>
+                                                <DisplayMath>{"\\mu_{s,\\min} = \\frac{P_{\\parallel}}{P_{\\perp}} = \\frac{29{,}4}{39{,}2} = 0{,}75"}</DisplayMath>
                                             </div>
                                         </>
                                     )}
