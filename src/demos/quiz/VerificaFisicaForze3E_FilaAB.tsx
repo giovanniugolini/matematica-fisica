@@ -625,8 +625,6 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                 <p style={S.domandaText}>
                                     Un blocco di massa <L s="$m = 4{,}0\,\text{kg}$" /> è appoggiato su un piano
                                     orizzontale con coefficiente di attrito statico <L s="$\mu_s = 0{,}50$" />.
-                                    Viene applicata una forza orizzontale <L s="$F = 25{,}0\,\text{N}$" />.
-                                    Il blocco si mette in moto?
                                 </p>
                             )}
                             <div style={{ marginLeft: 16, marginTop: 10 }}>
@@ -641,7 +639,8 @@ export default function VerificaFisicaForze3E_FilaAB(): React.ReactElement {
                                         </p>
                                         <div style={{ height: 64, borderBottom: "1px dashed #cbd5e1" }} />
                                         <p style={{ fontSize: 14, lineHeight: 1.7, color: "#1e293b", marginTop: 12, marginBottom: 6 }}>
-                                            <strong>iii.)</strong> Confronta <L s="$F$" /> con <L s="$f_{s,\max}$" />: il blocco si muove? Motiva la risposta.
+                                            <strong>iii.)</strong> Viene applicata una forza orizzontale <L s="$F = 25{,}0\,\text{N}$" />.
+                                            Confronta <L s="$F$" /> con <L s="$f_{s,\max}$" />: il blocco si mette in moto? Motiva la risposta.
                                         </p>
                                         <div style={{ height: 64, borderBottom: "1px dashed #cbd5e1" }} />
                                         <div style={{ height: 48, borderBottom: "1px dashed #cbd5e1" }} />
