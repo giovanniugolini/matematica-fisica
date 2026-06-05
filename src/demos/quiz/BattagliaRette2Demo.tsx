@@ -12,6 +12,156 @@ function L({ s }: { s: string }): React.ReactElement { return <MixedLatex>{s}</M
 function fmt(s: number): string { return `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, "0")}`; }
 function rand<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
 
+// ── Helpers sistema sostituzione (stesso stile di SistemiPrimoGradoSostituzione) ──
+function mono(c: number, v: string): string {
+    if (c === 0) return "0";
+    if (c === 1) return v;
+    if (c === -1) return `-${v}`;
+    return `${c}${v}`;
+}
+function signedMono(c: number, v: string): string {
+    if (c === 0) return "";
+    if (c > 0) return `+ ${c === 1 ? v : `${c}${v}`}`;
+    if (c === -1) return `- ${v}`;
+    return `- ${Math.abs(c)}${v}`;
+}
+function signedConst(n: number): string {
+    if (n === 0) return "";
+    if (n > 0) return `+ ${n}`;
+    return `${n}`;
+}
+function linLHS(a: number, b: number): string {
+    let s = a !== 0 ? mono(a, "x") : "";
+    if (b !== 0) {
+        if (s === "" || s === "0") s = mono(b, "y");
+        else if (b > 0) s += ` + ${b === 1 ? "y" : `${b}y`}`;
+        else if (b === -1) s += " - y";
+        else s += ` - ${Math.abs(b)}y`;
+    }
+    return s || "0";
+}
+function varExpr(a: number, v: string, k: number): string {
+    let s = a !== 0 ? mono(a, v) : "";
+    if (k !== 0) {
+        if (s === "" || s === "0") s = `${k}`;
+        else s += ` ${signedConst(k)}`;
+    }
+    return s || "0";
+}
+
+interface SisData {
+    a1: number; b1: number; c1: number;
+    a2: number; b2: number; c2: number;
+    x0: number; y0: number;
+    sys1: string; sys2: string; sys3: string; sys4: string; sys5: string;
+    work2: string; work3: string; work4: string; work5: string;
+    isolateVar: "x" | "y";
+    isolateFrom: 1 | 2;
+    otherVar: "x" | "y";
+    otherEqNum: 1 | 2;
+    solutionLatex: string;
+}
+
+function generateSisData(): SisData {
+    const ri = (a: number, b: number) => Math.floor(Math.random() * (b - a + 1)) + a;
+    const rNZ = (a: number, b: number) => { let v = 0; while (!v) v = ri(a, b); return v; };
+
+    let a1: number, b1: number, a2: number, b2: number;
+    const x0 = ri(-4, 4), y0 = ri(-4, 4);
+    let attempt = 0;
+    do {
+        a1 = rNZ(-3, 3); b1 = rNZ(-3, 3); a2 = rNZ(-3, 3); b2 = rNZ(-3, 3);
+        const pos = ri(0, 3), val = Math.random() < 0.5 ? 1 : -1;
+        if (pos === 0) a1 = val; else if (pos === 1) b1 = val;
+        else if (pos === 2) a2 = val; else b2 = val;
+        attempt++;
+    } while (a1! * b2! - a2! * b1! === 0 && attempt < 100);
+
+    const _a1 = a1!, _b1 = b1!, _a2 = a2!, _b2 = b2!;
+    const _c1 = _a1 * x0 + _b1 * y0;
+    const _c2 = _a2 * x0 + _b2 * y0;
+
+    const candidates: { from: 1 | 2; v: "x" | "y"; coeff: number }[] = [
+        { from: 1, v: "x", coeff: _a1 }, { from: 1, v: "y", coeff: _b1 },
+        { from: 2, v: "x", coeff: _a2 }, { from: 2, v: "y", coeff: _b2 },
+    ];
+    const unit = candidates.filter(c => Math.abs(c.coeff) === 1);
+    const pool = unit.length > 0 ? unit : candidates;
+    const best = pool[Math.floor(Math.random() * pool.length)];
+
+    const isolateFrom = best.from;
+    const isolateVar  = best.v;
+    const otherVar: "x" | "y" = isolateVar === "x" ? "y" : "x";
+    const otherEqNum: 1 | 2    = isolateFrom === 1 ? 2 : 1;
+
+    const cv  = isolateFrom === 1 ? (isolateVar === "x" ? _a1 : _b1) : (isolateVar === "x" ? _a2 : _b2);
+    const cw  = isolateFrom === 1 ? (isolateVar === "x" ? _b1 : _a1) : (isolateVar === "x" ? _b2 : _a2);
+    const c   = isolateFrom === 1 ? _c1 : _c2;
+    const exprA = -cv * cw;
+    const exprC =  cv * c;
+
+    const cv2 = isolateFrom === 1 ? (isolateVar === "x" ? _a2 : _b2) : (isolateVar === "x" ? _a1 : _b1);
+    const cw2 = isolateFrom === 1 ? (isolateVar === "x" ? _b2 : _a2) : (isolateVar === "x" ? _b1 : _a1);
+    const c2_ = isolateFrom === 1 ? _c2 : _c1;
+
+    const rCoeff = cv2 * exprA + cw2;
+    const rRHS   = c2_ - cv2 * exprC;
+    const wVal   = rRHS / rCoeff;
+    const vVal   = exprA * wVal + exprC;
+
+    const V = isolateVar, W = otherVar;
+    const eq1 = `${linLHS(_a1, _b1)} = ${_c1}`;
+    const eq2 = `${linLHS(_a2, _b2)} = ${_c2}`;
+    const vExpr = varExpr(exprA, W, exprC);
+    const isolatedLine = `${V} = ${vExpr}`;
+    const wFmt = String(wVal), vFmt = String(vVal);
+
+    const sys1 = `\\begin{cases} ${eq1} \\\\ ${eq2} \\end{cases}`;
+    const sys2 = isolateFrom === 1
+        ? `\\begin{cases} ${isolatedLine} \\\\ ${eq2} \\end{cases}`
+        : `\\begin{cases} ${eq1} \\\\ ${isolatedLine} \\end{cases}`;
+
+    const vParen = Math.abs(cv2) === 1 ? (cv2 === 1 ? `(${vExpr})` : `-(${vExpr})`) : `${cv2}(${vExpr})`;
+    const substEq = cw2 !== 0 ? `${vParen} ${signedMono(cw2, W)} = ${c2_}` : `${vParen} = ${c2_}`;
+    const sys3 = isolateFrom === 1
+        ? `\\begin{cases} ${isolatedLine} \\\\ ${substEq} \\end{cases}`
+        : `\\begin{cases} ${substEq} \\\\ ${isolatedLine} \\end{cases}`;
+
+    const sys4 = isolateFrom === 1
+        ? `\\begin{cases} ${isolatedLine} \\\\ ${W} = ${wFmt} \\end{cases}`
+        : `\\begin{cases} ${W} = ${wFmt} \\\\ ${isolatedLine} \\end{cases}`;
+
+    const xFmt = V === "x" ? vFmt : wFmt, yFmt = V === "y" ? vFmt : wFmt;
+    const sys5 = `\\begin{cases} x = ${xFmt} \\\\ y = ${yFmt} \\end{cases}`;
+    const solutionLatex = `(x,\\,y) = (${xFmt},\\,${yFmt})`;
+
+    const origLine  = isolateFrom === 1 ? eq1 : eq2;
+    const otherOrig = isolateFrom === 1 ? eq2 : eq1;
+    const moved = `${mono(cv, V)} = ${c} ${signedMono(-cw, W)}`;
+    const work2 = `\\begin{aligned} &${origLine} \\\\ &${moved} \\\\ &${isolatedLine} \\end{aligned}`;
+    const work3 = `${otherOrig} \\;\\xrightarrow{\\;${V}\\,=\\,${vExpr}\\;}\\; ${substEq}`;
+
+    const t1 = cv2 * exprA, t2 = cw2, tk = cv2 * exprC;
+    let expLine = "";
+    if (t1 !== 0) expLine += mono(t1, W);
+    if (t2 !== 0) expLine += expLine ? ` ${signedMono(t2, W)}` : mono(t2, W);
+    if (tk !== 0) expLine += ` ${signedConst(tk)}`;
+    expLine = expLine.trim() || "0";
+    const work4 = `\\begin{aligned} &${substEq} \\\\ &${expLine} = ${c2_} \\\\ &${mono(rCoeff, W)} = ${rRHS} \\\\ &${W} = ${wFmt} \\end{aligned}`;
+
+    const calcA = exprA !== 0 ? `${exprA} \\cdot ${wFmt}` : "";
+    const calcC = exprC !== 0 ? ` ${signedConst(exprC)}` : "";
+    const calc  = (calcA + calcC).trim() || "0";
+    const work5 = `\\begin{aligned} &${V} = ${vExpr} \\\\ &${V} = ${calc} \\\\ &${V} = ${vFmt} \\end{aligned}`;
+
+    return {
+        a1: _a1, b1: _b1, c1: _c1, a2: _a2, b2: _b2, c2: _c2,
+        x0, y0, sys1, sys2, sys3, sys4, sys5,
+        work2, work3, work4, work5,
+        isolateVar, isolateFrom, otherVar, otherEqNum, solutionLatex,
+    };
+}
+
 // ── Problem Data ──────────────────────────────────────────────────────────────
 
 const ES_CONV = [
@@ -101,16 +251,6 @@ const ES_PARA_PUNTO = [
       perp_steps: ["m_\\perp = -\\tfrac{1}{3}", "q = 2 + \\tfrac{1}{3} \\cdot 3 = 3", "y = -\\tfrac{1}{3}x + 3"] },
 ];
 
-const ES_SISTEMA = [
-    { id: "s1", r1: "y = 2x + 1", r2: "y = x + 3",
-      steps: ["2x + 1 = x + 3", "x = 2", "y = 2(2)+1 = 5"], ris: "P(2,\\,5)" },
-    { id: "s2", r1: "y = 3x - 2", r2: "y = x + 4",
-      steps: ["3x - 2 = x + 4", "2x = 6 \\implies x = 3", "y = 3(3)-2 = 7"], ris: "P(3,\\,7)" },
-    { id: "s3", r1: "y = -x + 5", r2: "y = 2x - 1",
-      steps: ["-x + 5 = 2x - 1", "3x = 6 \\implies x = 2", "y = -2+5 = 3"], ris: "P(2,\\,3)" },
-    { id: "s4", r1: "y = -2x + 3", r2: "y = x - 3",
-      steps: ["-2x + 3 = x - 3", "-3x = -6 \\implies x = 2", "y = 2-3 = -1"], ris: "P(2,\\,-1)" },
-];
 
 const ES_RADICALI = [
     { id: "rad1", radicals: [
@@ -139,6 +279,33 @@ const ES_RADICALI = [
     ]},
 ];
 
+// ── Rendering helpers per il display step-by-step del sistema ────────────────
+function SisStepHead({ n, color, title }: { n: number; color: string; title: string }): React.ReactElement {
+    return (
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: n > 1 ? 12 : 0, marginBottom: 4 }}>
+            <div style={{
+                width: 22, height: 22, borderRadius: "50%", background: color, color: "#fff",
+                fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+            }}>{n}</div>
+            <span style={{ fontSize: 13, fontWeight: 700, color: "#334155" }}>{title}</span>
+        </div>
+    );
+}
+function SisSysBox({ latex }: { latex: string }): React.ReactElement {
+    return (
+        <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 6, padding: "4px 12px", textAlign: "center", marginBottom: 4 }}>
+            <DisplayMath>{latex}</DisplayMath>
+        </div>
+    );
+}
+function SisWorkBox({ latex }: { latex: string }): React.ReactElement {
+    return (
+        <div style={{ background: "#fff", border: "1px dashed #cbd5e1", borderRadius: 6, padding: "6px 12px", marginBottom: 4, overflowX: "auto" }}>
+            <DisplayMath>{latex}</DisplayMath>
+        </div>
+    );
+}
+
 // ── GameProblem ───────────────────────────────────────────────────────────────
 
 interface GameProblem {
@@ -153,7 +320,7 @@ type Sel = {
     pm: typeof ES_PUNTO_M[0];
     pp: typeof ES_PARA_PERP[0];
     pt: typeof ES_PARA_PUNTO[0];
-    sis: typeof ES_SISTEMA[0];
+    sis: SisData;
     rad: typeof ES_RADICALI[0];
 };
 
@@ -287,15 +454,33 @@ function makeProblems(sel: Sel): GameProblem[] {
                         Risolvi il sistema con il metodo di sostituzione. Trova le coordinate del punto di intersezione.
                     </p>
                     <div style={{ marginTop: 12, padding: "6px 16px", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8 }}>
-                        <DisplayMath>{`\\begin{cases} ${sis.r1} \\\\ ${sis.r2} \\end{cases}`}</DisplayMath>
+                        <DisplayMath>{sis.sys1}</DisplayMath>
                     </div>
-                    <div style={T.nota}>Sostituisci la prima equazione nella seconda, risolvi per <L s="$x$" />, poi trova <L s="$y$" />.</div>
+                    <div style={T.nota}>
+                        Isola <L s={`$${sis.isolateVar}$`} /> dalla ({sis.isolateFrom}), poi sostituisci nella ({sis.otherEqNum}).
+                    </div>
                 </div>
             ),
             solution: (
                 <div>
-                    {sis.steps.map((s, i) => <DisplayMath key={i}>{s}</DisplayMath>)}
-                    <Ris><L s={`$${sis.ris}$`} /></Ris>
+                    <SisStepHead n={1} color="#16a34a" title="Sistema di partenza" />
+                    <SisSysBox latex={sis.sys1} />
+
+                    <SisStepHead n={2} color="#1e40af" title={`Ricava ${sis.isolateVar} dalla (${sis.isolateFrom})`} />
+                    <SisSysBox latex={sis.sys2} />
+                    <SisWorkBox latex={sis.work2} />
+
+                    <SisStepHead n={3} color="#d97706" title={`Sostituisci ${sis.isolateVar} nella (${sis.otherEqNum})`} />
+                    <SisSysBox latex={sis.sys3} />
+                    <SisWorkBox latex={sis.work3} />
+
+                    <SisStepHead n={4} color="#7c3aed" title={`Risolvi per ${sis.otherVar}`} />
+                    <SisSysBox latex={sis.sys4} />
+                    <SisWorkBox latex={sis.work4} />
+
+                    <SisStepHead n={5} color="#15803d" title={`Calcola ${sis.isolateVar} per sostituzione inversa`} />
+                    <SisWorkBox latex={sis.work5} />
+                    <Ris><L s={`$${sis.solutionLatex}$`} /></Ris>
                 </div>
             ),
         },
@@ -379,7 +564,7 @@ export default function BattagliaRette2Demo(): React.ReactElement {
         pm: rand(ES_PUNTO_M),
         pp: rand(ES_PARA_PERP),
         pt: rand(ES_PARA_PUNTO),
-        sis: rand(ES_SISTEMA),
+        sis: generateSisData(),
         rad: rand(ES_RADICALI),
     }));
 
